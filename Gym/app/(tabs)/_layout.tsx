@@ -1,65 +1,95 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
-
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
+import React, { useEffect, useState } from 'react';
+import { Keyboard } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { AntDesign, EvilIcons, Foundation, MaterialIcons } from '@expo/vector-icons';
+import { Colors } from '@/constants/Colors';
+import { HapticTab } from '@/components/HapticTab';
+import TabBarBackground from '@/components/ui/TabBarBackground';
+import { Octicons, MaterialIcons, Foundation, EvilIcons, Feather } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const activeColor = "#d0fd3e";
+  const inactiveColor = "gray";
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () =>
+      setKeyboardVisible(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () =>
+      setKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: activeColor,
+        tabBarInactiveTintColor: inactiveColor,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
+        tabBarStyle: {
+          position: "absolute",
+          height: 60,
+          backgroundColor: "#fff",
+          display: isKeyboardVisible ? "none" : "flex",
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: "bold",
+        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Dashboard",
+          tabBarIcon: ({ focused }) => (
+            <Octicons name="home" size={24} color={focused ? activeColor : inactiveColor} />
+          ),
         }}
       />
-        <Tabs.Screen
+      <Tabs.Screen
         name="members"
         options={{
-          title: 'Members',
-          tabBarIcon: ({ color }) =><MaterialIcons name="group" size={30} color="gray" />,
+          title: "Members",
+          tabBarIcon: ({ focused }) => (
+            // <MaterialIcons name="group" size={30} color={focused ? activeColor : inactiveColor} />
+            <Feather name="users" size={24} color={focused ? activeColor : inactiveColor} />
+          ),
         }}
       />
-      <Tabs.Screen  
+      <Tabs.Screen
         name="plan"
         options={{
-          title: 'Plan',
-          tabBarIcon: ({ color }) => <Foundation name="clipboard-notes" size={30} color="gray" />,
+          title: "Plan",
+          tabBarIcon: ({ focused }) => (
+            <Foundation name="clipboard-notes" size={30} color={focused ? activeColor : inactiveColor} />
+          ),
         }}
       />
-        <Tabs.Screen  
+      <Tabs.Screen
         name="transaction"
         options={{
-          title: 'Transactions',
-          tabBarIcon: ({ color }) => <MaterialIcons name="payment" size={30} color="gray" />,
+          title: "Transactions",
+          tabBarIcon: ({ focused }) => (
+            <MaterialIcons name="payment" size={28} color={focused ? activeColor : inactiveColor} />
+          ),
         }}
       />
-        <Tabs.Screen
+      <Tabs.Screen
         name="reports"
         options={{
-          title: 'Reports',
-          tabBarIcon: ({ color }) => <EvilIcons name="chart" size={30} color="gray" />,
+          title: "Reports",
+          tabBarIcon: ({ focused }) => (
+            <EvilIcons name="chart" size={28} color={focused ? activeColor : inactiveColor} />
+          ),
         }}
       />
     </Tabs>
