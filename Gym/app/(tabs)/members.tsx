@@ -1,109 +1,173 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import React from "react";
+import {
+  StyleSheet,
+  Image,
+  Platform,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { Searchbar } from "react-native-paper";
+import MembersPage from "../components/home/MembersPage";
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-
+const datas = [
+  {
+    id: 1,
+    image: require("../../assets/images/member1.png"),
+    name: "Hari",
+    number: "#RRRE0003",
+    phoneNumber: "+929876543210",
+    plan: "No Plan",
+  },
+  {
+    id: 2,
+    image: require("../../assets/images/member2.png"),
+    name: "Surya",
+    number: "#RRRE0002",
+    phoneNumber: "+929876543210",
+    plan: "One month",
+    status: "Active",
+  },
+  {
+    id: 3,
+    image: require("../../assets/images/member3.png"),
+    name: "sanjay",
+    number: "#RRRE0003",
+    phoneNumber: "+929876543210",
+    plan: "One month",
+    status: "Inactive",
+  },
+];
 export default function TabTwoScreen() {
+  const [searchQuery, setSearchQuery] = React.useState("");
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+      <View style={styles.container}>
+        <Text style={styles.title}>Members</Text>
+        <View style={styles.header}>
+          <Searchbar
+            placeholder="Search.."
+            onChangeText={setSearchQuery}
+            value={searchQuery}
+            style={styles.searchbar}
+          />
+          <TouchableOpacity style={styles.addButton}>
+            <Text style={styles.addButtonText}> + </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.buttons}>
+          <TouchableOpacity style={styles.membersButton}>
+            <Text style={styles.buttonText}>All members</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.activeMembersButton}>
+            <Text style={styles.activeText}>Active members</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.activeMembersButton}>
+            <Text style={styles.activeText}>Inactive members</Text>
+          </TouchableOpacity>
+        </View>
+
+      <ScrollView style={styles.scrollView}>
+        <Text style={styles.members}>Showing 3 members</Text>
+        {datas.map((item) => (
+          <MembersPage
+            key={item.id}
+            id={item.id}
+            image={item.image}
+            name={item.name}
+            number={item.number}
+            phoneNumber={item.phoneNumber}
+            plan={item.plan}
+            status={item.status}
+          />
+        ))}
+        </ScrollView>
+      </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    paddingTop: 40,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  title: {
+    paddingLeft: 25,
+    fontWeight: 700,
+    lineHeight: 90,
+    fontSize: 20,
+    fontFamily: "Jost",
   },
+  header: {
+    paddingLeft: 20,
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+  },
+  searchbar: {
+    width: "70%",
+    borderWidth: 1,
+    borderColor: "gray",
+    borderRadius: 10,
+  },
+  addButton: {
+    fontSize: 25,
+    textAlign: "center",
+    justifyContent: "center",
+    backgroundColor: "#1B1A18",
+    color: "white",
+    width: 60,
+    height: 60,
+    borderRadius: 5,
+  },
+  addButtonText: {
+    textAlign: "center",
+    fontSize: 25,
+    fontWeight: 700,
+    color: "white",
+  },
+  buttons: {
+    paddingTop: 20,
+    display: "flex",
+    justifyContent: "space-around",
+    flexDirection: "row",
+    gap: 3,
+  },
+  membersButton: {
+    borderRadius: 30,
+    padding: 10,
+    // width: "30%",
+    textAlign: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#000000",
+  },
+  buttonText: {
+    color: "#000000",
+  },
+  activeMembersButton: {
+    borderRadius: 30,
+    padding: 10,
+    textAlign: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#000000",
+    backgroundColor: "#000000",
+  },
+  activeText: {
+    color: "white",
+  },
+  members: {
+    fontFamily: "Jost",
+    color: "#000000",
+    fontWeight: 900,
+    paddingTop: 30,
+    paddingLeft: 25,
+    fontSize: 18,
+  },
+  scrollView:{
+    marginBottom:80
+  }
 });
