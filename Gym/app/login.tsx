@@ -40,7 +40,7 @@ const LoginScreen = () => {
 
   return (
     <ScrollView style={{
-      backgroundColor: "#000000"
+      backgroundColor: "#ffffff"
     }}>
       <View style={styles.container}>
         <ImageBackground
@@ -115,11 +115,11 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000"
+    backgroundColor: "ffffff"
   },
   image: {
     width: 360,
-    height: 320,
+    height: 350,
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
@@ -127,12 +127,13 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     width: '100%',
     paddingBottom: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    // backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    // backgroundColor: "#f7f8f9"
   },
   text: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    color: 'black',
   },
   subText: {
     fontSize: 16,
@@ -143,15 +144,15 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   loginText: {
-    color: "white",
+    color: "black",
     paddingLeft: 20,
-    marginBottom: 10,
+    marginBottom: 5,
     fontSize: 15,
     fontWeight: "bold"
 
   },
   button: {
-    backgroundColor: "#d0fd3e",
+    backgroundColor: "#1b1a18",
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 10,
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: {
-    color: "#00000",
+    color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
   },
@@ -174,8 +175,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     width: '90%',
     marginLeft: 20,
-    marginBottom: 20,
-    backgroundColor: '#fff',
+    marginBottom: 10,
   },
   icon: {
     marginRight: 10, // Space between icon and input text

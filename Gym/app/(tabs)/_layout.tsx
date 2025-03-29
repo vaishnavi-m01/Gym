@@ -10,7 +10,7 @@ import { Octicons, MaterialIcons, Foundation, EvilIcons, Feather } from '@expo/v
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  const activeColor = "#d0fd3e";
+  const activeColor = "#282826";
   const inactiveColor = "gray";
 
   useEffect(() => {
