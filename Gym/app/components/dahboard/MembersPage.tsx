@@ -30,12 +30,11 @@ const MembersPage = ({
           <Text>ddf</Text>
         </View> */}
         <Text style={style.number}>{number}</Text>
-        <AntDesign name="delete" size={22} color="#F34E3A" style={style.icon} />
+        <AntDesign name="delete" size={20} color="#F34E3A" />
         <FontAwesome5
           name="edit"
-          size={22}
+          size={20}
           color="#1230B4"
-          style={style.icon}
         />
       </View>
       <View style={style.bottomContainer}>
@@ -57,12 +56,12 @@ export default MembersPage;
 const style = StyleSheet.create({
   container: {
     width: "90%",
-    height: 160,
+    height: 120,
     backgroundColor: "#ffffff",
     borderWidth: 2,
     borderColor: "#E5E6EA",
-    gap: 5,
-    margin: 10,
+    gap: 2,
+    margin: 5,
     marginLeft: 20,
     marginRight: 20,
     padding: 20,
@@ -76,14 +75,14 @@ const style = StyleSheet.create({
   image: {
     paddingLeft: 5,
     // borderRadius: "50%",
-    width: 80,
-    height: 80,
+    width: 50,
+    height: 50,
   },
   name: {
     color: "#000000",
     fontFamily: "Jost",
-    fontSize: 20,
-    paddingTop: 10,
+    fontSize: 15,
+    // paddingTop: 10,
   },
   phoneContainer:{
     display: "none",
@@ -92,11 +91,11 @@ const style = StyleSheet.create({
   number: {
     color: "gray",
     fontSize: 15,
-    paddingTop: 15,
+    // paddingTop: 15,
   },
-  icon: {
-    paddingTop: 10,
-  },
+  // icon: {
+  //   paddingTop: 10,
+  // },
   plan: {
     marginTop: 10,
   },

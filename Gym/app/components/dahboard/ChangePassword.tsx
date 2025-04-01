@@ -11,10 +11,10 @@ import {
 import Toast from "react-native-toast-message"; // Optional for better UI
 
 type ShopCreateIconsProps = {
-  onNewReview: (review: any) => void;
+  onChangePassword: (review: any) => void;
 };
 
-export default function ChangePassword({ onNewReview }: ShopCreateIconsProps) {
+export default function ChangePassword({ onChangePassword }: ShopCreateIconsProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [reviewText, setReviewText] = useState("");
@@ -35,7 +35,7 @@ export default function ChangePassword({ onNewReview }: ShopCreateIconsProps) {
       date: new Date().toLocaleDateString(),
     };
 
-    onNewReview(newReview); // ✅ Instantly update UI
+    onChangePassword(newReview); // ✅ Instantly update UI
 
     fetch("https://your-api.com/reviews", {
       method: "POST",
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    marginTop: 85,
+    marginTop: 9,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -120,6 +120,10 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 15,
     width: 300,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
   },
   modalTitle: {
     fontSize: 18,
@@ -135,24 +139,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginLeft: 10,
   },
-  textarea: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 5,
-    height: 100,
-    textAlignVertical: "top",
-  },
-
-  cancelButton: {
-    backgroundColor: "#1B1A18",
-    padding: 10,
-    borderRadius: 5,
-    flex: 1,
-    alignItems: "center",
-    marginRight: 5,
-  },
-
+ 
   loginText: {
     color: "black",
     paddingLeft: 10,

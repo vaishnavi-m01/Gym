@@ -1,10 +1,30 @@
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import Dashboard from "../components/home/Dashboard";
-import { useNavigation, useRouter } from "expo-router";
+import Dashboard from "../components/dahboard/Dashboard";
+import { useNavigation } from "expo-router";
+import { useEffect, useState } from "react";
+import axios from "axios"; 
+
 
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const [profileImage, setProfileImage] = useState(require("@/assets/images/adminImg.png"));
+  const [name, setName] = useState("User");
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const response = await axios.get("https://api.example.com/profile");
+        setName(response.data.name);
+        if (response.data.profileImage) {
+          setProfileImage({ uri: response.data.profileImage });
+        }
+      } catch (error) {
+        console.error("Error fetching profile data", error);
+      }
+    };
+    fetchProfileData();
+  }, []);
 
   const handleClicks = () => {
     navigation.navigate("Profile" as never);
@@ -16,7 +36,7 @@ export default function HomeScreen() {
         <View style={styles.subContainer}>
           <Text style={styles.headerTitle}> Hi, Velladurai Pandian </Text>
           <TouchableOpacity onPress={handleClicks}>
-            <Image source={require('@/assets/images/adminImg.png')} style={styles.adminImg} />
+            <Image source={profileImage} style={styles.adminImg} />
           </TouchableOpacity>
         </View>
         <Text style={styles.title}>Dashboard</Text>

@@ -9,7 +9,8 @@ import {
   ScrollView,
 } from "react-native";
 import { Searchbar } from "react-native-paper";
-import MembersPage from "../components/home/MembersPage";
+import MembersPage from "../components/dahboard/MembersPage";
+import { useNavigation } from "expo-router";
 
 const datas = [
   {
@@ -41,6 +42,11 @@ const datas = [
 ];
 export default function TabTwoScreen() {
   const [searchQuery, setSearchQuery] = React.useState("");
+  const navigation = useNavigation();
+
+  const handleClicks =()=>{
+    navigation.navigate("NewMember" as never)
+  }
 
   return (
       <View style={styles.container}>
@@ -52,7 +58,7 @@ export default function TabTwoScreen() {
             value={searchQuery}
             style={styles.searchbar}
           />
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity style={styles.addButton} onPress={handleClicks}>
             <Text style={styles.addButtonText}> + </Text>
           </TouchableOpacity>
         </View>
@@ -92,15 +98,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 40,
+    backgroundColor: "#ffffff",
   },
   title: {
     paddingLeft: 25,
     fontWeight: 700,
-    lineHeight: 90,
+    // lineHeight: 90,
+    paddingTop: 20,
     fontSize: 20,
     fontFamily: "Jost",
   },
   header: {
+    paddingTop:10,
     paddingLeft: 20,
     display: "flex",
     flexDirection: "row",
@@ -137,15 +146,17 @@ const styles = StyleSheet.create({
   },
   membersButton: {
     borderRadius: 30,
-    padding: 10,
+    padding: 8,
     // width: "30%",
     textAlign: "center",
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#000000",
+    marginLeft:20
   },
   buttonText: {
     color: "#000000",
+    fontSize: 15,
   },
   activeMembersButton: {
     borderRadius: 30,
@@ -158,6 +169,7 @@ const styles = StyleSheet.create({
   },
   activeText: {
     color: "white",
+    fontSize:12
   },
   members: {
     fontFamily: "Jost",
