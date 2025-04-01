@@ -1,8 +1,6 @@
 import React from "react";
 import {
   StyleSheet,
-  Image,
-  Platform,
   View,
   Text,
   TouchableOpacity,
@@ -70,7 +68,7 @@ export default function TabTwoScreen() {
           <TouchableOpacity style={styles.activeMembersButton}>
             <Text style={styles.activeText}>Active members</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.activeMembersButton}>
+          <TouchableOpacity style={styles.InactiveMembersButton}>
             <Text style={styles.activeText}>Inactive members</Text>
           </TouchableOpacity>
         </View>
@@ -110,13 +108,13 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop:10,
-    paddingLeft: 20,
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-evenly",
   },
   searchbar: {
     width: "70%",
+    height: 50,
     borderWidth: 1,
     borderColor: "gray",
     borderRadius: 10,
@@ -127,8 +125,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#1B1A18",
     color: "white",
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     borderRadius: 5,
   },
   addButtonText: {
@@ -140,9 +138,8 @@ const styles = StyleSheet.create({
   buttons: {
     paddingTop: 20,
     display: "flex",
-    justifyContent: "space-around",
+    justifyContent: "space-evenly",
     flexDirection: "row",
-    gap: 3,
   },
   membersButton: {
     borderRadius: 30,
@@ -152,7 +149,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#000000",
-    marginLeft:20
   },
   buttonText: {
     color: "#000000",
@@ -167,6 +163,16 @@ const styles = StyleSheet.create({
     borderColor: "#000000",
     backgroundColor: "#000000",
   },
+  InactiveMembersButton:{
+    borderRadius: 30,
+    padding: 10,
+    textAlign: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#000000",
+    backgroundColor: "#000000",
+    marginRight:10
+  },
   activeText: {
     color: "white",
     fontSize:12
@@ -178,6 +184,7 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     paddingLeft: 25,
     fontSize: 18,
+    marginBottom: 10
   },
   scrollView:{
     marginBottom:80
