@@ -54,7 +54,7 @@ const NewMember = () => {
           errorMessage = "Date must be in YYYY-MM-DD format";
         break;
       case "address":
-        if (value.length < 30)
+        if (value.length < 10)
           errorMessage = "Address must be at least 30 characters";
         break;
       case "password":
@@ -65,19 +65,18 @@ const NewMember = () => {
         break;
     }
 
-    setErrors((prevErrors) => ({ ...prevErrors, [field]: errorMessage }));
+    return errorMessage;
   };
 
   const validateForm = () => {
-    let newErrors: FormErrors = {};
+    let newErrors: FormErrors = {
+      name: validateField("name", name),
+      phone: validateField("phone", phone),
+      email: validateField("email", email),
+      dob: validateField("dob", dob),
+      address: validateField("address", address),
+    };
 
-    validateField("name", name);
-    validateField("phone", phone);
-    validateField("email", email);
-    validateField("dob", dob);
-    validateField("address", address);
-
-    newErrors = { ...errors };
     setErrors(newErrors);
     return Object.values(newErrors).every((error) => !error);
   };
@@ -90,7 +89,7 @@ const NewMember = () => {
 
     const requestData = {
       name,
-      phone: `${selectedCode}${phone}`,
+      phone: `${selectedCode}${phone}`, // Phone number with country code
       email,
       dob,
       gender,
@@ -101,10 +100,13 @@ const NewMember = () => {
     try {
       await axios.post("https://your-api-url.com/register", requestData);
       Alert.alert("Success", "Member added successfully!");
+
+      // navigation.navigate("NextScreen");
     } catch (error) {
       Alert.alert("Error", "Failed to add member. Try again.");
     }
   };
+
 
   return (
     <ScrollView>
@@ -118,7 +120,7 @@ const NewMember = () => {
               value={name}
               onChangeText={(text) => {
                 setName(text);
-                validateField("name", text);
+                setErrors({ ...errors, name: validateField("name", text) });
               }}
             />
           </View>
@@ -130,7 +132,7 @@ const NewMember = () => {
           </View>
 
           <View style={styles.phoneContainer}>
-        
+
 
             <View style={styles.mainPickerContainer}>
               <View style={styles.pickerContainer}>
@@ -145,26 +147,25 @@ const NewMember = () => {
                 </Picker>
               </View>
               <View style={styles.phoneinputContainer}>
-              <TextInput
-                style={styles.inputbox}
-                placeholder="9895xxxxxx"
-                value={phone}
-                onChangeText={(text) => {
-                  setPhone(text);
-                  validateField("phone", text);
-                }}
-                keyboardType="numeric"
-                maxLength={10} // Ensure only 10 digits
-              />
-            </View>
+                <TextInput
+                  style={styles.inputbox}
+                  placeholder="9895xxxxxx"
+                  value={phone}
+                  onChangeText={(text) => {
+                    setPhone(text);
+                    setErrors({ ...errors, phone: validateField("phone", text) });
+                  }}
+                  keyboardType="numeric"
+                  maxLength={10} // Ensure only 10 digits
+                />
+              </View>
             </View>
 
-           
+
           </View>
 
-          {errors.phone ? (
-            <Text style={styles.errorText}>{errors.phone}</Text>
-          ) : null}
+          {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+
         </View>
         <Text style={styles.text}>Email</Text>
         <View style={styles.inputContainer}>
@@ -174,7 +175,7 @@ const NewMember = () => {
             value={email}
             onChangeText={(text) => {
               setEmail(text);
-              validateField("email", text);
+              setErrors({ ...errors, email: validateField("email", text) });
             }}
             keyboardType="email-address"
           />
@@ -187,8 +188,10 @@ const NewMember = () => {
             style={styles.inputbox}
             placeholder="YYYY-MM-DD"
             value={dob}
-            onChangeText={setDOB}
-          />
+            onChangeText={(text) => {
+              setDOB(text);
+              setErrors({ ...errors, dob: validateField("dob", text) });
+            }} />
         </View>
         {errors.dob && <Text style={styles.errorText}>{errors.dob}</Text>}
 
@@ -234,8 +237,10 @@ const NewMember = () => {
           multiline={true}
           numberOfLines={4}
           value={address}
-          onChangeText={setAddress}
-        />
+          onChangeText={(text) => {
+            setAddress(text);
+            setErrors({ ...errors, address: validateField("address", text) });
+          }} />
         {errors.address && (
           <Text style={styles.errorText}>{errors.address}</Text>
         )}
@@ -314,12 +319,12 @@ const styles = StyleSheet.create({
   pickerStyle: {
     width: "30%",
   },
-  mainPickerContainer:{
+  mainPickerContainer: {
     width: "90%",
     display: "flex",
     flexDirection: "row",
-    gap:3,
-    marginRight:20,
+    gap: 3,
+    marginRight: 20,
   },
   Numbertext: {
     fontFamily: "Jost",
@@ -369,7 +374,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: 10,
   },
-  BloodPickerContainer:{
+  BloodPickerContainer: {
     borderWidth: 1,
     borderColor: "#E0E5E9",
     borderRadius: 15,
