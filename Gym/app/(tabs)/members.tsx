@@ -1,21 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Searchbar } from "react-native-paper";
-import MembersPage from "../components/dahboard/MembersPage";
 import { useNavigation } from "expo-router";
+import axios from "axios";
+import MembersPage from "../components/dahboard/MembersPage";
 
 const datas = [
   {
     id: 1,
     image: require("../../assets/images/member1.png"),
     name: "Hari",
-    number: "#RRRE0003",
     phoneNumber: "+929876543210",
     plan: "No Plan",
   },
@@ -23,7 +25,6 @@ const datas = [
     id: 2,
     image: require("../../assets/images/member2.png"),
     name: "Surya",
-    number: "#RRRE0002",
     phoneNumber: "+929876543210",
     plan: "One month",
     status: "Active",
@@ -32,46 +33,119 @@ const datas = [
     id: 3,
     image: require("../../assets/images/member3.png"),
     name: "sanjay",
-    number: "#RRRE0003",
     phoneNumber: "+929876543210",
     plan: "One month",
     status: "Inactive",
   },
 ];
+type Member = {
+  id: number;
+  image: string | number;
+  name: string;
+  phoneNumber: string;
+  plan: string;
+  status?: "Active" | "Inactive";
+};
+
 export default function TabTwoScreen() {
-  const [searchQuery, setSearchQuery] = React.useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState<"All" | "Active" | "Inactive">("All");
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
-  const handleClicks =()=>{
-    navigation.navigate("NewMember" as never)
-  }
+  useEffect(() => {
+    fetchMembers();
+  }, []);
+
+  const fetchMembers = async () => {
+    try {
+      const response = await axios.get("http://192.168.1.8:8001/members/");
+
+      if (Array.isArray(response.data)) {
+        console.log("respone",response)
+        setMembers(response.data);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to fetch members.");
+      setMembers([]); // Fallback to empty array on failure
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getFilteredMembers = () => {
+    return members
+      .filter((member) => filter === "All" || member.status === filter)
+      .filter((member) =>
+        member.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+  };
 
   return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Members</Text>
-        <View style={styles.header}>
-          <Searchbar
-            placeholder="Search.."
-            onChangeText={setSearchQuery}
-            value={searchQuery}
-            style={styles.searchbar}
-          />
-          <TouchableOpacity style={styles.addButton} onPress={handleClicks}>
-            <Text style={styles.addButtonText}> + </Text>
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      <Text style={styles.title}>Members</Text>
 
-        <View style={styles.buttons}>
-          <TouchableOpacity style={styles.membersButton}>
-            <Text style={styles.buttonText}>All members</Text>
+      <View style={styles.header}>
+        <Searchbar
+          placeholder="Search.."
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          style={styles.searchbar}
+        />
+        <TouchableOpacity
+          style={styles.addButton}
+        onPress={() => navigation.navigate("New  Member" as never)  }
+        >
+          <Text style={styles.addButtonText}> + </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.buttons}>
+        {["All", "Active", "Inactive"].map((status) => (
+          <TouchableOpacity
+            key={status}
+            style={[
+              styles.filterButton,
+              filter === status && styles.activeFilterButton,
+            ]}
+            onPress={() => setFilter(status as "All" | "Active" | "Inactive")}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                filter === status && styles.activeFilterButtonText,
+              ]}
+            >
+              {status} Members
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.activeMembersButton}>
-            <Text style={styles.activeText}>Active members</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.InactiveMembersButton}>
-            <Text style={styles.activeText}>Inactive members</Text>
-          </TouchableOpacity>
-        </View>
+        ))}
+      </View>
+
+      {/* {loading ? (
+        <ActivityIndicator size="large" color="black" style={styles.loader} />
+      ) : (
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {getFilteredMembers().length > 0 ? (
+            getFilteredMembers().map((item) => (
+              <MembersPage
+                key={item.id}
+                id={item.id}
+                image={item.image}
+                name={item.name}
+                phoneNumber={item.phoneNumber}
+                plan={item.plan}
+                status={item.status}
+              />
+            ))
+          ) : (
+            <Text style={styles.emptyMessage}>No members found.</Text>
+          )}
+        </ScrollView>
+      )} */}
 
       <ScrollView style={styles.scrollView}>
         <Text style={styles.members}>Showing 3 members</Text>
@@ -81,14 +155,13 @@ export default function TabTwoScreen() {
             id={item.id}
             image={item.image}
             name={item.name}
-            number={item.number}
             phoneNumber={item.phoneNumber}
             plan={item.plan}
             status={item.status}
           />
         ))}
-        </ScrollView>
-      </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -100,17 +173,16 @@ const styles = StyleSheet.create({
   },
   title: {
     paddingLeft: 25,
-    fontWeight: 700,
-    // lineHeight: 90,
+    fontWeight: "700",
     paddingTop: 20,
     fontSize: 20,
     fontFamily: "Jost",
   },
   header: {
-    paddingTop:10,
-    display: "flex",
+    paddingTop: 10,
     flexDirection: "row",
     justifyContent: "space-evenly",
+    alignItems: "center",
   },
   searchbar: {
     width: "70%",
@@ -120,62 +192,55 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   addButton: {
-    fontSize: 25,
-    textAlign: "center",
     justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#1B1A18",
-    color: "white",
     width: 50,
     height: 50,
     borderRadius: 5,
   },
   addButtonText: {
-    textAlign: "center",
     fontSize: 25,
-    fontWeight: 700,
+    fontWeight: "700",
     color: "white",
   },
   buttons: {
     paddingTop: 20,
-    display: "flex",
-    justifyContent: "space-evenly",
     flexDirection: "row",
+    justifyContent: "center",
+    gap: 10,
   },
-  membersButton: {
+  filterButton: {
     borderRadius: 30,
-    padding: 8,
-    // width: "30%",
-    textAlign: "center",
-    alignItems: "center",
+    padding: 10,
     borderWidth: 1,
     borderColor: "#000000",
   },
-  buttonText: {
+  activeFilterButton: {
+    backgroundColor: "#000000",
+  },
+  filterButtonText: {
     color: "#000000",
-    fontSize: 15,
+    fontSize: 12,
   },
-  activeMembersButton: {
-    borderRadius: 30,
-    padding: 10,
-    textAlign: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#000000",
-    backgroundColor: "#000000",
-  },
-  InactiveMembersButton:{
-    borderRadius: 30,
-    padding: 10,
-    textAlign: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#000000",
-    backgroundColor: "#000000",
-    marginRight:10
-  },
-  activeText: {
+  activeFilterButtonText: {
     color: "white",
-    fontSize:12
+  },
+  loader: {
+    marginTop: 20,
+  },
+  scrollContent: {
+    paddingBottom: 20,
+    flexGrow: 1,
+  },
+  emptyMessage: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "gray",
+  },
+  scrollView: {
+    marginBottom: 80,
   },
   members: {
     fontFamily: "Jost",
@@ -184,9 +249,6 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     paddingLeft: 25,
     fontSize: 18,
-    marginBottom: 10
+    marginBottom: 10,
   },
-  scrollView:{
-    marginBottom:80
-  }
 });

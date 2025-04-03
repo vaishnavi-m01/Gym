@@ -7,24 +7,17 @@ type members = {
   id: number;
   image: string | number;
   name: string;
-  number: string;
   phoneNumber: string;
   plan: string;
   status: string | undefined;
 };
-const MembersPage = ({
-  image,
-  name,
-  number,
-  phoneNumber,
-  plan,
-  status,
-}: members) => {
+const MembersPage = ({ image, name, phoneNumber, plan, status }: members) => {
   const [_changePassword, setChangePassword] = useState<any[]>([]);
 
   const handleChangePassword = (changePassword: any) => {
     setChangePassword((prevPasswor) => [changePassword, ...prevPasswor]);
   };
+
   return (
     <View style={style.container}>
       <View style={style.subcontainer}>
@@ -34,21 +27,23 @@ const MembersPage = ({
         />
 
         <View style={style.textContainer}>
-          <View
-           style={style.numberNameRow}>
+          <View style={style.numberNameRow}>
             <Text style={style.name}>{name}</Text>
-            <Text style={style.number}>{number}</Text>
             <View style={style.iconContainer}>
-              <AntDesign name="delete" size={22} color="#F34E3A" style={style.deleteIcon} />
+              <AntDesign
+                name="delete"
+                size={20}
+                color="#F34E3A"
+                style={style.deletIcon}
+              />
               {/* <FontAwesome5 name="edit" size={20} color="#1230B4" /> */}
-              <EditMembers onChangePassword={handleChangePassword} ></EditMembers>
+              <EditMembers
+                onChangePassword={handleChangePassword}
+              ></EditMembers>
             </View>
-
           </View>
           <Text style={style.phoneNumber}>{phoneNumber}</Text>
         </View>
-
-
       </View>
 
       <View style={style.bottomContainer}>
@@ -69,7 +64,6 @@ const MembersPage = ({
               />
               <Text style={style.statusText}>{status}</Text>
             </View>
-
           </View>
         )}
       </View>
@@ -77,8 +71,7 @@ const MembersPage = ({
   );
 };
 
-export default MembersPage
-
+export default MembersPage;
 
 const style = StyleSheet.create({
   container: {
@@ -108,15 +101,11 @@ const style = StyleSheet.create({
     marginLeft: 10,
   },
   numberNameRow: {
+    justifyContent: "space-between",
     flexDirection: "row",
-    alignItems: "center",
     gap: 8,
   },
-  number: {
-    color: "gray",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
+
   name: {
     color: "#000000",
     fontFamily: "Jost",
@@ -129,7 +118,7 @@ const style = StyleSheet.create({
     marginTop: 2,
   },
   plan: {
-    marginTop: 20
+    marginTop: 20,
   },
   bottomContainer: {
     flexDirection: "row",
@@ -154,8 +143,7 @@ const style = StyleSheet.create({
     flexDirection: "row",
     padding: 3,
     alignContent: "center",
-    paddingLeft: 10
-
+    paddingLeft: 10,
   },
   iconContainer: {
     display: "flex",
@@ -163,14 +151,8 @@ const style = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "flex-end",
     gap: 8,
-    marginRight: 95,
-    width: 600,
-    position: "fixed"
   },
-  deleteIcon:{
-    paddingTop: 0,
-    paddingRight:30,
-  },
+
   activeStatus: {
     backgroundColor: "#E8F7F0",
   },
@@ -183,6 +165,7 @@ const style = StyleSheet.create({
     textAlign: "center",
     alignSelf: "center",
   },
-
-
+  deletIcon: {
+    bottom: 5,
+  },
 });

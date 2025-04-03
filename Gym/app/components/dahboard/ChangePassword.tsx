@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import Toast from "react-native-toast-message"; // Optional for better UI
+import Toast from "react-native-toast-message"; 
 
 type ShopCreateIconsProps = {
   onChangePassword: (review: any) => void;

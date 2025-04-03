@@ -31,7 +31,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView>
+    <ScrollView style={styles.scrollView}>
       <View style={styles.container}>
         <View style={styles.subContainer}>
           <Text style={styles.headerTitle}> Hi, Velladurai Pandian </Text>
@@ -88,5 +88,8 @@ const styles = StyleSheet.create({
   },
   DashboardContainer: {
     marginTop: 50
+  },
+  scrollView:{
+    marginBottom : 10
   }
 })
