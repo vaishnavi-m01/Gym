@@ -26,13 +26,7 @@ const ProfileMember = ({ image, name, phoneNumber, plan, status }: members) => {
                     <View style={style.numberNameRow}>
                         <Text style={style.name}>{name}</Text>
                         <View style={style.iconContainer}>
-                            <AntDesign
-                                name="delete"
-                                size={20}
-                                color="#F34E3A"
-                                style={style.deletIcon}
-                            />
-                            {/* <FontAwesome5 name="edit" size={20} color="#1230B4" /> */}
+                        <AntDesign name="arrowright" size={22} color="black" />
 
                         </View>
                     </View>
@@ -42,12 +36,7 @@ const ProfileMember = ({ image, name, phoneNumber, plan, status }: members) => {
 
             <View style={style.bottomContainer}>
                 {status && (
-                    <View
-                        style={[
-                            style.status,
-                            status === "Active" ? style.activeStatus : style.inactiveStatus,
-                        ]}
-                    >
+                   
                         <View style={style.statusContainer}>
                             <Entypo
                                 name="dot-single"
@@ -57,7 +46,6 @@ const ProfileMember = ({ image, name, phoneNumber, plan, status }: members) => {
                             />
                             <Text style={style.statusText}>{status}</Text>
                         </View>
-                    </View>
 
                 )}
                 <Text style={style.plan}>{plan}</Text>
@@ -87,8 +75,8 @@ const style = StyleSheet.create({
         justifyContent: "space-between",
     },
     image: {
-        width: 50,
-        height: 50,
+        width: 60,
+        height: 60,
         borderRadius: 25,
     },
     textContainer: {
@@ -123,14 +111,13 @@ const style = StyleSheet.create({
         color: "black",
     },
     bottomContainer: {
-        padding:10,
         flexDirection: "row",
         justifyContent: "center",
         gap: 10,
 
     },
     status: {
-        padding: 5,
+        padding: 10,
         marginTop: 10,
         borderRadius: 15,
         backgroundColor: "#E8F7F0",
@@ -143,6 +130,13 @@ const style = StyleSheet.create({
         display: "flex",
         flexDirection: "row",
         alignContent: "center",
+        backgroundColor: "#eff0f4",
+        marginTop: 20,
+        borderRadius: 15,
+        fontFamily: "Jost",
+        padding:10,
+        fontWeight: "700",
+        color: "black",
     },
     iconContainer: {
         display: "flex",
@@ -161,9 +155,8 @@ const style = StyleSheet.create({
     statusText: {
         fontWeight: "700",
         color: "black",
+        alignItems: "center",
         fontSize: 14,
     },
-    deletIcon: {
-        bottom: 5,
-    },
+   
 });

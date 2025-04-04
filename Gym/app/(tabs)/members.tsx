@@ -63,7 +63,7 @@ export default function TabTwoScreen() {
       const response = await axios.get("http://192.168.1.8:8001/members/");
 
       if (Array.isArray(response.data)) {
-        console.log("respone",response)
+        console.log("respone", response);
         setMembers(response.data);
       } else {
         throw new Error("Invalid response format");
@@ -97,7 +97,7 @@ export default function TabTwoScreen() {
         />
         <TouchableOpacity
           style={styles.addButton}
-        onPress={() => navigation.navigate("New  Member" as never)  }
+          onPress={() => navigation.navigate("New  Member" as never)}
         >
           <Text style={styles.addButtonText}> + </Text>
         </TouchableOpacity>
