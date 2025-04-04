@@ -123,8 +123,7 @@ const NewMember = () => {
   // };
 
   const handleSubmit =() =>{
-    console.log("Datadddddddddddddddddddddddddddd")
-    navigation.navigate("login" as never);
+    navigation.navigate("Add  Membership" as never);
   }
 
   return (
