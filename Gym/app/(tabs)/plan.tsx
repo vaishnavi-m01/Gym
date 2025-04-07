@@ -44,7 +44,7 @@ export default function PlanDashboard() {
   const [members, setMembers] = useState<Member[]>([]);
   const navigation = useNavigation();
 
-  const handleSubmit = () => {
+  const handleSubmit =  () => {
     navigation.navigate("New Plan" as never)
   }
 

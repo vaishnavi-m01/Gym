@@ -1,47 +1,46 @@
 import { AntDesign, Entypo, FontAwesome5 } from "@expo/vector-icons";
-import {
-  View,
-  StyleSheet,
-  Image,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
-import EditMembers from "../members/EditMembers";
-import { useState } from "react";
-import { useNavigation } from "expo-router";
-import EditPlan from "./EditPlan";
+import { View, StyleSheet, Text } from "react-native";
 
 type members = {
   id: number;
-  planName: string;
+  name: string;
+  amount: number;
   duration: string;
+  plan: string;
+  paymentType: string;
 };
-const Plan = ({ planName, duration }: members) => {
+const Transaction = ({
+  name,
+  amount,
+  duration,
+  paymentType,
+}: members) => {
   return (
     <View style={style.container}>
       <View style={style.subcontainer}>
         <View style={style.textContainer}>
           <View style={style.numberNameRow}>
-            <Text style={style.name}>{planName}</Text>
+            <Text style={style.name}>{name}</Text>
             <View style={style.iconContainer}>
-              <AntDesign
+              {/* <AntDesign
                 name="delete"
                 size={20}
                 color="#F34E3A"
                 style={style.deletIcon}
-              />
-              <EditPlan></EditPlan>
+              /> */}
+              <Text style={style.paymentType}>{paymentType}</Text>
+              <Text style={style.amount}>{amount}</Text>
             </View>
           </View>
           <Text>{duration}</Text>
+          <Text style={style.bottomLine}></Text>
         </View>
       </View>
     </View>
   );
 };
 
-export default Plan;
+export default Transaction;
 
 const style = StyleSheet.create({
   container: {
@@ -108,5 +107,22 @@ const style = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: 600,
     fontSize: 18,
+  },
+  paymentType: {
+    borderWidth: 1,
+    borderColor: "#D5F1E3",
+    backgroundColor: "#D5F1E3",
+    borderRadius: 20,
+    padding: 5,
+    color: "#0F2519",
+  },
+  amount: {
+    color: "#1B1A18",
+    fontFamily: "Jost",
+    fontWeight: 700,
+  },
+  bottomLine: {
+    color: "#73767D",
+    borderWidth: 1,
   },
 });
