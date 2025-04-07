@@ -23,13 +23,13 @@ const Dashboard = () => {
               navigation.navigate("Attendance" as never);
               break;
             case "Expiring Today":
-              navigation.navigate("ExpiringDay" as never);
+              navigation.navigate("Expiring Today" as never);
               break;
             case "Pending List":
-              navigation.navigate("PendingList" as never);
+              navigation.navigate("Pending List" as never);
               break;
               case "Leads":
-                navigation.navigate("Leads" as never);
+                navigation.navigate("Potential Leads" as never);
                 break;
             default:
               console.warn("No screen available for this saree.");

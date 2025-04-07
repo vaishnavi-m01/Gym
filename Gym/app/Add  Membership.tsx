@@ -9,12 +9,20 @@ import {
   ScrollView,
   Platform,
   Pressable,
+  Alert,
+  Modal,
 } from "react-native";
 import ProfileMember from "./components/members/ProfileMember";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigation } from "expo-router";
-import { RadioButton } from "react-native-paper";
+import { ActivityIndicator, RadioButton } from "react-native-paper";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { Linking } from 'react-native';
+import { AppState } from 'react-native';
+import { useRef } from 'react';
+
+
+import axios from "axios";
 
 const member = [
   {
@@ -26,32 +34,171 @@ const member = [
     status: "Active",
   },
 ];
+const plans = [
+  { name: "One Month", amount: 1000, duration: "30 days" },
+  { name: "3 Month", amount: 2300, duration: "90 days" },
+  { name: "6 Month", amount: 4300, duration: "180 days" },
+];
 
-type members = {
-  id: number;
-  image: string;
-  name: string;
-  phoneNumber: string;
-  plan: string;
-  status: string | undefined;
-};
+
+
+
+
+
 const AddMembership = () => {
-  const [members, setMembers] = useState<members[]>([]);
   const navigation = useNavigation();
   const [plan, setPlan] = useState("One Month");
+  const [planName, setPlanName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
+  const [discount, setDiscount] = useState("");
+  const [amountReceived, setAmountReceived] = useState("");
+
   const [date, setDate] = useState(new Date());
   const [isPickerVisible, setPickerVisible] = useState(false);
-  const navigate = useNavigation();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const [membershipData, setMembershipData] = useState<any>(null);
+
+  const appState = useRef(AppState.currentState);
+
+
 
   const handleConfirm = (selectedDate: Date) => {
     setDate(selectedDate);
     setPickerVisible(false);
   };
 
-  const handleSubmit = () =>{
-    navigate.navigate("New Plan" as never)
-  }
+  const handleSubmit = async () => {
+    if (!plan || !paymentMethod || !amountReceived) {
+      Alert.alert("Error", "Please fill all required fields.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setModalVisible(true);
+
+      const payload = {
+        member: member[0],
+        plan,
+        paymentMethod,
+        discount,
+        amountReceived,
+        startDate: date.toISOString().split("T")[0],
+      };
+
+      const response = await axios.post("https://your-api.com/memberships", payload);
+
+      if (response.status === 200 || response.status === 201) {
+        console.log("Success:", response.data);
+        Alert.alert("Success", "Membership added successfully!");
+      } else {
+        Alert.alert("Error", "Unexpected server response.");
+      }
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert("Error", error.response?.data?.message || "Submission failed!");
+    } finally {
+      setIsSubmitting(false);
+      setModalVisible(false);
+    }
+  };
+
+
+  useEffect(() => {
+    const fetchMembership = async () => {
+      try {
+        const response = await axios.get("https://your-api.com/membership/123");
+        setMembershipData(response.data);
+      } catch (error) {
+        console.error("Error fetching membership:", error);
+      }
+    };
+
+    fetchMembership();
+  }, []);
+
+  const getEndDate = () => {
+    if (!membershipData) return "";
+
+    const start = new Date(membershipData.startDate);
+    const end = new Date(start);
+    end.setDate(start.getDate() + membershipData.durationDays);
+
+    return end.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const handleSendWhatsApp = () => {
+    const phoneNumber = "6385542771"; // replace with dynamic number
+    const message = `Hello Vaishu,
+  Your membership to 8 months was successfully added and will expire on 01 Jun 2025.
+  Amount: ₹5,000
+  Paid: ₹5,000.00
+  Balance: ₹0.00
+  Thank you.`;
+
+    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+
+    Linking.canOpenURL(url)
+      .then((supported) => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          Alert.alert("WhatsApp not installed!");
+        }
+      })
+      .catch((err) => console.error("An error occurred", err));
+  };
+
+  // const handleSendWhatsApp = () => {
+  //   if (!membershipData) return;
+
+  //   const phoneNumber = membershipData.phoneNumber;
+  //   const name = membershipData.name;
+  //   const plan = membershipData.plan;
+  //   const endDate = getEndDate();
+  //   const amount = membershipData.amount;
+  //   const paid = membershipData.paid;
+  //   const balance = (amount - paid).toFixed(2);
+
+  //   const message = `Hello ${name},\n\nYour membership to ${plan} was successfully added and will expire on ${endDate}.\n\nAmount: ₹${amount}\nPaid: ₹${paid.toFixed(2)}\nBalance: ₹${balance}\n\nThank you.`;
+
+  //   const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+
+  //   Linking.canOpenURL(url)
+  //     .then(supported => {
+  //       if (supported) {
+  //         Linking.openURL(url);
+  //       } else {
+  //         Alert.alert('Error', 'WhatsApp not installed on your device');
+  //       }
+  //     })
+  //     .catch(err => console.error("WhatsApp Error:", err));
+  // };
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        // User is back in the app, close modal
+        setModalVisible(false);
+        navigation.navigate("Member Details" as never)
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
 
   return (
     <ScrollView>
@@ -79,26 +226,19 @@ const AddMembership = () => {
             </TouchableOpacity>
           </View>
           <View>
+
             <RadioButton.Group onValueChange={setPlan} value={plan}>
-              <View style={styles.radioButton}>
-                <RadioButton value="One Month" />
-                <Text style={styles.radioText}>One Month</Text>
-              </View>
-              <Text style={styles.amount}>₹1,000 - 30 days</Text>
-
-              <View style={styles.radioButton}>
-                <RadioButton value="3 Month" />
-                <Text style={styles.radioText}>3 Month</Text>
-              </View>
-
-              <Text style={styles.amount}>₹2,300 - 90 days</Text>
-
-              <View style={styles.radioButton}>
-                <RadioButton value="6 Month" />
-                <Text style={styles.radioText}>6 Month</Text>
-              </View>
-              <Text style={styles.amount}>₹2,300 - 90 days</Text>
+              {plans.map((item, index) => (
+                <View key={index}>
+                  <View style={styles.radioButton}>
+                    <RadioButton value={item.name} />
+                    <Text style={styles.radioText}>{item.name}</Text>
+                  </View>
+                  <Text style={styles.amount}> ₹{item.amount} - {item.duration}</Text>
+                </View>
+              ))}
             </RadioButton.Group>
+
           </View>
 
           <View style={styles.paymentContainer}>
@@ -107,11 +247,21 @@ const AddMembership = () => {
           </View>
           <View style={styles.paymentSubContainer}>
             <View style={styles.inputContainer}>
-              <TextInput style={styles.inputbox} placeholderTextColor="gray" />
-            </View>
+              <TextInput
+                style={styles.inputbox}
+                placeholderTextColor="gray"
+                value={discount}
+                onChangeText={setDiscount}
+              />            </View>
             <View style={styles.inputContainer}>
-              <TextInput style={styles.inputbox} placeholderTextColor="gray" />
-            </View>
+              <TextInput
+                style={styles.inputbox}
+                placeholderTextColor="gray"
+                value={amountReceived}
+                onChangeText={setAmountReceived}
+                keyboardType={"number-pad"}
+
+              />            </View>
           </View>
         </View>
         <Text style={styles.paymentTitle}>Payment Method</Text>
@@ -120,26 +270,37 @@ const AddMembership = () => {
             onValueChange={setPaymentMethod}
             value={paymentMethod}
           >
+
             <View style={styles.radioButton}>
-              <RadioButton value="Cash" />
-              <Text style={styles.radioText}>Cash</Text>
-              <View style={styles.radioLeftText}>
+              <View style={styles.radioOption}>
+                <RadioButton value="Cash" />
+                <Text style={styles.radioText}>Cash</Text>
+              </View>
+
+              <View style={styles.leftspacer} />
+
+              <View style={styles.radioOption}>
                 <RadioButton value="UPI" />
+                <Text style={styles.radioText}>UPI</Text>
               </View>
-              <Text style={styles.radioText}>UPI</Text>
             </View>
 
+
             <View style={styles.radioButton}>
-              <RadioButton value="Credit card" />
-              <Text style={styles.radioText}>Credit card</Text>
-              <View style={styles.radioLeftText}>
-                {" "}
+              <View style={styles.radioOption}>
+                <RadioButton value="Credit card" />
+                <Text style={styles.radioText}>Credit card</Text>
+              </View>
+
+              <View style={styles.spacer} />
+
+              <View style={styles.radioOption}>
                 <RadioButton value="Debit card" />
+                <Text style={styles.radioText}>Debit card</Text>
               </View>
-              <Text style={styles.radioText}>Debit card</Text>
             </View>
 
-            <View style={styles.radioButton}>
+            <View style={styles.radioOptions}>
               <RadioButton value="Net Banking" />
               <Text style={styles.radioText}>Net Banking</Text>
             </View>
@@ -172,15 +333,82 @@ const AddMembership = () => {
           onConfirm={handleConfirm}
           onCancel={() => setPickerVisible(false)}
         />
-        <TouchableOpacity style={styles.sumbitButton}>
+        {/* <TouchableOpacity style={styles.sumbitButton} onPress={handleSubmit}>
+          <Text style={styles.buttontext}>Confirm</Text>
+        </TouchableOpacity> */}
+
+        <TouchableOpacity
+          style={styles.sumbitButton}
+          onPress={() => setModalVisible(true)}
+        >
           <Text style={styles.buttontext}>Confirm</Text>
         </TouchableOpacity>
+
+
       </View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>Send Message?</Text>
+            <Text style={styles.messageTitle}>Your message would look like this</Text>
+
+            <View style={styles.messageContainer}>
+              <Text style={styles.messageText}>To:</Text>
+              <Text style={styles.phoneNumber}>+919876543210</Text>
+            </View>
+            <Text style={styles.title}>Message</Text>
+            <View style={styles.messageSubContainer}>
+              <Text style={styles.memberName}>Hello Vaishu,</Text>
+              <Text style={styles.message}>Your membership to 8 months was successfully added and will expire on 01 Jun 2025.</Text>
+              <View style={styles.AmmountContainer}>  <Text style={styles.message}>Amount: ₹5,000 </Text>
+                <Text style={styles.message}>Paid: ₹5,000.00  </Text>
+                <Text style={styles.message}>Balance: ₹0.00 </Text>
+                <Text style={styles.thankYouText}>Thank you </Text></View>
+            </View>
+            <TouchableOpacity style={styles.sendMessageButton} onPress={handleSendWhatsApp}>
+              <Text style={styles.buttontext}>Send message</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      {/* {membershipData && (
+        <>
+          <Text style={styles.phoneNumber}>{membershipData.phoneNumber}</Text>
+
+          <Text style={styles.title}>Message</Text>
+          <View style={styles.messageSubContainer}>
+            <Text style={styles.memberName}>Hello {membershipData.name},</Text>
+            <Text style={styles.message}>
+              Your membership to {membershipData.plan} was successfully added and will expire on {getEndDate()}.
+            </Text>
+
+            <View style={styles.AmmountContainer}>
+              <Text style={styles.message}>Amount: ₹{membershipData.amount}</Text>
+              <Text style={styles.message}>Paid: ₹{membershipData.paid.toFixed(2)}</Text>
+              <Text style={styles.message}>
+                Balance: ₹{(membershipData.amount - membershipData.paid).toFixed(2)}
+              </Text>
+              <Text style={styles.thankYouText}>Thank you</Text>
+            </View>
+            <TouchableOpacity style={styles.sendMessageButton} onPress={handleSendWhatsApp}>
+              <Text style={styles.buttontext}>Send message</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+ */}
+
     </ScrollView>
   );
 };
 
 export default AddMembership;
+
 
 const styles = StyleSheet.create({
   container: {
@@ -200,8 +428,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontFamily: "Jost",
-    fontWeight: 700,
+    fontWeight: 600,
     paddingLeft: 12,
   },
   addButton: {
@@ -224,21 +451,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  radioText: {
-    marginLeft: 15,
-    fontSize: 14,
-    fontWeight: 600,
-  },
-  radioLeftText: {
-    display: "flex",
-    justifyContent: "space-between",
+  radioOption: {
     flexDirection: "row",
+    alignItems: "center",
+  },
+  radioOptions: {
+    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  radioText: {
     fontSize: 14,
     fontWeight: 600,
   },
 
+  radioLeftText: {
+    display: "flex",
+    fontSize: 14,
+    fontWeight: 600,
+
+  },
+  spacer: {
+    flex: 0.2,
+  },
+  leftspacer: {
+    flex: 0.3,
+  },
   amount: {
-    marginLeft: 50,
+    marginLeft: 34,
     fontSize: 14,
     fontWeight: 400,
     marginBottom: 12,
@@ -251,12 +491,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   paymentContainer: {
-    padding: 20,
+    padding: 10,
+    marginTop: 15,
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
   },
   text: {
+    fontSize: 16,
     fontWeight: 600,
   },
   paymentSubContainer: {
@@ -321,4 +563,94 @@ const styles = StyleSheet.create({
     fontWeight: 600,
     fontSize: 18,
   },
+
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+
+  },
+  modalText: {
+    marginTop: 5,
+    fontSize: 16,
+    fontWeight: 700,
+    fontFamily: "Jost",
+    lineHeight: 30,
+    paddingLeft: 10
+  },
+  messageText: {
+    fontSize: 17,
+    fontWeight: 700,
+    fontFamily: "Jost",
+    lineHeight: 40
+  },
+  messageTitle: {
+    fontFamily: "Jost",
+    paddingLeft: 10
+  },
+  messageContainer: {
+    display: "flex",
+    flexDirection: "row",
+    margin: 11,
+    marginTop: 30,
+    marginBottom: 30,
+    gap: 10
+  },
+  phoneNumber: {
+    borderWidth: 1,
+    borderColor: "#E2E3E8",
+    backgroundColor: "#E2E3E8",
+    color: "#111827",
+    fontWeight: 600,
+    fontFamily: "Jost",
+    borderRadius: 5,
+    padding: 10
+  },
+  messageSubContainer: {
+    borderWidth: 1,
+    borderColor: "#E2E3E8",
+    backgroundColor: "#E2E3E8",
+    borderRadius: 5,
+    padding: 20,
+    margin: 10,
+    width: "95%",
+    paddingBottom: 45
+  },
+  memberName: {
+    fontFamily: "Jost",
+    lineHeight: 40,
+    marginBottom: 20,
+    fontWeight: 600,
+    fontSize: 16
+  },
+  message: {
+    fontFamily: "Jost",
+    fontWeight: 600,
+    fontSize: 15
+  },
+  thankYouText: {
+    marginTop: 30
+  },
+  AmmountContainer: {
+    marginTop: 10
+  },
+  sendMessageButton: {
+    borderWidth: 1,
+    borderColor: "#1B1A18",
+    backgroundColor: "#1B1A18",
+    borderRadius: 4,
+    width: "50%",
+    padding: 13,
+    alignSelf: "center",
+    marginTop: 20,
+    marginBottom: 10
+  }
+
+
 });
