@@ -14,14 +14,14 @@ import ChangePassword from "./components/dahboard/ChangePassword";
 import axios from "axios";
 import config from "./config";
 import { useRoute } from "@react-navigation/native";
+import * as FileSystem from "expo-file-system";
 
 const Profile = () => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [phone_number, setPhone] = useState("");
-  const [profile_picture, setProfileImage] = useState(
-    require("@/assets/images/adminImg.png")
-  );
+  const [profile_picture, setProfileImage] = useState<any>(null);
+  const [picture, setPicture] = useState<any>(null);
 
   const [showOptions, setShowOptions] = useState(false);
   const [_changePassword, setChangePassword] = useState<any[]>([]);
@@ -44,7 +44,7 @@ const Profile = () => {
       console.log("image", profile_picture);
 
       if (profile_picture) {
-        setProfileImage({ uri: `${config.BASE_URL}${profile_picture}` }); 
+        setProfileImage({ uri: `${config.BASE_URL}${profile_picture}` });
         console.log("profile", profile_picture);
       }
     } catch (error) {
@@ -58,23 +58,36 @@ const Profile = () => {
 
   const pickImage = async () => {
     setShowOptions(false);
-    let permissionResult =
+    const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
       alert("Permission to access gallery is required!");
       return;
     }
 
-    let result = await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
+      base64: false,
     });
 
+    console.log("resu", result);
+    setPicture(result);
+
     if (!result.canceled) {
-      setProfileImage({ uri: result.assets[0].uri });
+      const image = result.assets[0];
+      const fileType = image.uri.split(".").pop();
+
+      setProfileImage({
+        uri: image.uri,
+        name: `profile.${fileType}`,
+        type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
+      });
     }
+
+    console.log("imggg", profile_picture);
   };
 
   const openCamera = async () => {
@@ -89,32 +102,103 @@ const Profile = () => {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
+      base64: true, // we need base64 for conversion
     });
 
     if (!result.canceled) {
-      setProfileImage({ uri: result.assets[0].uri });
+      const image = result.assets[0];
+      const base64Data = image.base64;
+      const fileType = image.uri.split(".").pop(); // e.g., jpg or png
+
+      // Write the base64 image as a file in cache directory
+      const fileUri = `${FileSystem.cacheDirectory}profile.${fileType}`;
+      await FileSystem.writeAsStringAsync(fileUri, base64Data!, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      setProfileImage({
+        uri: fileUri,
+        name: `profile.${fileType}`,
+        type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
+      });
     }
   };
+
+  console.log("gallerys", profile_picture);
+
   const saveProfile = async () => {
     try {
-      const requestBody: any = {};
+      const formData = new FormData();
+      let hasData = false;
 
-      if (email) requestBody.email = email;
-      if (name) requestBody.name = name;
-      if (phone_number) requestBody.phone_number = phone_number;
-      if (profile_picture?.uri) requestBody.profile_picture = profile_picture.uri;
+      // Append basic fields if they exist
+      if (email) {
+        formData.append("email", email);
+        hasData = true;
+      }
+      if (name) {
+        formData.append("name", name);
+        hasData = true;
+      }
+      if (phone_number) {
+        formData.append("phone_number", phone_number);
+        hasData = true;
+      }
 
-      if (Object.keys(requestBody).length === 0) {
+      // Handle profile picture
+      if (profile_picture?.uri) {
+        let imageUri = profile_picture.uri;
+        let fileType = "";
+
+        if (imageUri.startsWith("data:image")) {
+          // Base64 image
+          const match = imageUri.match(/^data:(image\/[a-zA-Z]+);base64,/);
+          if (!match) {
+            Alert.alert("Invalid image format");
+            return;
+          }
+
+          const mimeType = match[1];
+          fileType = mimeType.split("/")[1];
+
+          formData.append("profile_picture", {
+            uri: imageUri,
+            name: `profile.${fileType}`,
+            type: mimeType,
+          } as any);
+        } else {
+          // Normal file URI
+          fileType = imageUri.split(".").pop() || "jpg";
+
+          formData.append("profile_picture", {
+            uri: imageUri,
+            name: `profile.${fileType}`,
+            type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
+          } as any);
+        }
+
+        hasData = true;
+      }
+
+      // Nothing to send
+      if (!hasData) {
         Alert.alert("Nothing to update");
         return;
       }
 
+      // Send to server
       const response = await axios.put(
         `${config.BASE_URL}/profile/${id}/`,
-        requestBody
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
-      if (response.data.success) {
+      // Success check
+      if (response.data?.success) {
         Alert.alert("Success", "Profile updated successfully!");
       } else {
         Alert.alert("Error", "Update failed.");
@@ -124,6 +208,8 @@ const Profile = () => {
       Alert.alert("Error", "Failed to update profile.");
     }
   };
+
+  console.log("output", profile_picture);
 
   // const saveProfile = async () => {
   //   try {
