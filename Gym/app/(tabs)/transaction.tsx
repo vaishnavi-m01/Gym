@@ -1,64 +1,107 @@
 import { StyleSheet, View } from "react-native";
+import Transactions from "../components/transaction/Transactions";
+import { ScrollView } from "react-native";
+import { Text } from "react-native";
 
 const datas = [
   {
     id: 1,
-    planName: "3 months",
+    name: "hari",
+    image: require("../../assets/images/member1.png"),
+    plan: "3 months",
+    amount: 1000,
     duration: "10 Nov 2025 - 07 Feb 2026 ",
+    paymentType: "Cash"
   },
   {
     id: 2,
-    planName: "5 months",
+    name: "priya",
+    image: require("../../assets/images/member1.png"),
+    plan: "5 months",
     duration: "10 Nov 2025 - 07 Feb 2026",
+    amount: 2000,
+    paymentType: "Cash"
+
   },
   {
     id: 3,
-    planName: "6 months",
+    name: "vaishu",
+    image: require("../../assets/images/member1.png"),
+    plan: "6 months",
     duration: "10 Nov 2025 - 07 Feb 2026",
+    amount: 2000,
+    paymentType: "Cash"
+
   },
   {
     id: 4,
-    planName: "8 months",
+    name: "pavi",
+    image: require("../../assets/images/member1.png"),
+    plan: "8 months",
     duration: "10 Nov 2025 - 07 Feb 2026",
+    amount:8000,
+    paymentType: "UPI"
+
   },
   {
     id: 5,
-    planName: "One months",
+    name: "rasiga",
+    image: require("../../assets/images/member1.png"),
+    plan: "One months",
     duration: "10 Nov 2025 - 07 Feb 2026",
+    amount:9500,
+    paymentType: "UPI"
+
   },
 ];
 type Member = {
   id: number;
+  image: string;
   name: string;
-  amount: 
-  
-  
-  
-  number;
+  amount: number;
   duration: string;
   plan: string;
   paymentType: string;
 };
 
 export default function Transaction() {
-  return <View></View>;
+  return(
+    <ScrollView showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
+    <Text style={styles.title}>Transaction</Text>
+
+       {datas.map((item) => (
+                <Transactions
+                  key={item.id}
+                  id={item.id}
+                  name={item.name}
+                  image={item.image}
+                  amount={item.amount}
+                  plan={item.plan}
+                  duration={item.duration}
+                  paymentType={item.paymentType}
+                />
+              ))}
+    </View>
+    </ScrollView>
+  )
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+  container:{
+    backgroundColor: "#ffffff",
+    flex: 1,
+    padding:10,
+    paddingTop:50,
+    marginBottom: 60
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
-  },
+  title:{
+    padding:10,
+    fontWeight:800,
+    lineHeight:50,
+    fontSize:20,
+    paddingTop:30,
+    paddingLeft:18
+  }
+  
 });

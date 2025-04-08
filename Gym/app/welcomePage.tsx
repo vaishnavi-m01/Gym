@@ -30,7 +30,7 @@ const style = StyleSheet.create({
     homeImg: {
         alignSelf: 'center',
         marginTop: 10,
-        height: 330,
+        height: 350,
         width: 350,
         textAlign: "center",
         marginBottom: 40,

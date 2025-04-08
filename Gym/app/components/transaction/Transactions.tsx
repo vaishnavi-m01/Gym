@@ -1,23 +1,32 @@
 import { AntDesign, Entypo, FontAwesome5 } from "@expo/vector-icons";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, Image } from "react-native";
+import Plan from "../plan/Plan";
 
 type members = {
   id: number;
+  image: string;
   name: string;
   amount: number;
   duration: string;
   plan: string;
   paymentType: string;
 };
-const Transaction = ({
+const Transactions = ({
+  id,
+  image,
   name,
   amount,
   duration,
   paymentType,
+  plan
 }: members) => {
   return (
-    <View style={style.container}>
+    <View style={style.container}>      
       <View style={style.subcontainer}>
+        <Image
+          source={typeof image === "string" ? { uri: image } : image}
+          style={style.image}
+        />
         <View style={style.textContainer}>
           <View style={style.numberNameRow}>
             <Text style={style.name}>{name}</Text>
@@ -28,19 +37,37 @@ const Transaction = ({
                 color="#F34E3A"
                 style={style.deletIcon}
               /> */}
-              <Text style={style.paymentType}>{paymentType}</Text>
-              <Text style={style.amount}>{amount}</Text>
+              <Text
+                style={[
+                  style.paymentType,
+                  {
+                    backgroundColor: paymentType === "Cash" ? "#D5F1E3" : "#E3E4E8",
+                    borderColor: paymentType === "Cash" ? "#D5F1E3" : "#E3E4E8",
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                  }
+                ]}
+              >
+                {paymentType}
+              </Text>
+              <Text style={style.amount}>₹{amount.toLocaleString("en-IN")}</Text>
             </View>
           </View>
-          <Text>{duration}</Text>
-          <Text style={style.bottomLine}></Text>
+          <Text style={style.duration}>duration: {duration}</Text>
         </View>
       </View>
+      <Text style={style.bottomLine}></Text>
+      <View style={style.bottomContainer}>
+         <Text style={style.plan}>{plan}</Text>
+         <AntDesign name="right" size={18} color="#000000" style={style.arrowIocn}/>
+
+      </View>
+
     </View>
   );
 };
 
-export default Transaction;
+export default Transactions;
 
 const style = StyleSheet.create({
   container: {
@@ -52,14 +79,18 @@ const style = StyleSheet.create({
     marginLeft: 10,
     marginRight: 10,
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 15,
   },
   subcontainer: {
     flexDirection: "row",
-    alignItems: "center",
+    // alignItems: "center",
     justifyContent: "space-between",
   },
-
+  image: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
   textContainer: {
     flex: 1,
     marginLeft: 10,
@@ -71,10 +102,11 @@ const style = StyleSheet.create({
   },
 
   name: {
-    color: "#B51C0C",
+    color: "#000000",
     fontFamily: "Jost",
     fontSize: 16,
     fontWeight: "bold",
+    alignSelf: "center"
   },
 
   dot: {
@@ -91,6 +123,21 @@ const style = StyleSheet.create({
 
   deletIcon: {
     bottom: 5,
+  },
+
+  duration: {
+    color: "#73767D",
+    fontFamily:"Jost",
+
+  },
+  plan:{
+   fontFamily: "Jost",
+   fontWeight: 700,
+   fontSize:15
+  },
+  arrowIocn:{
+   fontWeight:900,
+   color: "#000000"
   },
   sumbitButton: {
     backgroundColor: "#1B1A18",
@@ -114,15 +161,31 @@ const style = StyleSheet.create({
     backgroundColor: "#D5F1E3",
     borderRadius: 20,
     padding: 5,
+    width: 80,
     color: "#0F2519",
+    alignSelf: "center",
+    textAlign: "center",
+    marginBottom: 8
   },
   amount: {
     color: "#1B1A18",
     fontFamily: "Jost",
     fontWeight: 700,
+    bottom: 13
   },
   bottomLine: {
-    color: "#73767D",
-    borderWidth: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: "#73767D",
+    // paddingBottom: 8, 
+    width: "100%"
   },
+  bottomContainer:{
+    display: "flex",
+    flexDirection:"row",
+    justifyContent: "space-between",
+    margin:5,
+    padding:5,
+    paddingTop: 10
+  }
+
 });

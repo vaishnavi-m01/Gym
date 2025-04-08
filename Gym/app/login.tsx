@@ -1,7 +1,20 @@
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { View, ImageBackground, Text, StyleSheet, TouchableOpacity, TextInput, ToastAndroid, ScrollView } from 'react-native';
+import {
+  View,
+  ImageBackground,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ToastAndroid,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform
+} from "react-native";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { TouchableWithoutFeedback, Keyboard } from "react-native";
+
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -18,58 +31,78 @@ const LoginScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <ImageBackground
-        source={require('@/assets/images/login.png')}
-        style={styles.image}
-      >
-        <View style={styles.overlay}>
-          <Text style={styles.title}>Hi, Welcome Back</Text>
-          <Text style={styles.subtitle}>Login to your account</Text>
-        </View>
-      </ImageBackground>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.container}>
 
-      <View style={styles.loginContainer}>
-        <Text style={styles.label}>Email</Text>
-        <View style={styles.inputContainer}>
-          <MaterialIcons name="email" size={24} color="gray" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Your email"
-            placeholderTextColor="gray"
-            value={email}
-            onChangeText={setEmail}
-          />
-        </View>
+            <ImageBackground
+              source={require("@/assets/images/login.png")}
+              style={styles.image}
+            >
+              <View style={styles.overlay}>
+                <Text style={styles.title}>Hi, Welcome Back</Text>
+                <Text style={styles.subtitle}>Login to your account</Text>
+              </View>
+            </ImageBackground>
 
-        <Text style={styles.label}>Password</Text>
-        <View style={styles.inputContainer}>
-          <MaterialCommunityIcons name="lock-outline" size={24} color="gray" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Your password"
-            placeholderTextColor="gray"
-            secureTextEntry={!showPassword}
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <MaterialIcons
-              name={showPassword ? "visibility" : "visibility-off"}
-              size={24}
-              color="gray"
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        </View>
+            <View style={styles.loginContainer}>
+              <Text style={styles.label}>Email</Text>
+              <View style={styles.inputContainer}>
+                <MaterialIcons name="email" size={24} color="gray" style={styles.icon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Your email"
+                  placeholderTextColor="gray"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+              </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.inputContainer}>
+                <MaterialCommunityIcons
+                  name="lock-outline"
+                  size={24}
+                  color="gray"
+                  style={styles.icon}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Your password"
+                  placeholderTextColor="gray"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <MaterialIcons
+                    name={showPassword ? "visibility" : "visibility-off"}
+                    size={24}
+                    color="gray"
+                    style={styles.icon}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity style={styles.button} onPress={handleLogin}>
+                <Text style={styles.buttonText}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -110,8 +143,8 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 10,
     paddingHorizontal: 10,
-    paddingVertical: 12,
-    marginBottom: 10,
+    paddingVertical: 5,
+    marginBottom: 15,
   },
   input: {
     flex: 1,
@@ -125,6 +158,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#1b1a18",
     paddingVertical: 15,
     borderRadius: 10,
+    margin: 10,
+    marginTop: 40,
     alignItems: "center",
   },
   buttonText: {

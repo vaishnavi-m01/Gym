@@ -13,6 +13,7 @@ import { useNavigation } from "expo-router";
 import axios from "axios";
 import MembersPage from "../components/dahboard/MembersPage";
 
+// Dummy fallback data
 const datas = [
   {
     id: 1,
@@ -38,6 +39,7 @@ const datas = [
     status: "Inactive",
   },
 ];
+
 type Member = {
   id: number;
   image: string | number;
@@ -63,26 +65,30 @@ export default function TabTwoScreen() {
       const response = await axios.get("http://192.168.1.8:8001/members/");
 
       if (Array.isArray(response.data)) {
-        console.log("respone", response);
         setMembers(response.data);
       } else {
         throw new Error("Invalid response format");
       }
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to fetch members.");
-      setMembers([]); // Fallback to empty array on failure
+       setMembers(datas); // Fallback to static data
     } finally {
       setLoading(false);
     }
   };
 
   const getFilteredMembers = () => {
+    const query = searchQuery.toLowerCase();
+  
     return members
       .filter((member) => filter === "All" || member.status === filter)
       .filter((member) =>
-        member.name.toLowerCase().includes(searchQuery.toLowerCase())
+        member.name.toLowerCase().includes(query) ||
+        member.phoneNumber.toLowerCase().includes(query) ||
+        member.plan.toLowerCase().includes(query)
       );
   };
+  
 
   return (
     <View style={styles.container}>
@@ -125,10 +131,14 @@ export default function TabTwoScreen() {
         ))}
       </View>
 
-      {/* {loading ? (
+      {loading ? (
         <ActivityIndicator size="large" color="black" style={styles.loader} />
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.members}>
+            Showing {getFilteredMembers().length} members
+          </Text>
+
           {getFilteredMembers().length > 0 ? (
             getFilteredMembers().map((item) => (
               <MembersPage
@@ -145,22 +155,7 @@ export default function TabTwoScreen() {
             <Text style={styles.emptyMessage}>No members found.</Text>
           )}
         </ScrollView>
-      )} */}
-
-      <ScrollView style={styles.scrollView}>
-        <Text style={styles.members}>Showing 3 members</Text>
-        {datas.map((item) => (
-          <MembersPage
-            key={item.id}
-            id={item.id}
-            image={item.image}
-            name={item.name}
-            phoneNumber={item.phoneNumber}
-            plan={item.plan}
-            status={item.status}
-          />
-        ))}
-      </ScrollView>
+      )}
     </View>
   );
 }
@@ -245,7 +240,7 @@ const styles = StyleSheet.create({
   members: {
     fontFamily: "Jost",
     color: "#000000",
-    fontWeight: 900,
+    fontWeight: "900",
     paddingTop: 30,
     paddingLeft: 25,
     fontSize: 18,
