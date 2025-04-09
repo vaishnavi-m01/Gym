@@ -21,7 +21,6 @@ const Profile = () => {
   const [name, setName] = useState("");
   const [phone_number, setPhone] = useState("");
   const [profile_picture, setProfileImage] = useState<any>(null);
-  const [picture, setPicture] = useState<any>(null);
 
   const [showOptions, setShowOptions] = useState(false);
   const [_changePassword, setChangePassword] = useState<any[]>([]);
@@ -64,32 +63,51 @@ const Profile = () => {
       alert("Permission to access gallery is required!");
       return;
     }
-
+  
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
-      base64: false,
+      base64: true, // set to true to support fallback
     });
-
-    console.log("resu", result);
-    setPicture(result);
-
+  
     if (!result.canceled) {
       const image = result.assets[0];
-      const fileType = image.uri.split(".").pop();
-
-      setProfileImage({
-        uri: image.uri,
-        name: `profile.${fileType}`,
-        type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
-      });
+  
+      // Default to jpeg if mime type not available
+      let fileType = "jpg";
+  
+      if (image.uri && image.uri.includes(".")) {
+        fileType = image.uri.split(".").pop()!;
+      } else if (image.type) {
+        // fallback if uri has no extension
+        fileType = image.type.split("/").pop()!;
+      }
+  
+      // If base64 is available, write it to cache
+      if (image.base64) {
+        const fileUri = `${FileSystem.cacheDirectory}profile.${fileType}`;
+        await FileSystem.writeAsStringAsync(fileUri, image.base64, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+  
+        setProfileImage({
+          uri: fileUri,
+          name: `profile.${fileType}`,
+          type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
+        });
+      } else {
+        // fallback: just use uri directly
+        setProfileImage({
+          uri: image.uri,
+          name: `profile.${fileType}`,
+          type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
+        });
+      }
     }
-
-    console.log("imggg", profile_picture);
   };
-
+  
   const openCamera = async () => {
     setShowOptions(false);
     let permissionResult = await ImagePicker.requestCameraPermissionsAsync();
@@ -97,32 +115,43 @@ const Profile = () => {
       alert("Permission to access camera is required!");
       return;
     }
-
+  
     let result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
-      base64: true, // we need base64 for conversion
+      base64: true,
     });
-
+  
     if (!result.canceled) {
       const image = result.assets[0];
       const base64Data = image.base64;
-      const fileType = image.uri.split(".").pop(); // e.g., jpg or png
-
-      // Write the base64 image as a file in cache directory
+  
+      // Detect fileType from mimeType or default to jpg
+      let fileType = "jpg";
+      let mimeType = "image/jpeg";
+  
+      if (image.type && image.type.startsWith("image/")) {
+        mimeType = image.type;
+        fileType = mimeType.split("/")[1];
+      } else if (image.uri && image.uri.includes(".")) {
+        fileType = image.uri.split(".").pop()!;
+        mimeType = `image/${fileType === "jpg" ? "jpeg" : fileType}`;
+      }
+  
       const fileUri = `${FileSystem.cacheDirectory}profile.${fileType}`;
       await FileSystem.writeAsStringAsync(fileUri, base64Data!, {
         encoding: FileSystem.EncodingType.Base64,
       });
-
+  
       setProfileImage({
         uri: fileUri,
         name: `profile.${fileType}`,
-        type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
+        type: mimeType,
       });
     }
   };
+  
 
   console.log("gallerys", profile_picture);
 
@@ -130,8 +159,7 @@ const Profile = () => {
     try {
       const formData = new FormData();
       let hasData = false;
-
-      // Append basic fields if they exist
+  
       if (email) {
         formData.append("email", email);
         hasData = true;
@@ -144,49 +172,18 @@ const Profile = () => {
         formData.append("phone_number", phone_number);
         hasData = true;
       }
-
-      // Handle profile picture
-      if (profile_picture?.uri) {
-        let imageUri = profile_picture.uri;
-        let fileType = "";
-
-        if (imageUri.startsWith("data:image")) {
-          // Base64 image
-          const match = imageUri.match(/^data:(image\/[a-zA-Z]+);base64,/);
-          if (!match) {
-            Alert.alert("Invalid image format");
-            return;
-          }
-
-          const mimeType = match[1];
-          fileType = mimeType.split("/")[1];
-
-          formData.append("profile_picture", {
-            uri: imageUri,
-            name: `profile.${fileType}`,
-            type: mimeType,
-          } as any);
-        } else {
-          // Normal file URI
-          fileType = imageUri.split(".").pop() || "jpg";
-
-          formData.append("profile_picture", {
-            uri: imageUri,
-            name: `profile.${fileType}`,
-            type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
-          } as any);
-        }
-
+  
+      // 👉 ONLY send string (URL) for profile_picture
+      if (profile_picture && typeof profile_picture === "string") {
+        formData.append("profile_picture", profile_picture); // 👈 this will be like: "https://..."
         hasData = true;
       }
-
-      // Nothing to send
+  
       if (!hasData) {
         Alert.alert("Nothing to update");
         return;
       }
-
-      // Send to server
+  
       const response = await axios.put(
         `${config.BASE_URL}/profile/${id}/`,
         formData,
@@ -196,8 +193,7 @@ const Profile = () => {
           },
         }
       );
-
-      // Success check
+  
       if (response.data?.success) {
         Alert.alert("Success", "Profile updated successfully!");
       } else {
@@ -208,78 +204,67 @@ const Profile = () => {
       Alert.alert("Error", "Failed to update profile.");
     }
   };
+  
 
   console.log("output", profile_picture);
 
   // const saveProfile = async () => {
   //   try {
   //     const formData = new FormData();
-
-  //     if (name) formData.append("name", name);
-  //     if (email) formData.append("email", email);
-  //     if (phone_number) formData.append("phone_number", phone_number);
-
-  //     if (profile_picture?.uri) {
-  //       const uriParts = profile_picture.uri.split("/");
-  //       const fileName = uriParts[uriParts.length - 1];
-  //       const fileType = fileName.includes(".")
-  //         ? fileName.split(".").pop()
-  //         : "jpg";
-
-  //       formData.append("profile_picture", {
-  //         uri: profile_picture.uri,
-  //         name: fileName,
-  //         type: `image/${fileType}`,
-  //       } as any);
+  //     let hasData = false;
+  
+  //     if (email) {
+  //       formData.append("email", email);
+  //       hasData = true;
   //     }
-
+  
+  //     if (name) {
+  //       formData.append("name", name);
+  //       hasData = true;
+  //     }
+  
+  //     if (phone_number) {
+  //       formData.append("phone_number", phone_number);
+  //       hasData = true;
+  //     }
+  
+  //     // 👇 ONLY append profile_picture if it's a string (uri), not object
+  //     if (
+  //       profile_picture &&
+  //       typeof profile_picture === "object" &&
+  //       profile_picture.uri &&
+  //       typeof profile_picture.uri === "string"
+  //     ) {
+  //       formData.append("profile_picture", profile_picture.uri);
+  //       hasData = true;
+  //     }
+  
+  //     if (!hasData) {
+  //       Alert.alert("Nothing to update");
+  //       return;
+  //     }
+  
   //     const response = await axios.put(
   //       `${config.BASE_URL}/profile/${id}/`,
   //       formData,
   //       {
   //         headers: {
-  //           Accept: "application/json",
-  //           // 'Content-Type': 'multipart/form-data', // optional: let axios set it
+  //           "Content-Type": "multipart/form-data",
   //         },
   //       }
   //     );
-
-  //     if (response.data.success) {
+  
+  //     if (response.data?.success) {
   //       Alert.alert("Success", "Profile updated successfully!");
   //     } else {
-  //       Alert.alert("Error", "Failed to update profile.");
+  //       Alert.alert("Error", "Update failed.");
   //     }
   //   } catch (error) {
   //     console.error("Update error:", error);
   //     Alert.alert("Error", "Failed to update profile.");
   //   }
   // };
-
-  // const handleSubmit = async () => {
-  //   const requestData = {
-  //     name,
-  //     phone_number,
-  //     email,
-  //     profile_picture,
-  //   };
-
-  //   try {
-  //     await axios.post(`${config.BASE_URL}/profile/`, requestData);
-  //     Alert.alert("Success", "Member added successfully!");
-  //     console.log("data", requestData);
-  //   } catch (error: any) {
-  //     console.error("API Error:", error.response?.data || error.message);
-
-  //     let errorMessage = "Failed to add member. Try again.";
-  //     if (error.response?.data?.message) {
-  //       errorMessage = error.response.data.message;
-  //     } else if (error.response?.data?.error) {
-  //       errorMessage = error.response.data.error;
-  //     }
-
-  //     Alert.alert("Error", errorMessage);
-  //   }
-  // };
+  
 
   return (
     <View style={styles.containers}>
