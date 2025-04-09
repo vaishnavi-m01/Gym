@@ -12,6 +12,7 @@ import { RadioButton } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import { useNavigation } from "expo-router";
+import config from "./config";
 
 type FormErrors = {
   name?: string;
@@ -19,8 +20,6 @@ type FormErrors = {
   email?: string;
   date_of_birth?: string;
   address?: string;
-  password?: string;
-  blood_group?: string;
 };
 
 const NewMember = () => {
@@ -34,38 +33,31 @@ const NewMember = () => {
   const [notes, setNotes] = useState("");
 
   const navigation = useNavigation();
-
   const [errors, setErrors] = useState<FormErrors>({});
 
   const validateField = (field: string, value: string) => {
     let errorMessage = "";
 
     switch (field) {
-      // case "name":
-      //   if (!value.match(/^[A-Za-z ]+$/))
-      //     errorMessage = "Invalid Name (Only letters allowed)";
-      //   break;
+      case "name":
+        if (!value.trim()) errorMessage = "Name is required.";
+        break;
       case "phone":
         if (!value.match(/^\d{10}$/))
           errorMessage = "Phone number must be 10 digits";
         break;
       case "email":
-        if (!value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
+        if (value && !value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
           errorMessage = "Invalid Email Format";
         break;
       case "dob":
-        if (!value.match(/^\d{2}-\d{2}-\d{4}$/))
+        if (value && !value.match(/^\d{2}-\d{2}-\d{4}$/))
           errorMessage = "Date must be in DD-MM-YYYY format";
         break;
+
       case "address":
         if (value.length < 10)
-          errorMessage = "Address must be at least 30 characters";
-        break;
-      case "password":
-        if (value.length < 6)
-          errorMessage = "Password must be at least 6 characters";
-        break;
-      default:
+          errorMessage = "Address must be at least 10 characters";
         break;
     }
 
@@ -85,47 +77,48 @@ const NewMember = () => {
     return Object.values(newErrors).every((error) => !error);
   };
 
-  // const handleSubmit = async () => {
-  //   if (!validateForm()) {
-  //     Alert.alert("Validation Error", "Please fix errors before submitting.");
-  //     return;
-  //   }
+  const formatDOBForBackend = (dob: string) => {
+    if (!dob) return "";
+    const [dd, mm, yyyy] = dob.split("-");
+    return `${yyyy}-${mm}-${dd}`;
+  };
 
-  //   const requestData = {
-  //     name,
-  //     phone_number,
-  //     email,
-  //     date_of_birth,
-  //     gender,
-  //     blood_group,
-  //     address,
-  //     notes,
-  //   };
-
-  //   try {
-  //     await axios.post("http://192.168.1.8:8001/members/create/", requestData);
-  //     Alert.alert("Success", "Member added successfully!");
-  //     console.log("data", requestData);
-
-  //     navigation.navigate("AddMembership" as never);
-  //   } catch (error: any) {
-  //     console.error("API Error:", error.response?.data || error.message);
-
-  //     let errorMessage = "Failed to add member. Try again.";
-  //     if (error.response?.data?.message) {
-  //       errorMessage = error.response.data.message;
-  //     } else if (error.response?.data?.error) {
-  //       errorMessage = error.response.data.error;
-  //     }
-
-  //     Alert.alert("Error", errorMessage);
-  //   }
-  // };
-
-  const handleSubmit =() =>{
-    navigation.navigate("Add  Membership" as never);
-  }
-
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      Alert.alert("Validation Error", "Please correct the form fields.");
+      return;
+    }
+  
+    const requestData: any = {
+      name,
+      phone_number,
+      gender,
+      notes,
+    };
+  
+    if (email) requestData.email = email;
+    if (date_of_birth) requestData.date_of_birth = formatDOBForBackend(date_of_birth);
+    if (blood_group) requestData.blood_group = blood_group;
+    if (address) requestData.address = address;
+  
+    try {
+      await axios.post(`${config.BASE_URL}/members/create/`, requestData);
+      Alert.alert("Success", "Member added successfully!");
+      navigation.navigate("Add  Membership" as never);
+    } catch (error: any) {
+      console.error("API Error:", error.response?.data || error.message);
+  
+      let errorMessage = "Failed to add member. Try again.";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+  
+      Alert.alert("Error", errorMessage);
+    }
+  };
+  
   return (
     <ScrollView>
       <View style={styles.containers}>
@@ -145,9 +138,9 @@ const NewMember = () => {
             />
           </View>
           {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+
           <Text style={styles.text}>
-            Number
-            <Text style={styles.required}> *</Text>
+            Number <Text style={styles.required}>*</Text>
           </Text>
           <View style={styles.inputContainer}>
             <TextInput
@@ -168,7 +161,8 @@ const NewMember = () => {
           {errors.phone_number && (
             <Text style={styles.errorText}>{errors.phone_number}</Text>
           )}
-          <Text style={styles.text}> Email</Text>
+
+          <Text style={styles.text}>Email</Text>
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.inputbox}
@@ -241,8 +235,7 @@ const NewMember = () => {
           <TextInput
             style={styles.textArea}
             placeholder="Enter address"
-            multiline={true}
-            numberOfLines={4}
+            multiline
             value={address}
             onChangeText={(text) => {
               setAddress(text);
@@ -254,12 +247,10 @@ const NewMember = () => {
           )}
 
           <Text style={styles.text}>Notes</Text>
-
           <TextInput
             style={styles.textArea}
             placeholder={`1. Height: 170cm.\n2. Weight: 70kg.\n3. Admission No: 1234\n4. You can add any other notes here.`}
-            multiline={true}
-            numberOfLines={4}
+            multiline
             value={notes}
             onChangeText={setNotes}
           />
@@ -282,15 +273,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f8f8",
   },
   subContainers: {
-    backgroundColor: "#f8f8f8",
-    elevation: 5,
-    boxShadow: "#f8f8f8",
-    shadowColor: "#f8f8f8",
-    margin: 5,
+    // backgroundColor: "#f8f8f8",
+    // elevation: 5,
   },
   text: {
     fontFamily: "Jost",
-    fontWeight: 700,
+    fontWeight: "700",
     fontSize: 16,
     lineHeight: 50,
     paddingLeft: 5,
@@ -303,58 +291,15 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     width: "100%",
     marginBottom: 10,
-    paddingLeft: 5,
   },
   inputbox: {
     flex: 1,
     fontSize: 17,
     color: "#62707D",
     fontFamily: "Jost",
-    fontWeight: 600,
+    fontWeight: "600",
     paddingLeft: 15,
   },
-  phoneContainer: {
-    display: "flex",
-    justifyContent: "space-between",
-    flexDirection: "row",
-    gap: 5,
-  },
-  phoneinputContainer: {
-    borderWidth: 1,
-    borderColor: "#E0E5E9",
-    borderRadius: 15,
-    paddingHorizontal: 5,
-    paddingVertical: 6,
-    width: "60%",
-    marginBottom: 10,
-  },
-  pickerStyle: {
-    width: "30%",
-  },
-  mainPickerContainer: {
-    width: "90%",
-    display: "flex",
-    flexDirection: "row",
-    gap: 3,
-    marginRight: 20,
-  },
-  Numbertext: {
-    fontFamily: "Jost",
-    fontWeight: 700,
-    fontSize: 16,
-    lineHeight: 50,
-    marginRight: 75,
-  },
-  codeInputContainer: {
-    borderWidth: 1,
-    borderColor: "#E0E5E9",
-    borderRadius: 15,
-    paddingHorizontal: 5,
-    paddingVertical: 6,
-    width: "25%",
-    marginBottom: 10,
-  },
-
   radioContainer: {
     flexDirection: "column",
     borderWidth: 1,
@@ -366,7 +311,6 @@ const styles = StyleSheet.create({
   radioRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginRight: 75,
     alignItems: "center",
   },
   radioButton: {
@@ -377,27 +321,12 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontSize: 14,
   },
-
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#E0E5E9",
-    borderRadius: 15,
-    width: 150,
-    alignSelf: "center",
-    marginBottom: 10,
-  },
   BloodPickerContainer: {
     borderWidth: 1,
     borderColor: "#E0E5E9",
     borderRadius: 15,
     width: "100%",
     alignSelf: "center",
-    marginBottom: 10,
-  },
-  codeInput: {
-    borderWidth: 1,
-    borderColor: "#E0E5E9",
-    borderRadius: 15,
     marginBottom: 10,
   },
   textArea: {
@@ -409,28 +338,20 @@ const styles = StyleSheet.create({
     paddingLeft: 15,
     textAlignVertical: "top",
     color: "#62707D",
-    gap: 2,
     marginBottom: 20,
-  },
-
-  notesText: {
-    color: "#62707D",
-    fontSize: 16,
   },
   sumbitButton: {
     backgroundColor: "#1B1A18",
-    borderWidth: 1,
     borderRadius: 10,
     width: "100%",
     padding: 10,
     marginTop: 20,
     marginBottom: 30,
   },
-
   buttontext: {
     textAlign: "center",
     color: "#FFFFFF",
-    fontWeight: 600,
+    fontWeight: "600",
     fontSize: 18,
   },
   errorText: {
@@ -440,6 +361,5 @@ const styles = StyleSheet.create({
   },
   required: {
     color: "red",
-    // fontSize: 16,
   },
 });

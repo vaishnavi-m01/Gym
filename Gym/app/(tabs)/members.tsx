@@ -12,6 +12,7 @@ import { Searchbar } from "react-native-paper";
 import { useNavigation } from "expo-router";
 import axios from "axios";
 import MembersPage from "../components/dahboard/MembersPage";
+import config from "../config";
 
 // Dummy fallback data
 const datas = [
@@ -62,16 +63,16 @@ export default function TabTwoScreen() {
 
   const fetchMembers = async () => {
     try {
-      const response = await axios.get("http://192.168.1.8:8001/members/");
+      const response = await axios.get(`${config.BASE_URL}/members/`);
 
       if (Array.isArray(response.data)) {
-        setMembers(response.data);
+        setMembers(response.data);  
       } else {
         throw new Error("Invalid response format");
       }
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to fetch members.");
-       setMembers(datas); 
+      //  setMembers(datas); 
     } finally {
       setLoading(false);
     }

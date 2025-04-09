@@ -3,43 +3,46 @@ import { useNavigation } from "expo-router";
 import { useState } from "react";
 import { View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { Text } from "react-native-paper";
+import config from "./config";
 
 const NewPlan = () => {
-  const [planName, setPlanName] = useState("");
-  const [planeAmount, setPlanAmount] = useState("");
-  const [duration, setDuratioin] = useState("");
+  const [plan_name, setPlanName] = useState("");
+  const [plan_amount, setPlanAmount] = useState("");
+  const [plan_duration, setDuratioin] = useState("");
 
   const navigation = useNavigation();
 
-  const handleClick = () => {
-    navigation.navigate("Add  Membership" as never)
-  }
+  // const handleClick = () => {
+  //   navigation.navigate("Add  Membership" as never)
+  // }
 
   // Inside component
-  // const handleClick = async () => {
-  //   if (!planName || !planeAmount || !duration) {
-  //     alert("Please fill all fields");
-  //     return;
-  //   }
+  const handleClick = async () => {
+    if (!plan_name || !plan_amount || !plan_duration) {
+      alert("Please fill all fields");
+      return;
+    }
 
-  //   try {
-  //     const response = await axios.post("https://your-api.com/plans", {
-  //       planName,
-  //       amount: Number(planeAmount),
-  //       duration,
-  //     });
+    
 
-  //     if (response.status === 201 || response.status === 200) {
-  //       alert("Plan created successfully!");
-  //       navigation.navigate("Add Membership" as never);
-  //     } else {
-  //       alert("Something went wrong!");
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     alert("Error creating plan");
-  //   }
-  // };
+    try {
+      const response = await axios.post(`${config.BASE_URL}/plan/create/`, {
+        plan_name,
+        amount: Number(plan_amount),
+        plan_duration,
+      });
+
+      if (response.status === 201 || response.status === 200) {
+        alert("Plan created successfully!");
+        navigation.navigate("Add Membership" as never);
+      } else {
+        alert("Something went wrong!");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error creating plan");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -49,7 +52,7 @@ const NewPlan = () => {
         <TextInput
           style={styles.inputbox}
           onChangeText={setPlanName}
-          value={planName}
+          value={plan_name}
           placeholder="Enter plan name"
         />
       </View>
@@ -59,7 +62,7 @@ const NewPlan = () => {
       <View style={styles.inputRow}>
         <TextInput style={styles.inputbox} placeholder="Enter  amount"
           onChangeText={setPlanAmount}
-          value={planeAmount}
+          value={plan_amount}
           keyboardType="numeric"
         />
       </View>
@@ -68,7 +71,7 @@ const NewPlan = () => {
       <View style={styles.inputRow}>
         <TextInput style={styles.inputbox} placeholder="Enter duration"
           onChangeText={setDuratioin}
-          value={duration} />
+          value={plan_duration} />
       </View>
 
       <TouchableOpacity style={styles.submitButton} onPress={handleClick}>

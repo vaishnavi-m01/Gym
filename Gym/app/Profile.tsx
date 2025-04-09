@@ -8,9 +8,9 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import ChangePassword from "./components/dahboard/ChangePassword";
 import axios from "axios";
 import config from "./config";
 import { useRoute } from "@react-navigation/native";
@@ -23,8 +23,6 @@ const Profile = () => {
   const [profile_picture, setProfileImage] = useState<any>(null);
 
   const [showOptions, setShowOptions] = useState(false);
-  const [_changePassword, setChangePassword] = useState<any[]>([]);
-
   const route = useRoute();
   const { id } = route.params as { id: string };
 
@@ -39,232 +37,128 @@ const Profile = () => {
       setName(name);
       setEmail(email);
       setPhone(phone_number);
-
-      console.log("image", profile_picture);
-
       if (profile_picture) {
         setProfileImage({ uri: `${config.BASE_URL}${profile_picture}` });
-        console.log("profile", profile_picture);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
   };
 
-  const handleChangePassword = (changePassword: any) => {
-    setChangePassword((prevPasswor) => [changePassword, ...prevPasswor]);
-  };
-
   const pickImage = async () => {
-    setShowOptions(false);
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      alert("Permission to access gallery is required!");
-      return;
-    }
+    setShowOptions(false); // 🔁 Immediately close options
   
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1],
+      base64: true,
       quality: 1,
-      base64: true, // set to true to support fallback
     });
   
     if (!result.canceled) {
-      const image = result.assets[0];
+      const asset = result.assets[0];
   
-      // Default to jpeg if mime type not available
-      let fileType = "jpg";
+      const uri = asset.uri;
+      const base64 = asset.base64!;
+      let fileExt = uri.split(".").pop()?.toLowerCase() || "jpg";
+      let mimeType = `image/${fileExt === "jpg" ? "jpeg" : fileExt}`;
   
-      if (image.uri && image.uri.includes(".")) {
-        fileType = image.uri.split(".").pop()!;
-      } else if (image.type) {
-        // fallback if uri has no extension
-        fileType = image.type.split("/").pop()!;
-      }
+      // Fallback MIME type check for some Android URIs
+      if (!mimeType.includes("/")) mimeType = "image/jpeg";
   
-      // If base64 is available, write it to cache
-      if (image.base64) {
-        const fileUri = `${FileSystem.cacheDirectory}profile.${fileType}`;
-        await FileSystem.writeAsStringAsync(fileUri, image.base64, {
+      const fileName = `profile.${fileExt}`;
+  
+      if (Platform.OS === "web") {
+        const res = await fetch(uri);
+        const blob = await res.blob();
+        const file = new File([blob], fileName, { type: mimeType });
+        setProfileImage(file);
+      } else {
+        const fileUri = FileSystem.cacheDirectory + fileName;
+        await FileSystem.writeAsStringAsync(fileUri, base64, {
           encoding: FileSystem.EncodingType.Base64,
         });
   
         setProfileImage({
           uri: fileUri,
-          name: `profile.${fileType}`,
-          type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
-        });
-      } else {
-        // fallback: just use uri directly
-        setProfileImage({
-          uri: image.uri,
-          name: `profile.${fileType}`,
-          type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
+          name: fileName,
+          type: mimeType,
         });
       }
     }
   };
   
+  
   const openCamera = async () => {
-    setShowOptions(false);
-    let permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permissionResult.granted) {
-      alert("Permission to access camera is required!");
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      alert("Camera permission required!");
       return;
     }
-  
-    let result = await ImagePicker.launchCameraAsync({
+
+    const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
       base64: true,
     });
-  
+
     if (!result.canceled) {
       const image = result.assets[0];
-      const base64Data = image.base64;
-  
-      // Detect fileType from mimeType or default to jpg
-      let fileType = "jpg";
-      let mimeType = "image/jpeg";
-  
-      if (image.type && image.type.startsWith("image/")) {
-        mimeType = image.type;
-        fileType = mimeType.split("/")[1];
-      } else if (image.uri && image.uri.includes(".")) {
-        fileType = image.uri.split(".").pop()!;
-        mimeType = `image/${fileType === "jpg" ? "jpeg" : fileType}`;
+      const fileType = image.uri.split(".").pop();
+      const fileName = `profile.${fileType}`;
+      const mimeType = `image/${fileType === "jpg" ? "jpeg" : fileType}`;
+
+      if (Platform.OS === "web") {
+        const response = await fetch(image.uri);
+        const blob = await response.blob();
+        const file = new File([blob], fileName, { type: mimeType });
+        setProfileImage(file);
+      } else {
+        const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+        await FileSystem.writeAsStringAsync(fileUri, image.base64!, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        setProfileImage({
+          uri: fileUri,
+          name: fileName,
+          type: mimeType,
+        });
       }
-  
-      const fileUri = `${FileSystem.cacheDirectory}profile.${fileType}`;
-      await FileSystem.writeAsStringAsync(fileUri, base64Data!, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-  
-      setProfileImage({
-        uri: fileUri,
-        name: `profile.${fileType}`,
-        type: mimeType,
-      });
     }
   };
-  
-
-  console.log("gallerys", profile_picture);
 
   const saveProfile = async () => {
-    try {
-      const formData = new FormData();
-      let hasData = false;
-  
-      if (email) {
-        formData.append("email", email);
-        hasData = true;
-      }
-      if (name) {
-        formData.append("name", name);
-        hasData = true;
-      }
-      if (phone_number) {
-        formData.append("phone_number", phone_number);
-        hasData = true;
-      }
-  
-      // 👉 ONLY send string (URL) for profile_picture
-      if (profile_picture && typeof profile_picture === "string") {
-        formData.append("profile_picture", profile_picture); // 👈 this will be like: "https://..."
-        hasData = true;
-      }
-  
-      if (!hasData) {
-        Alert.alert("Nothing to update");
-        return;
-      }
-  
-      const response = await axios.put(
-        `${config.BASE_URL}/profile/${id}/`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-  
-      if (response.data?.success) {
-        Alert.alert("Success", "Profile updated successfully!");
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("name", name);
+    formData.append("phone_number", phone_number);
+
+    if (profile_picture) {
+      if (Platform.OS === "web") {
+        formData.append("profile_picture", profile_picture); 
       } else {
-        Alert.alert("Error", "Update failed.");
+        formData.append("profile_picture", {
+          uri: profile_picture.uri,
+          name: profile_picture.name,
+          type: profile_picture.type,
+        } as any); 
       }
-    } catch (error) {
-      console.error("Update error:", error);
-      Alert.alert("Error", "Failed to update profile.");
+    }
+
+    try {
+      const res = await axios.put(`${config.BASE_URL}/profile/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      Alert.alert("Success", "Profile updated successfully!");
+    } catch (err: any) {
+      console.error("Upload failed:", err.response?.data || err);
+      Alert.alert("Upload failed", JSON.stringify(err.response?.data || err.message));
     }
   };
-  
-
-  console.log("output", profile_picture);
-
-  // const saveProfile = async () => {
-  //   try {
-  //     const formData = new FormData();
-  //     let hasData = false;
-  
-  //     if (email) {
-  //       formData.append("email", email);
-  //       hasData = true;
-  //     }
-  
-  //     if (name) {
-  //       formData.append("name", name);
-  //       hasData = true;
-  //     }
-  
-  //     if (phone_number) {
-  //       formData.append("phone_number", phone_number);
-  //       hasData = true;
-  //     }
-  
-  //     // 👇 ONLY append profile_picture if it's a string (uri), not object
-  //     if (
-  //       profile_picture &&
-  //       typeof profile_picture === "object" &&
-  //       profile_picture.uri &&
-  //       typeof profile_picture.uri === "string"
-  //     ) {
-  //       formData.append("profile_picture", profile_picture.uri);
-  //       hasData = true;
-  //     }
-  
-  //     if (!hasData) {
-  //       Alert.alert("Nothing to update");
-  //       return;
-  //     }
-  
-  //     const response = await axios.put(
-  //       `${config.BASE_URL}/profile/${id}/`,
-  //       formData,
-  //       {
-  //         headers: {
-  //           "Content-Type": "multipart/form-data",
-  //         },
-  //       }
-  //     );
-  
-  //     if (response.data?.success) {
-  //       Alert.alert("Success", "Profile updated successfully!");
-  //     } else {
-  //       Alert.alert("Error", "Update failed.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Update error:", error);
-  //     Alert.alert("Error", "Failed to update profile.");
-  //   }
-  // };
-  
 
   return (
     <View style={styles.containers}>
@@ -320,8 +214,6 @@ const Profile = () => {
           onChangeText={setPhone}
         />
       </View>
-
-      <ChangePassword onChangePassword={handleChangePassword} />
 
       <TouchableOpacity style={styles.button} onPress={saveProfile}>
         <Text style={styles.buttonText}>Save changes</Text>
