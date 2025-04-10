@@ -7,12 +7,19 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Image,
+  Platform,
 } from "react-native";
 import { RadioButton } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import { useNavigation } from "expo-router";
 import config from "./config";
+import { MaterialIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+
+import { useRoute } from "@react-navigation/native";
+import * as FileSystem from "expo-file-system";
 
 type FormErrors = {
   name?: string;
@@ -31,6 +38,12 @@ const NewMember = () => {
   const [blood_group, setBloodGroup] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
+
+  const [showOptions, setShowOptions] = useState(false);
+
+  const [profile_picture, setProfileImage] = useState<any>(
+    require("../assets/images/member2.png")
+  );
 
   const navigation = useNavigation();
   const [errors, setErrors] = useState<FormErrors>({});
@@ -83,46 +96,175 @@ const NewMember = () => {
     return `${yyyy}-${mm}-${dd}`;
   };
 
+  const pickImage = async () => {
+    setShowOptions(false); // 🔁 Immediately close options
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      base64: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const asset = result.assets[0];
+
+      const uri = asset.uri;
+      const base64 = asset.base64!;
+      let fileExt = uri.split(".").pop()?.toLowerCase() || "jpg";
+      let mimeType = `image/${fileExt === "jpg" ? "jpeg" : fileExt}`;
+
+      // Fallback MIME type check for some Android URIs
+      if (!mimeType.includes("/")) mimeType = "image/jpeg";
+
+      const fileName = `profile.${fileExt}`;
+
+      if (Platform.OS === "web") {
+        const res = await fetch(uri);
+        const blob = await res.blob();
+        const file = new File([blob], fileName, { type: mimeType });
+        setProfileImage(file);
+      } else {
+        const fileUri = FileSystem.cacheDirectory + fileName;
+        await FileSystem.writeAsStringAsync(fileUri, base64, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        setProfileImage({
+          uri: fileUri,
+          name: fileName,
+          type: mimeType,
+        });
+      }
+    }
+  };
+
+  const openCamera = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      alert("Camera permission required!");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+      base64: true,
+    });
+
+    if (!result.canceled) {
+      const image = result.assets[0];
+      const fileType = image.uri.split(".").pop();
+      const fileName = `profile.${fileType}`;
+      const mimeType = `image/${fileType === "jpg" ? "jpeg" : fileType}`;
+
+      if (Platform.OS === "web") {
+        const response = await fetch(image.uri);
+        const blob = await response.blob();
+        const file = new File([blob], fileName, { type: mimeType });
+        setProfileImage(file);
+      } else {
+        const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+        await FileSystem.writeAsStringAsync(fileUri, image.base64!, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        setProfileImage({
+          uri: fileUri,
+          name: fileName,
+          type: mimeType,
+        });
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     if (!validateForm()) {
       Alert.alert("Validation Error", "Please correct the form fields.");
       return;
     }
-  
-    const requestData: any = {
-      name,
-      phone_number,
-      gender,
-      notes,
-    };
-  
-    if (email) requestData.email = email;
-    if (date_of_birth) requestData.date_of_birth = formatDOBForBackend(date_of_birth);
-    if (blood_group) requestData.blood_group = blood_group;
-    if (address) requestData.address = address;
-  
+
+    const formData = new FormData();
+
+    // Add profile picture if exists
+    if (profile_picture?.uri) {
+      const fileName = profile_picture.uri.split("/").pop();
+      const fileType = profile_picture.uri.split(".").pop();
+
+      formData.append("profile_picture", {
+        uri: profile_picture.uri,
+        name: fileName || `photo.${fileType}`,
+        type: `image/${fileType}`,
+      } as any);
+    }
+
+    // Append all other fields
+    if (name) formData.append("name", name);
+    if (phone_number) formData.append("phone_number", phone_number);
+    if (email) formData.append("email", email);
+    if (date_of_birth)
+      formData.append("date_of_birth", formatDOBForBackend(date_of_birth));
+    if (blood_group) formData.append("blood_group", blood_group);
+    if (gender) formData.append("gender", gender);
+    if (address) formData.append("address", address);
+    if (notes) formData.append("notes", notes);
+
     try {
-      await axios.post(`${config.BASE_URL}/members/create/`, requestData);
+      await axios.post(`${config.BASE_URL}/members/create/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       Alert.alert("Success", "Member added successfully!");
       navigation.navigate("Add  Membership" as never);
     } catch (error: any) {
       console.error("API Error:", error.response?.data || error.message);
-  
+
       let errorMessage = "Failed to add member. Try again.";
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
       }
-  
+
       Alert.alert("Error", errorMessage);
     }
   };
-  
+
   return (
     <ScrollView>
       <View style={styles.containers}>
         <View style={styles.subContainers}>
+          <View style={styles.profileContainer}>
+            <Image source={profile_picture} style={styles.adminImg} />
+            <TouchableOpacity
+              style={styles.cameraIcon}
+              onPress={() => setShowOptions(!showOptions)}
+            >
+              <MaterialIcons name="photo-camera" size={24} color="white" />
+            </TouchableOpacity>
+
+            {showOptions && (
+              <View style={styles.optionBox}>
+                <TouchableOpacity
+                  onPress={pickImage}
+                  style={styles.optionButton}
+                >
+                  <MaterialIcons name="photo-library" size={20} color="black" />
+                  <Text style={styles.optionText}>Gallery</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={openCamera}
+                  style={styles.optionButton}
+                >
+                  <MaterialIcons name="camera-alt" size={20} color="black" />
+                  <Text style={styles.optionText}>Take Photo</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
           <Text style={styles.text}>
             Name <Text style={styles.required}>*</Text>
           </Text>
@@ -275,6 +417,49 @@ const styles = StyleSheet.create({
   subContainers: {
     // backgroundColor: "#f8f8f8",
     // elevation: 5,
+  },
+
+  profileContainer: {
+    alignSelf: "center",
+    position: "relative",
+  },
+  adminImg: {
+    height: 150,
+    width: 150,
+    borderRadius: 75,
+    borderWidth: 1,
+    borderColor: "#E0E5E9",
+  },
+  cameraIcon: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    backgroundColor: "black",
+    padding: 5,
+    borderRadius: 20,
+  },
+  optionBox: {
+    position: "absolute",
+    bottom: -50,
+    right: 0,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 5,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    shadowOffset: { width: 1, height: 1 },
+  },
+  optionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
+  },
+  optionText: {
+    marginLeft: 5,
+    fontSize: 14,
+    color: "black",
   },
   text: {
     fontFamily: "Jost",

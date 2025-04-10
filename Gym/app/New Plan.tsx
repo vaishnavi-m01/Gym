@@ -8,28 +8,28 @@ import config from "./config";
 const NewPlan = () => {
   const [plan_name, setPlanName] = useState("");
   const [plan_amount, setPlanAmount] = useState("");
-  const [plan_duration, setDuratioin] = useState("");
+  const [plan_duration_days, setDuratioin] = useState("");
 
   const navigation = useNavigation();
 
-  // const handleClick = () => {
-  //   navigation.navigate("Add  Membership" as never)
-  // }
+ 
 
-  // Inside component
+
+    
+
+
+
   const handleClick = async () => {
-    if (!plan_name || !plan_amount || !plan_duration) {
+    if (!plan_name || !plan_amount || !plan_duration_days) {
       alert("Please fill all fields");
       return;
     }
 
-    
-
     try {
       const response = await axios.post(`${config.BASE_URL}/plan/create/`, {
         plan_name,
-        amount: Number(plan_amount),
-        plan_duration,
+        plan_amount: Number(plan_amount),
+        plan_duration_days,
       });
 
       if (response.status === 201 || response.status === 200) {
@@ -69,9 +69,9 @@ const NewPlan = () => {
 
       <Text style={styles.label}>Duration</Text>
       <View style={styles.inputRow}>
-        <TextInput style={styles.inputbox} placeholder="Enter duration"
+        <TextInput style={styles.inputbox} placeholder="Enter duration in days"
           onChangeText={setDuratioin}
-          value={plan_duration} />
+          value={plan_duration_days} />
       </View>
 
       <TouchableOpacity style={styles.submitButton} onPress={handleClick}>
