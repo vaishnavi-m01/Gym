@@ -72,7 +72,7 @@ export default function TabTwoScreen() {
       }
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to fetch members.");
-      //  setMembers(datas); 
+       setMembers(datas); 
     } finally {
       setLoading(false);
     }

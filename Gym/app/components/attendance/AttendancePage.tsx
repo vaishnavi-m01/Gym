@@ -1,109 +1,187 @@
-import { AntDesign, Entypo, FontAwesome5 } from "@expo/vector-icons";
-import { View, StyleSheet, Image, Text, ScrollView } from "react-native";
-import EditMembers from "../members/EditMembers";
-import { useState } from "react";
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ImageSourcePropType,
+} from "react-native";
 
-type members = {
+type Props = {
   id: number;
-  image: string | number;
+  image: ImageSourcePropType;
   name: string;
-  plan: string;
-  status: string | undefined;
+  status?: "present" | "absent";
+  onAttendanceChange: (id: number, status: "present" | "absent") => void;
 };
-const AttendancePage = ({ image, name, plan, status }: members) => {
-  const [_changePassword, setChangePassword] = useState<any[]>([]);
 
-  const handleChangePassword = (changePassword: any) => {
-    setChangePassword((prevPasswor) => [changePassword, ...prevPasswor]);
-  };
-
+const AttendancePage: React.FC<Props> = ({
+  id,
+  image,
+  name,
+  status,
+  onAttendanceChange,
+}) => {
   return (
-    <View style={style.container}>
-      <View style={style.subcontainer}>
-        <Image
-          source={typeof image === "string" ? { uri: image } : image}
-          style={style.image}
-        />
-
-        <View style={style.textContainer}>
-          <View style={style.numberNameRow}>
-            <Text style={style.name}>{name}</Text>
-            <View style={style.iconContainer}>
-              <AntDesign
-                name="delete"
-                size={20}
-                color="#F34E3A"
-                style={style.deletIcon}
-              />
-              {/* <FontAwesome5 name="edit" size={20} color="#1230B4" /> */}
-              <EditMembers
-                onChangePassword={handleChangePassword}
-              ></EditMembers>
-            </View>
-          </View>
+    <View style={styles.card}>
+      <Image source={image} style={styles.avatar} />
+      <View style={styles.info}>
+        <Text style={styles.name}>{name}</Text>
+        <View style={styles.buttons}>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              status === "present" && styles.activePresent,
+            ]}
+            onPress={() => onAttendanceChange(id, "present")}
+          >
+            <Text style={styles.buttonText}>Present</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              status === "absent" && styles.activeAbsent,
+            ]}
+            onPress={() => onAttendanceChange(id, "absent")}
+          >
+            <Text style={styles.buttonText}>Absent</Text>
+          </TouchableOpacity>
         </View>
       </View>
-
-     
-      </View>
+    </View>
   );
 };
 
 export default AttendancePage;
 
-const style = StyleSheet.create({
-  container: {
-    width: "90%",
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#E5E6EA",
-    margin: 5,
-    marginLeft: 20,
-    marginRight: 20,
-    padding: 15,
-    borderRadius: 18,
-  },
-  subcontainer: {
+const styles = StyleSheet.create({
+  card: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    padding: 12,
+    marginVertical: 6,
+    marginHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E5E6EA",
+    backgroundColor: "#fff",
   },
-  image: {
-    width: 40,
-    height: 40,
-    borderRadius: 25,
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
   },
-  textContainer: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  numberNameRow: {
-    justifyContent: "space-between",
-    flexDirection: "row",
-    gap: 8,
-  },
-
-  name: {
-    color: "#000000",
-    fontFamily: "Jost",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
- 
- 
-  dot: {
-    fontSize: 20,
-  },
- 
-  iconContainer: {
+  info: {
     display: "flex",
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "flex-end",
-    gap: 8,
+    justifyContent:"space-between",
+    marginLeft: 15,
+    flex: 1,
   },
-
-  deletIcon: {
-    bottom: 5,
+  name: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
+    top:20
+  },
+  buttons: {
+    flexDirection: "row",
+    alignSelf: "flex-end",
+    gap: 10,
+    bottom: 12
+  },
+  button: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "#ccc",
+  },
+  activePresent: {
+    backgroundColor: "#4CAF50",
+    borderColor: "#4CAF50",
+  },
+  activeAbsent: {
+    backgroundColor: "#F44336",
+    borderColor: "#F44336",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "500",
   },
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
