@@ -1,23 +1,15 @@
 import { AntDesign, Entypo, FontAwesome5 } from "@expo/vector-icons";
-import {
-  View,
-  StyleSheet,
-  Image,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
-import EditMembers from "../members/EditMembers";
-import { useState } from "react";
-import { useNavigation } from "expo-router";
+import { View, StyleSheet, Text } from "react-native";
+
 import EditPlan from "./EditPlan";
 
 type members = {
   id: number;
   planName: string;
+  amount: number;
   duration: string;
 };
-const Plan = ({ planName, duration }: members) => {
+const Plan = ({ planName, amount, duration }: members) => {
   return (
     <View style={style.container}>
       <View style={style.subcontainer}>
@@ -34,7 +26,9 @@ const Plan = ({ planName, duration }: members) => {
               <EditPlan></EditPlan>
             </View>
           </View>
-          <Text>{duration}</Text>
+          <Text>
+            {duration} - ₹{amount}
+          </Text>
         </View>
       </View>
     </View>

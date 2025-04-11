@@ -17,10 +17,9 @@ import { useEffect, useState } from "react";
 import { useNavigation } from "expo-router";
 import { ActivityIndicator, RadioButton } from "react-native-paper";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { Linking } from 'react-native';
-import { AppState } from 'react-native';
-import { useRef } from 'react';
-
+import { Linking } from "react-native";
+import { AppState } from "react-native";
+import { useRef } from "react";
 
 import axios from "axios";
 
@@ -40,11 +39,6 @@ const plans = [
   { name: "6 Month", amount: 4300, duration: "180 days" },
 ];
 
-
-
-
-
-
 const AddMembership = () => {
   const navigation = useNavigation();
   const [plan, setPlan] = useState("One Month");
@@ -62,8 +56,6 @@ const AddMembership = () => {
   const [membershipData, setMembershipData] = useState<any>(null);
 
   const appState = useRef(AppState.currentState);
-
-
 
   const handleConfirm = (selectedDate: Date) => {
     setDate(selectedDate);
@@ -89,7 +81,10 @@ const AddMembership = () => {
         startDate: date.toISOString().split("T")[0],
       };
 
-      const response = await axios.post("https://your-api.com/memberships", payload);
+      const response = await axios.post(
+        "https://your-api.com/memberships",
+        payload
+      );
 
       if (response.status === 200 || response.status === 201) {
         console.log("Success:", response.data);
@@ -99,13 +94,15 @@ const AddMembership = () => {
       }
     } catch (error: any) {
       console.error(error);
-      Alert.alert("Error", error.response?.data?.message || "Submission failed!");
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Submission failed!"
+      );
     } finally {
       setIsSubmitting(false);
       setModalVisible(false);
     }
   };
-
 
   useEffect(() => {
     const fetchMembership = async () => {
@@ -143,7 +140,9 @@ const AddMembership = () => {
   Balance: ₹0.00
   Thank you.`;
 
-    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
+      message
+    )}`;
 
     Linking.canOpenURL(url)
       .then((supported) => {
@@ -182,14 +181,14 @@ const AddMembership = () => {
   //     .catch(err => console.error("WhatsApp Error:", err));
   // };
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', nextAppState => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (
         appState.current.match(/inactive|background/) &&
-        nextAppState === 'active'
+        nextAppState === "active"
       ) {
         // User is back in the app, close modal
         setModalVisible(false);
-        navigation.navigate("Member Details" as never)
+        navigation.navigate("Member Details" as never);
       }
       appState.current = nextAppState;
     });
@@ -198,7 +197,6 @@ const AddMembership = () => {
       subscription.remove();
     };
   }, []);
-
 
   return (
     <ScrollView>
@@ -226,7 +224,6 @@ const AddMembership = () => {
             </TouchableOpacity>
           </View>
           <View>
-
             <RadioButton.Group onValueChange={setPlan} value={plan}>
               {plans.map((item, index) => (
                 <View key={index}>
@@ -234,11 +231,13 @@ const AddMembership = () => {
                     <RadioButton value={item.name} />
                     <Text style={styles.radioText}>{item.name}</Text>
                   </View>
-                  <Text style={styles.amount}> ₹{item.amount} - {item.duration}</Text>
+                  <Text style={styles.amount}>
+                    {" "}
+                    ₹{item.amount} - {item.duration}
+                  </Text>
                 </View>
               ))}
             </RadioButton.Group>
-
           </View>
 
           <View style={styles.paymentContainer}>
@@ -252,7 +251,8 @@ const AddMembership = () => {
                 placeholderTextColor="gray"
                 value={discount}
                 onChangeText={setDiscount}
-              />            </View>
+              />{" "}
+            </View>
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.inputbox}
@@ -260,8 +260,8 @@ const AddMembership = () => {
                 value={amountReceived}
                 onChangeText={setAmountReceived}
                 keyboardType={"number-pad"}
-
-              />            </View>
+              />{" "}
+            </View>
           </View>
         </View>
         <Text style={styles.paymentTitle}>Payment Method</Text>
@@ -270,7 +270,6 @@ const AddMembership = () => {
             onValueChange={setPaymentMethod}
             value={paymentMethod}
           >
-
             <View style={styles.radioButton}>
               <View style={styles.radioOption}>
                 <RadioButton value="Cash" />
@@ -284,7 +283,6 @@ const AddMembership = () => {
                 <Text style={styles.radioText}>UPI</Text>
               </View>
             </View>
-
 
             <View style={styles.radioButton}>
               <View style={styles.radioOption}>
@@ -343,8 +341,6 @@ const AddMembership = () => {
         >
           <Text style={styles.buttontext}>Confirm</Text>
         </TouchableOpacity>
-
-
       </View>
       <Modal
         animationType="slide"
@@ -355,7 +351,9 @@ const AddMembership = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalText}>Send Message?</Text>
-            <Text style={styles.messageTitle}>Your message would look like this</Text>
+            <Text style={styles.messageTitle}>
+              Your message would look like this
+            </Text>
 
             <View style={styles.messageContainer}>
               <Text style={styles.messageText}>To:</Text>
@@ -364,13 +362,22 @@ const AddMembership = () => {
             <Text style={styles.title}>Message</Text>
             <View style={styles.messageSubContainer}>
               <Text style={styles.memberName}>Hello Vaishu,</Text>
-              <Text style={styles.message}>Your membership to 8 months was successfully added and will expire on 01 Jun 2025.</Text>
-              <View style={styles.AmmountContainer}>  <Text style={styles.message}>Amount: ₹5,000 </Text>
-                <Text style={styles.message}>Paid: ₹5,000.00  </Text>
+              <Text style={styles.message}>
+                Your membership to 8 months was successfully added and will
+                expire on 01 Jun 2025.
+              </Text>
+              <View style={styles.AmmountContainer}>
+                {" "}
+                <Text style={styles.message}>Amount: ₹5,000 </Text>
+                <Text style={styles.message}>Paid: ₹5,000.00 </Text>
                 <Text style={styles.message}>Balance: ₹0.00 </Text>
-                <Text style={styles.thankYouText}>Thank you </Text></View>
+                <Text style={styles.thankYouText}>Thank you </Text>
+              </View>
             </View>
-            <TouchableOpacity style={styles.sendMessageButton} onPress={handleSendWhatsApp}>
+            <TouchableOpacity
+              style={styles.sendMessageButton}
+              onPress={handleSendWhatsApp}
+            >
               <Text style={styles.buttontext}>Send message</Text>
             </TouchableOpacity>
           </View>
@@ -402,13 +409,11 @@ const AddMembership = () => {
         </>
       )}
  */}
-
     </ScrollView>
   );
 };
 
 export default AddMembership;
-
 
 const styles = StyleSheet.create({
   container: {
@@ -469,7 +474,6 @@ const styles = StyleSheet.create({
     display: "flex",
     fontSize: 14,
     fontWeight: 600,
-
   },
   spacer: {
     flex: 0.2,
@@ -574,7 +578,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-
   },
   modalText: {
     marginTop: 5,
@@ -582,17 +585,17 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     fontFamily: "Jost",
     lineHeight: 30,
-    paddingLeft: 10
+    paddingLeft: 10,
   },
   messageText: {
     fontSize: 17,
     fontWeight: 700,
     fontFamily: "Jost",
-    lineHeight: 40
+    lineHeight: 40,
   },
   messageTitle: {
     fontFamily: "Jost",
-    paddingLeft: 10
+    paddingLeft: 10,
   },
   messageContainer: {
     display: "flex",
@@ -600,7 +603,7 @@ const styles = StyleSheet.create({
     margin: 11,
     marginTop: 30,
     marginBottom: 30,
-    gap: 10
+    gap: 10,
   },
   phoneNumber: {
     borderWidth: 1,
@@ -610,7 +613,7 @@ const styles = StyleSheet.create({
     fontWeight: 600,
     fontFamily: "Jost",
     borderRadius: 5,
-    padding: 10
+    padding: 10,
   },
   messageSubContainer: {
     borderWidth: 1,
@@ -620,25 +623,25 @@ const styles = StyleSheet.create({
     padding: 20,
     margin: 10,
     width: "95%",
-    paddingBottom: 45
+    paddingBottom: 45,
   },
   memberName: {
     fontFamily: "Jost",
     lineHeight: 40,
     marginBottom: 20,
     fontWeight: 600,
-    fontSize: 16
+    fontSize: 16,
   },
   message: {
     fontFamily: "Jost",
     fontWeight: 600,
-    fontSize: 15
+    fontSize: 15,
   },
   thankYouText: {
-    marginTop: 30
+    marginTop: 30,
   },
   AmmountContainer: {
-    marginTop: 10
+    marginTop: 10,
   },
   sendMessageButton: {
     borderWidth: 1,
@@ -649,8 +652,6 @@ const styles = StyleSheet.create({
     padding: 13,
     alignSelf: "center",
     marginTop: 20,
-    marginBottom: 10
-  }
-
-
+    marginBottom: 10,
+  },
 });

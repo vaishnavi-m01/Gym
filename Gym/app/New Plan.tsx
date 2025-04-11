@@ -8,19 +8,13 @@ import config from "./config";
 const NewPlan = () => {
   const [plan_name, setPlanName] = useState("");
   const [plan_amount, setPlanAmount] = useState("");
-  const [plan_duration_days, setDuratioin] = useState("");
+  const [plan_duration, setDuratioin] = useState("");
 
   const navigation = useNavigation();
 
- 
-
-
-    
-
-
-
+  
   const handleClick = async () => {
-    if (!plan_name || !plan_amount || !plan_duration_days) {
+    if (!plan_name || !plan_amount || !plan_duration) {
       alert("Please fill all fields");
       return;
     }
@@ -29,12 +23,12 @@ const NewPlan = () => {
       const response = await axios.post(`${config.BASE_URL}/plan/create/`, {
         plan_name,
         plan_amount: Number(plan_amount),
-        plan_duration_days,
+        plan_duration,
       });
 
       if (response.status === 201 || response.status === 200) {
         alert("Plan created successfully!");
-        navigation.navigate("Add Membership" as never);
+        navigation.navigate("Add  Membership" as never);
       } else {
         alert("Something went wrong!");
       }
@@ -69,9 +63,9 @@ const NewPlan = () => {
 
       <Text style={styles.label}>Duration</Text>
       <View style={styles.inputRow}>
-        <TextInput style={styles.inputbox} placeholder="Enter duration in days"
+        <TextInput style={styles.inputbox} placeholder="Enter duration "
           onChangeText={setDuratioin}
-          value={plan_duration_days} />
+          value={plan_duration} />
       </View>
 
       <TouchableOpacity style={styles.submitButton} onPress={handleClick}>

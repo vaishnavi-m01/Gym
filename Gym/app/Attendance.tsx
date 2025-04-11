@@ -251,6 +251,14 @@ const styles = StyleSheet.create({
 //   "../assets/images/member3.png": require("../assets/images/member3.png"),
 // };
 
+// type Member = {
+//   id: number;
+//   image: string;
+//   name: string;
+//   plan: string;
+//   status?: "present" | "absent";
+// };
+
 // const Attendance = () => {
 //   const [searchQuery, setSearchQuery] = useState("");
 //   const [filter, setFilter] = useState("Attendance");

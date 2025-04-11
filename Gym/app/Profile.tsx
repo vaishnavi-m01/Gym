@@ -10,7 +10,7 @@ import {
   Alert,
   Platform,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
+import * as ImagePicker from 'expo-image-picker';
 import axios from "axios";
 import config from "./config";
 import { useRoute } from "@react-navigation/native";
@@ -45,50 +45,71 @@ const Profile = () => {
     }
   };
 
+  // const pickImage = async () => {
+  //   setShowOptions(false); // 🔁 Immediately close options
+
+  //   const result = await ImagePicker.launchImageLibraryAsync({
+  //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //     allowsEditing: true,
+  //     base64: false,
+  //     quality: 1,
+  //   });
+
+  //   if (!result.canceled) {
+  //     const asset = result.assets[0];
+
+  //     const uri = asset.uri;
+  //     const base64 = asset.base64!;
+  //     let fileExt = uri.split(".").pop()?.toLowerCase() || "jpg";
+  //     let mimeType = `image/${fileExt === "jpg" ? "jpeg" : fileExt}`;
+
+  //     // Fallback MIME type check for some Android URIs
+  //     if (!mimeType.includes("/")) mimeType = "image/jpeg";
+
+  //     const fileName = `profile.${fileExt}`;
+
+  //     if (Platform.OS === "web") {
+  //       const res = await fetch(uri);
+  //       const blob = await res.blob();
+  //       const file = new File([blob], fileName, { type: mimeType });
+  //       setProfileImage(file);
+  //     } else {
+  //       const fileUri = FileSystem.cacheDirectory + fileName;
+  //       await FileSystem.writeAsStringAsync(fileUri, base64, {
+  //         encoding: FileSystem.EncodingType.Base64,
+  //       });
+
+  //       setProfileImage({
+  //         uri: fileUri,
+  //         name: fileName,
+  //         type: mimeType,
+  //       });
+  //     }
+  //   }
+  // };
+
   const pickImage = async () => {
-    setShowOptions(false); // 🔁 Immediately close options
+    setShowOptions(false);
   
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      base64: true,
+      aspect: [4, 3],
       quality: 1,
+      base64: false, // ✅ no base64
     });
   
-    if (!result.canceled) {
+    if (!result.canceled && result.assets?.length > 0) {
       const asset = result.assets[0];
+
+      setProfileImage(asset.uri);
   
-      const uri = asset.uri;
-      const base64 = asset.base64!;
-      let fileExt = uri.split(".").pop()?.toLowerCase() || "jpg";
-      let mimeType = `image/${fileExt === "jpg" ? "jpeg" : fileExt}`;
-  
-      // Fallback MIME type check for some Android URIs
-      if (!mimeType.includes("/")) mimeType = "image/jpeg";
-  
-      const fileName = `profile.${fileExt}`;
-  
-      if (Platform.OS === "web") {
-        const res = await fetch(uri);
-        const blob = await res.blob();
-        const file = new File([blob], fileName, { type: mimeType });
-        setProfileImage(file);
-      } else {
-        const fileUri = FileSystem.cacheDirectory + fileName;
-        await FileSystem.writeAsStringAsync(fileUri, base64, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-  
-        setProfileImage({
-          uri: fileUri,
-          name: fileName,
-          type: mimeType,
-        });
-      }
+      console.log("Selected image URI:", asset.uri); // Should look like: http://192.168.1.10:8000/media/...
     }
   };
   
   
+
   const openCamera = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
@@ -100,7 +121,6 @@ const Profile = () => {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
-      base64: true,
     });
 
     if (!result.canceled) {
@@ -134,36 +154,35 @@ const Profile = () => {
     formData.append("email", email);
     formData.append("name", name);
     formData.append("phone_number", phone_number);
-
+  
     if (profile_picture) {
       if (Platform.OS === "web") {
-        formData.append("profile_picture", profile_picture); 
-      } else {
-        formData.append("profile_picture", {
-          uri: profile_picture.uri,
-          name: profile_picture.name,
-          type: profile_picture.type,
-        } as any); 
-      }
-    }
+        formData.append("profile_picture", profile_picture); // ✅ a string like "http://..."
 
+      } else {
+        formData.append("profile_picture", profile_picture); // ✅ a string like "http://..."
+      }
+      console.log("imageOutput",profile_picture)
+
+    }
+  
     try {
-      const res = await axios.put(`${config.BASE_URL}/profile/${id}`, formData, {
+      const response = await axios.put(`${config.BASE_URL}/profile/${id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      Alert.alert("Success", "Profile updated successfully!");
-    } catch (err: any) {
-      console.error("Upload failed:", err.response?.data || err);
-      Alert.alert("Upload failed", JSON.stringify(err.response?.data || err.message));
+      console.log("Upload successful", response.data);
+    } catch (error) {
+      console.error("Upload failed", error);
     }
   };
+  
 
   return (
     <View style={styles.containers}>
       <View style={styles.profileContainer}>
-        <Image source={profile_picture} style={styles.adminImg} />
+        <Image source={ profile_picture } style={styles.adminImg} />
         <TouchableOpacity
           style={styles.cameraIcon}
           onPress={() => setShowOptions(!showOptions)}
