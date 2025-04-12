@@ -10,19 +10,27 @@ import {
   Alert,
   Platform,
 } from "react-native";
-import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import config from "./config";
 import { useRoute } from "@react-navigation/native";
-import * as FileSystem from "expo-file-system";
+
+type ImageFile = {
+  uri: string;
+  // name: string;
+  // type: string;
+};
 
 const Profile = () => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [phone_number, setPhone] = useState("");
-  const [profile_picture, setProfileImage] = useState<any>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null); // Updated to store URI for image
+  // const [profile_picture, setProfilePicture] = useState<ImageFile | null>(null); // Storing the file for upload
+  const [profile_picture, setImage] = useState<any>(null);
 
   const [showOptions, setShowOptions] = useState(false);
+
   const route = useRoute();
   const { id } = route.params as { id: string };
 
@@ -38,7 +46,7 @@ const Profile = () => {
       setEmail(email);
       setPhone(phone_number);
       if (profile_picture) {
-        setProfileImage({ uri: `${config.BASE_URL}${profile_picture}` });
+        setProfileImage(`${config.BASE_URL}${profile_picture}`);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -88,101 +96,226 @@ const Profile = () => {
   //   }
   // };
 
-  const pickImage = async () => {
-    setShowOptions(false);
+  // const pickImage = async () => {
+  //   setShowOptions(false); // Close the options immediately
+
+  //   const result = await ImagePicker.launchImageLibraryAsync({
+  //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //     allowsEditing: true,
+  //     aspect: [4, 3],
+  //     quality: 1,
+  //     base64: false,
+  //   });
+
+  //   if (!result.canceled && result.assets?.length > 0) {
+  //     const image = result.assets[0];
+
+  //     // Update UI immediately
+  //     setProfileImage(image.uri);
+
+  //     const fileType = image.uri.split(".").pop();
+  //     const mimeType = `image/${fileType === "jpg" ? "jpeg" : fileType}`;
+
+  //     const file: ImageFile = {
+  //       uri: image.uri,
+  //       // name: `profile.${fileType}`,
+  //       // type: mimeType,
+  //     };
+
+  //     setProfilePicture(file); 
+
+  //     console.log("profileee",profile_picture)
+  //   }
+  // };
+
+  // console.log("state", profile_picture);
+
+  // const openCamera = async () => {
+  //   const permission = await ImagePicker.requestCameraPermissionsAsync();
+  //   if (!permission.granted) {
+  //     alert("Camera permission required!");
+  //     return;
+  //   }
+
+  //   const result = await ImagePicker.launchCameraAsync({
+  //     allowsEditing: true,
+  //     aspect: [1, 1],
+  //     quality: 1,
+  //     base64: false,
+  //   });
+
+  //   if (!result.canceled && result.assets?.length > 0) {
+  //     const image = result.assets[0];
+  //     const fileType = image.uri.split(".").pop();
+  //     const mimeType = `image/${fileType === "jpg" ? "jpeg" : fileType}`;
+  //     const fileName = `profile.${fileType}`;
+
+  //     // Update UI immediately
+  //     setProfileImage(image.uri);
+
+  //     const file: ImageFile = {
+  //       uri: image.uri,
+  //       // name: fileName,
+  //       // type: mimeType,
+  //     };
+
+  //     setProfilePicture(file); // Save the file for upload
+  //   }
+  // };
+
+  // const saveProfile = async () => {
+  //   const formData = new FormData();
+  //   formData.append("email", email);
+  //   formData.append("name", name);
+  //   formData.append("phone_number", phone_number);
   
+  //   if (profile_picture) {
+  //     const uri = profile_picture.uri;
+  
+  //     try {
+  //       const response = await fetch(uri); 
+  //       const blob = await response.blob();
+  
+  //       const fileExtension = uri.split('.').pop()?.toLowerCase() || "jpeg";
+  //       const mimeType = `image/${fileExtension === "jpg" ? "jpeg" : fileExtension}`;
+  
+  //       formData.append("profile_picture", {
+  //         uri,
+  //         name: `profile.${fileExtension}`,
+  //         type: mimeType,
+  //       } as any); 
+  //     } catch (err) {
+  //       console.error("Error converting image to blob:", err);
+  //     }
+  //   }
+  
+  //    console.log("formData",formData)
+  //   try {
+  //     const response = await axios.put(`${config.BASE_URL}/profile/${id}`, formData, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     });
+  
+  //     const imgPath = response.data.profile_picture;
+  //     const fullUrl = `${config.BASE_URL}/${imgPath}`;
+  //     setProfileImage(fullUrl);
+      
+  //   } catch (error) {
+  //     console.error("Failed to update profile:", error);
+  //   }
+  // };
+
+  const pickImage = async () => {
+    setShowOptions(false)
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: [1, 1],
+      base64: false,
       quality: 1,
-      base64: false, // ✅ no base64
     });
-  
-    if (!result.canceled && result.assets?.length > 0) {
-      const asset = result.assets[0];
 
-      setProfileImage(asset.uri);
-  
-      console.log("Selected image URI:", asset.uri); // Should look like: http://192.168.1.10:8000/media/...
+    if (!result.canceled && result.assets.length > 0) {
+      const selected = result.assets[0];
+      setImage(selected);
     }
   };
-  
+
+   console.log("stateee",profile_picture)
   
 
   const openCamera = async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      alert("Camera permission required!");
-      return;
-    }
-
+    setShowOptions(false)
     const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1],
+      base64: false,
       quality: 1,
     });
 
-    if (!result.canceled) {
-      const image = result.assets[0];
-      const fileType = image.uri.split(".").pop();
-      const fileName = `profile.${fileType}`;
-      const mimeType = `image/${fileType === "jpg" ? "jpeg" : fileType}`;
-
-      if (Platform.OS === "web") {
-        const response = await fetch(image.uri);
-        const blob = await response.blob();
-        const file = new File([blob], fileName, { type: mimeType });
-        setProfileImage(file);
-      } else {
-        const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
-        await FileSystem.writeAsStringAsync(fileUri, image.base64!, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-
-        setProfileImage({
-          uri: fileUri,
-          name: fileName,
-          type: mimeType,
-        });
-      }
+    if (!result.canceled && result.assets.length > 0) {
+      const selected = result.assets[0];
+      setImage(selected);
     }
+
+
   };
+
+
 
   const saveProfile = async () => {
-    const formData = new FormData();
-    formData.append("email", email);
-    formData.append("name", name);
-    formData.append("phone_number", phone_number);
-  
-    if (profile_picture) {
-      if (Platform.OS === "web") {
-        formData.append("profile_picture", profile_picture); // ✅ a string like "http://..."
-
-      } else {
-        formData.append("profile_picture", profile_picture); // ✅ a string like "http://..."
-      }
-      console.log("imageOutput",profile_picture)
-
+    if (!profile_picture) {
+      Alert.alert('Error', 'Please select an image first.');
+      return;
     }
-  
+
     try {
-      const response = await axios.put(`${config.BASE_URL}/profile/${id}`, formData, {
+      // Step 1: Prepare image file
+      const fileName = profile_picture.uri.split('/').pop() || 'image.jpg';
+      const match = /\.(\w+)$/.exec(fileName);
+      const extension = match?.[1] || 'jpg';
+      const fileType = `image/${extension}`;
+
+      let file: any;
+
+      if (Platform.OS === 'web') {
+        const response = await fetch(profile_picture.uri);
+        const blob = await response.blob();
+        file = new File([blob], fileName, { type: fileType });
+      } else {
+        file = {
+          uri: profile_picture.uri,
+          name: fileName,
+          type: fileType,
+        };
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Step 2: Upload image file to server
+      const uploadResponse = await axios.post('http://192.168.1.10:8000/upload', formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
       });
-      console.log("Upload successful", response.data);
-    } catch (error) {
-      console.error("Upload failed", error);
+
+      const uploadedFileName = uploadResponse.data.filename || fileName;
+
+      // Step 3: Construct public image path
+      const imagePath = `https://192.194.8/images/${uploadedFileName}`;
+
+      // Step 4: Send profile update with image path
+      const profileData = {
+        name,
+        email,
+        phone_number,
+        profile_picture: imagePath,
+      };
+
+      const response = await axios.put('http://192.168.1.10:8000/profile/2', profileData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('✅ Profile updated:', response.data);
+      Alert.alert('Success', 'Profile updated successfully!');
+    } catch (error: any) {
+      console.error('❌ Failed to update profile:', error.message);
+      Alert.alert('Error', 'Failed to update profile. Check server logs.');
     }
   };
+  
   
 
   return (
     <View style={styles.containers}>
       <View style={styles.profileContainer}>
-        <Image source={ profile_picture } style={styles.adminImg} />
+        {profileImage && (
+          <Image source={{ uri: profileImage }} style={styles.adminImg} />
+        )}
         <TouchableOpacity
           style={styles.cameraIcon}
           onPress={() => setShowOptions(!showOptions)}

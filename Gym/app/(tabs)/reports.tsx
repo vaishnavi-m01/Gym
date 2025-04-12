@@ -57,7 +57,7 @@ export default function App() {
       );
 
       // Step 5: Simulated image URL
-      const imageUrl = `https://192.168.1.2/image/${fileName}`;
+      const imageUrl = `https://192.168.1.2/image/${fileName}.${fileType}`;
       setUploadedImageUrl(imageUrl);
 
       console.log('✅ Image uploaded:', imageUrl);
