@@ -15,9 +15,10 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import config from "./config";
-import { useRoute } from "@react-navigation/native"
-import { router } from "expo-router";;
-import {  useNavigation } from "expo-router";
+import { useRoute } from "@react-navigation/native";
+import { router } from "expo-router";
+import { useNavigation } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type ImageFile = {
   uri: string;
@@ -39,10 +40,7 @@ const Profile = () => {
     fetchProfile();
   }, [id]);
 
-
   const navigation = useNavigation();
-
-
 
   const fetchProfile = async () => {
     try {
@@ -59,11 +57,11 @@ const Profile = () => {
     }
   };
 
-  console.log("statee",profile_picture)
-  
+  console.log("statee", profile_picture);
+
   const pickImageFromGallery = async () => {
     setShowOptions(false);
-  
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -71,17 +69,15 @@ const Profile = () => {
       quality: 1,
       base64: false,
     });
-  
+
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
-  
+
       // Save the object (includes uri, width, height, etc.)
       setProfileImage({ uri: asset.uri }); // Set as an object with uri
     }
-    console.log("selectedImge",profile_picture)
-
+    console.log("selectedImge", profile_picture);
   };
-  
 
   const pickImageFromCamera = async () => {
     setShowOptions(false);
@@ -89,25 +85,23 @@ const Profile = () => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-  
+
     if (!result.canceled) {
       const asset = result.assets[0];
       const uri = asset.uri;
       const name = uri.split("/").pop(); // Get the file name from the URI
-  
+
       setProfileImage({ uri }); // Store only the uri in an object
     }
   };
 
-  
-
   // const handleSubmit = async () => {
   //   const formData = new FormData();
-  
+
   //   formData.append("name", name);
   //   formData.append("email", email);
   //   formData.append("phone_number", phone_number);
-  
+
   //   // Check if profile_picture is provided
   //   if (profile_picture && profile_picture.uri) {
   //     const uri = profile_picture.uri; // Extract uri if profile_picture is an object with uri
@@ -120,14 +114,14 @@ const Profile = () => {
   //       console.error("Error fetching image:", error.message);
   //     }
   //   }
-  
+
   //   // Log formData content
   //   for (let pair of formData.entries()) {
   //     console.log(pair[0] + ": " + pair[1]);
   //   }
-  
+
   //   const url = `${config.BASE_URL}/profile/${id}/`; // Ensure URL has the trailing slash
-  
+
   //   try {
   //     const response = await axios.put(url, formData); // Removed manually setting Content-Type
   //     console.log("Success:", response.data); // Log the successful response
@@ -140,60 +134,70 @@ const Profile = () => {
   //   }
   // };
 
-
   const handleSubmit = async () => {
+    const token = await AsyncStorage.getItem("jwtToken");
+
     const formData = new FormData();
     formData.append("name", name);
     formData.append("email", email);
     formData.append("phone_number", phone_number);
-  
+
     if (profile_picture?.uri) {
       const uri = profile_picture.uri;
       const fileName = uri.split("/").pop() || `profile_${Date.now()}.jpg`;
       const fileType = fileName.endsWith(".png") ? "image/png" : "image/jpeg";
-  
+
       const imageFile = {
         uri,
         name: fileName,
         type: fileType,
       };
-  
+
       formData.append("profile_picture", imageFile as any);
     }
-  
+
     try {
-      const response = await axios.put(`${config.BASE_URL}/profile/${id}/`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-  
+      const response = await axios.put(
+        `${config.BASE_URL}/profile/${id}/`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       console.log("Upload Success:", response.data);
       ToastAndroid.show("Profile successfully updated!", ToastAndroid.SHORT);
-  
-      // Ensure the updated image gets passed back
+
+    
       router.push({
         pathname: "/(tabs)",
         params: {
           updatedImage: profile_picture?.uri,
         },
       });
-  
-      // Refresh profile data to ensure UI reflects changes
-      fetchProfile(); // Fetch the updated profile data to reflect changes
+
+      
+      fetchProfile(); 
     } catch (error: any) {
       console.error("Upload Error:", error.response?.data || error.message);
       ToastAndroid.show("Upload failed!", ToastAndroid.SHORT);
     }
   };
-  
-    
+
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
-    <View style={styles.containers}>
-      <View style={styles.profileContainer}>
-        {profile_picture && <Image source={{ uri: profile_picture.uri }} style={styles.adminImg} />}
-        <TouchableOpacity
+      <View style={styles.containers}>
+        <View style={styles.profileContainer}>
+          {profile_picture && (
+            <Image
+              source={{ uri: profile_picture.uri }}
+              style={styles.adminImg}
+            />
+          )}
+          <TouchableOpacity
             style={styles.cameraIcon}
             onPress={() => setShowOptions(!showOptions)}
           >
@@ -202,53 +206,59 @@ const Profile = () => {
 
           {showOptions && (
             <View style={styles.optionBox}>
-              <TouchableOpacity onPress={pickImageFromGallery} style={styles.optionButton}>
+              <TouchableOpacity
+                onPress={pickImageFromGallery}
+                style={styles.optionButton}
+              >
                 <MaterialIcons name="photo-library" size={20} color="black" />
                 <Text style={styles.optionText}>Gallery</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={pickImageFromCamera} style={styles.optionButton}>
+              <TouchableOpacity
+                onPress={pickImageFromCamera}
+                style={styles.optionButton}
+              >
                 <MaterialIcons name="camera-alt" size={20} color="black" />
                 <Text style={styles.optionText}>Take Photo</Text>
               </TouchableOpacity>
             </View>
           )}
-      </View>
+        </View>
 
-      <Text style={styles.loginText}>Name</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.inputbox}
-          placeholderTextColor="gray"
-          value={name}
-          onChangeText={setName}
-        />
-      </View>
-
-      <Text style={styles.loginText}>Email</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.inputbox}
-          placeholderTextColor="gray"
-          value={email}
-          onChangeText={setEmail}
-        />
-      </View>
-
-      <Text style={styles.loginText}>Phone</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.inputbox}
-          placeholderTextColor="gray"
-          value={phone_number}
-          onChangeText={setPhone}
-          keyboardType="numeric"
+        <Text style={styles.loginText}>Name</Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.inputbox}
+            placeholderTextColor="gray"
+            value={name}
+            onChangeText={setName}
           />
-      </View>
+        </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Save changes</Text>
-      </TouchableOpacity>
-    </View>
+        <Text style={styles.loginText}>Email</Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.inputbox}
+            placeholderTextColor="gray"
+            value={email}
+            onChangeText={setEmail}
+          />
+        </View>
+
+        <Text style={styles.loginText}>Phone</Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.inputbox}
+            placeholderTextColor="gray"
+            value={phone_number}
+            onChangeText={setPhone}
+            keyboardType="numeric"
+          />
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>Save changes</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
@@ -335,7 +345,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     borderRadius: 10,
     width: "60%",
-    marginBottom:90,
+    marginBottom: 90,
     alignSelf: "center",
     alignItems: "center",
   },

@@ -11,6 +11,9 @@ interface Member {
   blood_group: string;
   address: string;
   notes: string;
+  plan_name: string;
+  plan_amount: number;
+  plan_duration_days: string;
 }
 
 interface MemberContextType {

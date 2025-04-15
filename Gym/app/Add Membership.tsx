@@ -24,6 +24,7 @@ import { useRef } from "react";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import config from "./config";
+import { useIsFocused } from "@react-navigation/native";
 
 const member = [
   {
@@ -40,6 +41,13 @@ const plans = [
   { name: "3 Month", amount: 2300, duration: "90 days" },
   { name: "6 Month", amount: 4300, duration: "180 days" },
 ];
+
+type Member = {
+  id: number;
+  plan_name: string;
+  plan_amount: number;
+  plan_duration_days: string;
+};
 
 const AddMembership = () => {
   const navigation = useNavigation();
@@ -60,6 +68,10 @@ const AddMembership = () => {
   const [member, setMember] = useState<any>(null);
   const appState = useRef(AppState.currentState);
 
+  const [plans,setPlans] = useState<Member[]>([]);
+  const isFocused = useIsFocused();
+
+
   console.log("memberIdddd" ,id)
   useEffect(() => {
     const fetchMember = async () => {
@@ -74,6 +86,31 @@ const AddMembership = () => {
     if (id) fetchMember();
   }, [id]);
 
+
+
+
+  useEffect(() => {
+    if (isFocused) {
+      fetchPlans();
+    }
+  }, [isFocused]);
+
+  const fetchPlans = async () => {
+    try {
+      const response = await axios.get(`${config.BASE_URL}/plans/`);
+
+      const plans = response.data.data;
+
+      if (Array.isArray(plans)) {
+        setPlans(plans);
+      } else {
+        console.warn("Unexpected data format:", response.data);
+        setPlans([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch plans:", error);
+    }
+  };
 
   const handleConfirm = (selectedDate: Date) => {
     setDate(selectedDate);
@@ -243,17 +280,18 @@ const AddMembership = () => {
               <Text style={styles.addButtonText}> + </Text>
             </TouchableOpacity>
           </View>
+
           <View>
             <RadioButton.Group onValueChange={setPlan} value={plan}>
               {plans.map((item, index) => (
                 <View key={index}>
                   <View style={styles.radioButton}>
-                    <RadioButton value={item.name} />
-                    <Text style={styles.radioText}>{item.name}</Text>
+                    <RadioButton value={item.plan_name} />
+                    <Text style={styles.radioText}>{item.plan_name}</Text>
                   </View>
                   <Text style={styles.amount}>
                     {" "}
-                    ₹{item.amount} - {item.duration}
+                    ₹{item.plan_amount} - {item.plan_duration_days} days
                   </Text>
                 </View>
               ))}
@@ -487,7 +525,7 @@ const styles = StyleSheet.create({
   },
   radioText: {
     fontSize: 14,
-    fontWeight: 600,
+    fontWeight: 800,
   },
 
   radioLeftText: {

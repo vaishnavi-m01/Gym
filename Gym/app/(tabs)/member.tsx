@@ -75,11 +75,13 @@ export default function Members() {
   //     AsyncStorage.setItem("profileImage", updatedImage); // Save it locally
   //   }
   // }, [updatedImage]);
-
+ 
 
   useEffect(() => {
-    fetchMembers();
-  }, []);
+    if (isFocused) {
+      fetchMembers();
+    }
+  }, [isFocused]);
 
 
   const fetchMembers = async () => {

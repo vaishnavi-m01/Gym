@@ -47,9 +47,9 @@ const MembersPage = ({
     try {
       const response = await axios.delete(`${config.BASE_URL}/members/${id}/`);
       if (response.status === 204) {
-        onDelete(id); // Update UI
+        onDelete(id);
         ToastAndroid.show("Member removed", ToastAndroid.SHORT);
-        setShowDeleteModal(false); // Close modal after deletion
+        setShowDeleteModal(false); 
       } else {
         Alert.alert("Failed", "Could not delete the member.");
       }

@@ -1,5 +1,15 @@
 import { AntDesign, Entypo, FontAwesome5 } from "@expo/vector-icons";
-import { View, StyleSheet, Image, Text, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Image,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Modal,
+  Linking,
+  Alert,
+} from "react-native";
 import { useState } from "react";
 import EditMembers from "../members/EditMembers";
 
@@ -11,40 +21,113 @@ type members = {
 };
 const ExpiringDays = ({ image, name, duration }: members) => {
   const [_changePassword, setChangePassword] = useState<any[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleChangePassword = (changePassword: any) => {
     setChangePassword((prevPasswor) => [changePassword, ...prevPasswor]);
   };
 
+  const handleSendWhatsApp = () => {
+    const phoneNumber = "6385542771";
+    const message = `Hello Vaishu,
+    Your membership to 8 months was successfully added and will expire on 01 Jun 2025.
+    Amount: ₹5,000
+    Paid: ₹5,000.00
+    Balance: ₹0.00
+    Thank you.`;
+
+    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
+      message
+    )}`;
+
+    Linking.canOpenURL(url)
+      .then((supported) => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          Alert.alert("WhatsApp not installed!");
+        }
+      })
+      .catch((err) => console.error("An error occurred", err));
+  };
+
   return (
-    <View style={style.container}>
-      <View style={style.subcontainer}>
-        <Image
-          source={typeof image === "string" ? { uri: image } : image}
-          style={style.image}
-        />
+    <ScrollView>
+      <View style={style.container}>
+        <View style={style.subcontainer}>
+          <Image
+            source={typeof image === "string" ? { uri: image } : image}
+            style={style.image}
+          />
 
-        <View style={style.textContainer}>
-          <View style={style.numberNameRow}>
-            <Text style={style.name}>{name}</Text>
-            <View style={style.iconContainer}>
-              <TouchableOpacity style={style.ReminderButton}>
-                <Image
-                  source={require('../../../assets/images/ReminderIcon.png')}
-                  style={style.icon}
-                /> 
-                <Text style={style.buttonText}>Send Reminder</Text>
-              </TouchableOpacity>
-              <AntDesign name="right" size={22} color="#717171" style={style.arrowIcon} />
-
+          <View style={style.textContainer}>
+            <View style={style.numberNameRow}>
+              <Text style={style.name}>{name}</Text>
+              <View style={style.iconContainer}>
+                <TouchableOpacity
+                  style={style.ReminderButton}
+                  onPress={() => setModalVisible(true)}
+                >
+                  <Image
+                    source={require("../../../assets/images/ReminderIcon.png")}
+                    style={style.icon}
+                  />
+                  <Text style={style.buttonText}>Send Reminder</Text>
+                </TouchableOpacity>
+                <AntDesign
+                  name="right"
+                  size={22}
+                  color="#717171"
+                  style={style.arrowIcon}
+                />
+              </View>
             </View>
+            <Text style={style.durationText}>Duration: {duration}</Text>
           </View>
-          <Text style={style.durationText}>Duration: {duration}</Text>
         </View>
       </View>
 
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={style.modalOverlay}>
+          <View style={style.modalContent}>
+            <Text style={style.modalText}>Send Message?</Text>
+            <Text style={style.messageTitle}>
+              Your message would look like this
+            </Text>
 
-    </View>
+            <View style={style.messageContainer}>
+              <Text style={style.messageText}>To:</Text>
+              <Text style={style.phoneNumber}>+919876543210</Text>
+            </View>
+            <Text style={style.title}>Message</Text>
+            <View style={style.messageSubContainer}>
+              <Text style={style.memberName}>Hello Vaishu,</Text>
+              <Text style={style.message}>
+                Your membership to 8 will expire on 17 Apr 2025
+              </Text>
+              <View style={style.AmmountContainer}>
+                {" "}
+                <Text style={style.message}>
+                  Please renew your membership as soon as possible.{" "}
+                </Text>
+                <Text style={style.thankYouText}>Thank you, </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={style.sendMessageButton}
+              onPress={handleSendWhatsApp}
+            >
+              <Text style={style.buttontext}>Send message</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </ScrollView>
   );
 };
 
@@ -59,7 +142,7 @@ const style = StyleSheet.create({
     margin: 5,
     padding: 10,
     borderRadius: 400,
-    marginBottom: 15
+    marginBottom: 15,
   },
   subcontainer: {
     flexDirection: "row",
@@ -88,7 +171,6 @@ const style = StyleSheet.create({
     fontWeight: "bold",
   },
 
-
   dot: {
     fontSize: 20,
   },
@@ -103,7 +185,7 @@ const style = StyleSheet.create({
 
   icon: {
     width: 20,
-    height:20
+    height: 20,
   },
 
   ReminderButton: {
@@ -113,17 +195,115 @@ const style = StyleSheet.create({
     borderColor: "#F5FFD4",
     backgroundColor: "#F5FFD4",
     padding: 5,
-    gap: 10
+    gap: 10,
   },
-  buttonText:{
-    color:"#666A75"
+  buttonText: {
+    color: "#666A75",
   },
-  arrowIcon:{
-    bottom:5
+  arrowIcon: {
+    bottom: 5,
   },
-  durationText:{
-    paddingTop:7,
-    fontSize:12,
-    color:"#73767D"
-  }
+  durationText: {
+    paddingTop: 7,
+    fontSize: 12,
+    color: "#73767D",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  modalText: {
+    marginTop: 5,
+    fontSize: 16,
+    fontWeight: 700,
+    fontFamily: "Jost",
+    lineHeight: 30,
+    paddingLeft: 10,
+  },
+  messageText: {
+    fontSize: 17,
+    fontWeight: 700,
+    fontFamily: "Jost",
+    lineHeight: 40,
+  },
+  messageTitle: {
+    fontFamily: "Jost",
+    paddingLeft: 10,
+  },
+  messageContainer: {
+    display: "flex",
+    flexDirection: "row",
+    margin: 11,
+    marginTop: 30,
+    marginBottom: 30,
+    gap: 10,
+  },
+  phoneNumber: {
+    borderWidth: 1,
+    borderColor: "#E2E3E8",
+    backgroundColor: "#E2E3E8",
+    color: "#111827",
+    fontWeight: 600,
+    fontFamily: "Jost",
+    borderRadius: 5,
+    padding: 10,
+  },
+  messageSubContainer: {
+    borderWidth: 1,
+    borderColor: "#E2E3E8",
+    backgroundColor: "#E2E3E8",
+    borderRadius: 5,
+    padding: 20,
+    margin: 10,
+    width: "95%",
+    paddingBottom: 45,
+  },
+  memberName: {
+    fontFamily: "Jost",
+    lineHeight: 40,
+    marginBottom: 20,
+    fontWeight: 600,
+    fontSize: 16,
+  },
+  message: {
+    fontFamily: "Jost",
+    fontWeight: 600,
+    fontSize: 15,
+    marginTop: 10,
+  },
+  thankYouText: {
+    marginTop: 30,
+  },
+  AmmountContainer: {
+    marginTop: 10,
+  },
+  sendMessageButton: {
+    borderWidth: 1,
+    borderColor: "#1B1A18",
+    backgroundColor: "#1B1A18",
+    borderRadius: 4,
+    width: "50%",
+    padding: 13,
+    alignSelf: "center",
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: 600,
+    paddingLeft: 12,
+  },
+  buttontext: {
+    textAlign: "center",
+    color: "#FFFFFF",
+    fontWeight: 600,
+    fontSize: 18,
+  },
 });

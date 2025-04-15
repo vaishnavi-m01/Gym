@@ -20,7 +20,7 @@ const MemberDetails = () => {
     const navigation =  useNavigation();
 
     const handleClick = ()=>{
-      navigation.navigate("Add  Membership" as never)
+      navigation.navigate("Add Membership" as never)
     }
     return (
         <ScrollView>

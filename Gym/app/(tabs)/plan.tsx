@@ -10,34 +10,7 @@ import { useEffect, useState } from "react";
 import { useNavigation } from "expo-router";
 import axios from "axios";
 import config from "../config";
-
-const datas = [
-  {
-    id: 1,
-    planName: "3 months",
-    duration: "30 Days - ₹2,000",
-  },
-  {
-    id: 2,
-    planName: "5 months",
-    duration: "50 Days - ₹5,000",
-  },
-  {
-    id: 3,
-    planName: "6 months",
-    duration: "180 Days - ₹6,000",
-  },
-  {
-    id: 4,
-    planName: "8 months",
-    duration: "70 Days - ₹6,000",
-  },
-  {
-    id: 5,
-    planName: "One months",
-    duration: "30 Days - ₹1,000",
-  },
-];
+import { useIsFocused } from "@react-navigation/native";
 
 type Member = {
   id: number;
@@ -50,9 +23,6 @@ export default function PlanDashboard() {
   const [members, setMembers] = useState<Member[]>([]);
   const navigation = useNavigation();
 
-  useEffect(() => {
-    fetchPlans();
-  }, []);
 
   const fetchPlans = async () => {
     try {

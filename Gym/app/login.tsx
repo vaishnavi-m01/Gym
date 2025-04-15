@@ -8,12 +8,17 @@ import {
   ToastAndroid,
   ScrollView,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Alert
 } from "react-native";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { TouchableWithoutFeedback, Keyboard } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import axios from "axios";
+import config from "./config";
 
 
 const LoginScreen = () => {
@@ -22,10 +27,25 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       ToastAndroid.show("Please enter email and password!", ToastAndroid.SHORT);
       return;
+    }
+
+    try {
+      const response = await axios.post(`${config.BASE_URL}/login/`, {
+        email,
+        password,
+      });
+
+      const { token } = response.data;
+      await AsyncStorage.setItem('jwtToken', token);
+
+      Alert.alert('Success', 'Login successful!');
+    } catch (error:any) {
+      console.error('Login error:', error.response?.data || error.message);
+      Alert.alert('Error', 'Login failed');
     }
     router.replace("/(tabs)");
   };

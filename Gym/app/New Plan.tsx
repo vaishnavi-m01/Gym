@@ -4,6 +4,7 @@ import { useState } from "react";
 import { View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { Text } from "react-native-paper";
 import config from "./config";
+import { useMember } from "./context/MemberContext";
 
 const NewPlan = () => {
   const [plan_name, setPlanName] = useState("");
@@ -11,8 +12,8 @@ const NewPlan = () => {
   const [plan_duration, setDuratioin] = useState("");
 
   const navigation = useNavigation();
+  const { setMember } = useMember();
 
-  
   const handleClick = async () => {
     if (!plan_name || !plan_amount || !plan_duration) {
       alert("Please fill all fields");
@@ -25,6 +26,10 @@ const NewPlan = () => {
         plan_amount: Number(plan_amount),
         plan_duration,
       });
+
+      const createdMember = response.data;
+      setMember(createdMember);
+      console.log("planResponse",createdMember)
 
       if (response.status === 201 || response.status === 200) {
         alert("Plan created successfully!");
@@ -54,7 +59,9 @@ const NewPlan = () => {
       <Text style={styles.label}>Plan Amount</Text>
 
       <View style={styles.inputRow}>
-        <TextInput style={styles.inputbox} placeholder="Enter  amount"
+        <TextInput
+          style={styles.inputbox}
+          placeholder="Enter  amount"
           onChangeText={setPlanAmount}
           value={plan_amount}
           keyboardType="numeric"
@@ -63,9 +70,12 @@ const NewPlan = () => {
 
       <Text style={styles.label}>Duration</Text>
       <View style={styles.inputRow}>
-        <TextInput style={styles.inputbox} placeholder="Enter duration "
+        <TextInput
+          style={styles.inputbox}
+          placeholder="Enter duration "
           onChangeText={setDuratioin}
-          value={plan_duration} />
+          value={plan_duration}
+        />
       </View>
 
       <TouchableOpacity style={styles.submitButton} onPress={handleClick}>
@@ -82,7 +92,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 10,
     padding: 20,
-    marginTop: 30
+    marginTop: 30,
   },
   inputRow: {
     flexDirection: "row",

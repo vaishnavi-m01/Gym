@@ -366,7 +366,7 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
 }
 
 const styles = StyleSheet.create({
-  button: { padding: 5 },
+  button: { padding: 5,top: 5 },
   modalContainer: {
     flex: 1,
     justifyContent: "center",

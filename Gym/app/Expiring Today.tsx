@@ -63,6 +63,7 @@ type Member = {
 const ExpiringDay = () => {
     const [members, setMembers] = useState<Member[]>([]);
 
+
     return (
         <View style={styles.containers}>
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}
