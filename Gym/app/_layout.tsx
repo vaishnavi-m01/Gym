@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { MemberProvider } from './context/MemberContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,15 +35,19 @@ export default function RootLayout() {
   }
 
   return (
+
+    <MemberProvider>
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="welcome" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* <Stack.Screen name= "/(tabs)/members" options={{headerShown: false}} /> */}
         <Stack.Screen name="+not-found" />
       </Stack>
 
       <StatusBar style="auto" />
     </ThemeProvider>
+    </MemberProvider>
   );
 }

@@ -28,7 +28,7 @@ const NewPlan = () => {
 
       if (response.status === 201 || response.status === 200) {
         alert("Plan created successfully!");
-        navigation.navigate("Add  Membership" as never);
+        navigation.navigate("Add Membership" as never);
       } else {
         alert("Something went wrong!");
       }

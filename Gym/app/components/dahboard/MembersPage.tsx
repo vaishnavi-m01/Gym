@@ -1,48 +1,122 @@
 import { AntDesign, Entypo, FontAwesome5 } from "@expo/vector-icons";
-import { View, StyleSheet, Image, Text, ScrollView } from "react-native";
-import EditMembers from "../members/EditMembers";
+import {
+  View,
+  StyleSheet,
+  Image,
+  Text,
+  TouchableOpacity,
+  Modal,
+  Pressable,
+  ToastAndroid,
+  Alert,
+  Platform,
+} from "react-native";
+import { useNavigation } from "expo-router";
 import { useState } from "react";
+import axios from "axios";
+import config from "../../config";
+import { useRouter } from "expo-router";
+import EditMembers from "../members/EditMembers";
 
-type members = {
+type MembersProps = {
   id: number;
-  image: string | number;
+  profile_picture: string | number;
   name: string;
-  phoneNumber: string;
+  phone_number: string;
   plan: string;
   status: string | undefined;
+  onDelete: (id: number) => void;
 };
-const MembersPage = ({ image, name, phoneNumber, plan, status }: members) => {
-  const [_changePassword, setChangePassword] = useState<any[]>([]);
 
-  const handleChangePassword = (changePassword: any) => {
-    setChangePassword((prevPasswor) => [changePassword, ...prevPasswor]);
+const MembersPage = ({
+  id,
+  profile_picture,
+  name,
+  phone_number,
+  plan,
+  status,
+  onDelete,
+}: MembersProps) => {
+
+  const router = useRouter();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+
+
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(`${config.BASE_URL}/members/${id}/`);
+      if (response.status === 204) {
+        onDelete(id); // Update UI
+        ToastAndroid.show("Member removed", ToastAndroid.SHORT);
+        setShowDeleteModal(false); // Close modal after deletion
+      } else {
+        Alert.alert("Failed", "Could not delete the member.");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      Alert.alert("Error", "Something went wrong while deleting.");
+    }
   };
+
+  // const handleEdit = (memberId: number) => {
+  //   router.push(`/components/members/EditMembers${memberId}` as never);
+  // };
+
 
   return (
     <View style={style.container}>
+      {/* Delete Confirmation Modal */}
+      <Modal transparent visible={showDeleteModal} animationType="fade">
+        <View style={style.modalOverlay}>
+          <View style={style.modalContainer}>
+            <Text style={style.modalTitle}>Delete Member</Text>
+            <Text style={style.modalText}>
+              Are you sure you want to delete {name}?
+            </Text>
+            <View style={style.modalButtons}>
+              <Pressable
+                onPress={() => setShowDeleteModal(false)}
+                style={[style.button, style.cancelButton]}
+              >
+                <Text style={style.buttonText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleDelete}
+                style={[style.button, style.deleteButton]}
+              >
+                <Text style={[style.buttonText, { color: "#fff" }]}>Delete</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Member Card */}
       <View style={style.subcontainer}>
         <Image
-          source={typeof image === "string" ? { uri: image } : image}
+          source={
+            typeof profile_picture === "string"
+              ? { uri: profile_picture }
+              : profile_picture
+          }
           style={style.image}
         />
-
         <View style={style.textContainer}>
           <View style={style.numberNameRow}>
             <Text style={style.name}>{name}</Text>
             <View style={style.iconContainer}>
-              <AntDesign
-                name="delete"
-                size={20}
-                color="#F34E3A"
-                style={style.deletIcon}
-              />
-              {/* <FontAwesome5 name="edit" size={20} color="#1230B4" /> */}
-              <EditMembers
-                onChangePassword={handleChangePassword}
-              ></EditMembers>
+              <TouchableOpacity onPress={() => setShowDeleteModal(true)}>
+                <AntDesign name="delete" size={20} color="#F34E3A" />
+              </TouchableOpacity>
+             
+    
+
+              <EditMembers id={id} visible={editModalVisible} onClose={() => setEditModalVisible(false)} />
+
             </View>
           </View>
-          <Text style={style.phoneNumber}>{phoneNumber}</Text>
+          <Text style={style.phoneNumber}>{phone_number}</Text>
         </View>
       </View>
 
@@ -72,6 +146,7 @@ const MembersPage = ({ image, name, phoneNumber, plan, status }: members) => {
 };
 
 export default MembersPage;
+
 
 const style = StyleSheet.create({
   container: {
@@ -105,12 +180,12 @@ const style = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   },
-
   name: {
     color: "#000000",
     fontFamily: "Jost",
     fontSize: 16,
     fontWeight: "bold",
+    top: 8,
   },
   phoneNumber: {
     color: "#555",
@@ -131,28 +206,22 @@ const style = StyleSheet.create({
     width: "40%",
     borderRadius: 15,
     backgroundColor: "#E8F7F0",
-    color: "black",
-    textAlign: "center",
-    fontWeight: "700",
   },
   dot: {
     fontSize: 20,
   },
   statusContainer: {
-    display: "flex",
     flexDirection: "row",
     padding: 3,
     alignContent: "center",
     paddingLeft: 10,
   },
   iconContainer: {
-    display: "flex",
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "flex-end",
     gap: 8,
   },
-
   activeStatus: {
     backgroundColor: "#E8F7F0",
   },
@@ -165,7 +234,47 @@ const style = StyleSheet.create({
     textAlign: "center",
     alignSelf: "center",
   },
-  deletIcon: {
-    bottom: 5,
+
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    width: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 10,
+  },
+  button: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 5,
+  },
+  cancelButton: {
+    backgroundColor: "#E0E0E0",
+  },
+  deleteButton: {
+    backgroundColor: "#F34E3A",
+  },
+  buttonText: {
+    fontWeight: "600",
   },
 });

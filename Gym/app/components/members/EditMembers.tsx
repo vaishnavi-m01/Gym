@@ -1,5 +1,12 @@
-import { FontAwesome5 } from "@expo/vector-icons";
+import config from "@/app/config";
+import { useMember } from "@/app/context/MemberContext";
+import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
+import { useRoute } from "@react-navigation/native";
+import axios from "axios";
+import * as ImagePicker from "expo-image-picker";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -11,25 +18,51 @@ import {
   Alert,
   ScrollView,
   BackHandler,
+  ToastAndroid,
+  Image,
 } from "react-native";
 import { RadioButton } from "react-native-paper";
 import Toast from "react-native-toast-message";
 
+// type EditMembersProps = {
+//   onChangePassword: (data: any) => void;
+// };
+
 type EditMembersProps = {
-  onChangePassword: (data: any) => void;
+  id: number;
+  visible: boolean;
+  onClose: () => void;
 };
 
-export default function EditMembers({ onChangePassword }: EditMembersProps) {
+export default function EditMembers({ id, visible, onClose }: EditMembersProps) {
   const [open, setOpen] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+
   const [name, setName] = useState("");
-  const [selectedCode, setSelectedCode] = useState("+91");
-  const [phone, setPhone] = useState("");
+  const [phone_number, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [dob, setDOB] = useState("");
+  const [date_of_birth, setDOB] = useState("");
   const [gender, setGender] = useState("Male");
-  const [bloodGroup, setBloodGroup] = useState("");
+  const [blood_group, setBloodGroup] = useState("");
   const [address, setAddress] = useState("");
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [notes, setNotes] = useState("");
+
+  const [showOptions, setShowOptions] = useState(false);
+  const [isImagePicked, setIsImagePicked] = useState(false);
+
+    const { setMember } = useMember();
+    const navigation = useNavigation();
+  
+
+
+
+  const route = useRoute();
+  // const { id } = route.params as { id: string };
+
+
+  const [profile_picture, setProfileImage] = useState<any>(
+    require("../../../assets/images/member2.png")
+  );
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -46,45 +79,146 @@ export default function EditMembers({ onChangePassword }: EditMembersProps) {
     return () => backHandler.remove();
   }, [open]);
 
-  const handleSubmit = () => {
-    if (
-      !name ||
-      !phone ||
-      !email ||
-      !dob ||
-      !gender ||
-      !bloodGroup ||
-      !address
-    ) {
-      Alert.alert("Error", "All required fields must be filled!");
-      return;
+  console.log("meberId", id)
+
+  useEffect(() => {
+    if (id) {
+      fetchMemberData();
     }
+  }, [visible]);
 
-    const userData = {
-      id: Math.random(),
-      name,
-      phone: `${selectedCode} ${phone}`,
-      email,
-      dob,
-      gender,
-      bloodGroup,
-      address,
-      date: new Date().toISOString(),
-    };
 
-    onChangePassword(userData);
-    Toast.show({ type: "success", text1: "Details Updated Successfully!" });
-    setOpen(false);
+  const fetchMemberData = async () => {
+    if (!id) return;
+  
+    try {
+      const res = await axios.get(`${config.BASE_URL}/members/${id}/`);
+      const data = res.data.data;  // <-- Corrected here
+  
+      setName(data.name || "");
+      setEmail(data.email || "");
+      setPhone(data.phone_number || "");
+      setDOB(data.date_of_birth?.split("-").reverse().join("-") || "");
+      setGender(data.gender || "Male");
+      setBloodGroup(data.blood_group || "");
+      setAddress(data.address || "");
+      setNotes(data.notes || "");
+  
+      if (data.profile_picture) {
+        setProfileImage({ uri: `${config.BASE_URL}${data.profile_picture}` }); // include full URL
+      }
+    } catch (err) {
+      console.log("Fetch member failed:", err);
+      ToastAndroid.show("Failed to load member data", ToastAndroid.SHORT);
+    }
+  };
+    
+
+
+  const pickImageFromGallery = async () => {
+    setShowOptions(false);
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+      base64: false,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+
+      setProfileImage({ uri: asset.uri });
+      setIsImagePicked(true);
+    }
   };
 
-  return (  
+  const pickImageFromCamera = async () => {
+    setShowOptions(false);
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const asset = result.assets[0];
+      const uri = asset.uri;
+
+      setProfileImage({ uri: asset.uri });
+      setIsImagePicked(true);
+    }
+  };
+
+  const formatDOBForBackend = (dob: string) => {
+    if (!dob) return "";
+    const [dd, mm, yyyy] = dob.split("-");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    if (name) formData.append("name", name);
+    if (phone_number) formData.append("phone_number", phone_number);
+    if (email) formData.append("email", email);
+    if (date_of_birth) {
+      formData.append("date_of_birth", formatDOBForBackend(date_of_birth));
+    }
+    if (blood_group) formData.append("blood_group", blood_group);
+    if (gender) formData.append("gender", gender);
+    if (address) formData.append("address", address);
+    if (notes) formData.append("notes", notes);
+
+    if (profile_picture?.uri) {
+      const uri = profile_picture.uri;
+      const fileName = uri.split("/").pop() || `profile_${Date.now()}.jpg`;
+      const fileType = fileName.endsWith(".png") ? "image/png" : "image/jpeg";
+
+      const imageFile = {
+        uri,
+        name: fileName,
+        type: fileType,
+      };
+
+      formData.append("profile_picture", imageFile as any);
+    }
+
+    try {
+      const response = await axios.put(`${config.BASE_URL}/members/${id}/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const updateData = response.data;
+      setMember(updateData);
+      console.log("updatedData" ,updateData)
+      
+      ToastAndroid.show("Profile successfully updated!", ToastAndroid.SHORT);
+      router.push('/(tabs)/member'); 
+      // fetchMemberData();
+      // fetchProfile(); // Fetch the updated profile data to reflect changes
+    } catch (error: any) {
+      console.error("Upload Error:", error.response?.data || error.message);
+      ToastAndroid.show("Upload failed!", ToastAndroid.SHORT);
+    }
+  };
+
+  return (
     <>
       <ScrollView
         keyboardShouldPersistTaps="handled"
         scrollEnabled={false}
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity style={styles.button} onPress={() => setOpen(true)}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            setOpen(true);
+            fetchMemberData(); 
+          }}
+        >
           <FontAwesome5 name="edit" size={20} color="#1230B4" />
         </TouchableOpacity>
 
@@ -105,6 +239,34 @@ export default function EditMembers({ onChangePassword }: EditMembersProps) {
                 showsVerticalScrollIndicator={false}
               >
                 <Text style={styles.titleLabel}>Edit Member</Text>
+                <View style={styles.profileContainer}>
+                  <Image source={profile_picture} style={styles.adminImg} />
+                  <TouchableOpacity
+                    style={styles.cameraIcon}
+                    onPress={() => setShowOptions(!showOptions)}
+                  >
+                    <MaterialIcons name="photo-camera" size={24} color="white" />
+                  </TouchableOpacity>
+
+                  {showOptions && (
+                    <View style={styles.optionBox}>
+                      <TouchableOpacity
+                        onPress={pickImageFromGallery}
+                        style={styles.optionButton}
+                      >
+                        <MaterialIcons name="photo-library" size={20} color="black" />
+                        <Text style={styles.optionText}>Gallery</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={pickImageFromCamera}
+                        style={styles.optionButton}
+                      >
+                        <MaterialIcons name="camera-alt" size={20} color="black" />
+                        <Text style={styles.optionText}>Take Photo</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
                 <Text style={styles.label}>
                   Name <Text style={styles.required}>*</Text>
                 </Text>
@@ -118,33 +280,14 @@ export default function EditMembers({ onChangePassword }: EditMembersProps) {
                   Phone <Text style={styles.required}>*</Text>
                 </Text>
 
-                <View style={styles.phoneContainer}>
-                  <View style={styles.mainPickerContainer}>
-                    <View style={styles.pickerContainer}>
-                      <Picker
-                        selectedValue={selectedCode}
-                        onValueChange={(itemValue) =>
-                          setSelectedCode(itemValue)
-                        }
-                      >
-                        <Picker.Item label="+91" value="+91" />
-                        <Picker.Item label="+1 (USA)" value="+1" />
-                        <Picker.Item label="+44 (UK)" value="+44" />
-                        <Picker.Item label="+61 (Australia)" value="+61" />
-                      </Picker>
-                    </View>
-                    <View style={styles.phoneinputContainer}>
-                      <TextInput
-                        style={styles.inputbox}
-                        placeholder="9895xxxxxx"
-                        value={phone}
-                        onChangeText={setPhone}
-                        keyboardType="numeric"
-                        maxLength={10} // Ensure only 10 digits
-                      />
-                    </View>
-                  </View>
-                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="9895xxxxxx"
+                  value={phone_number}
+                  onChangeText={setPhone}
+                  keyboardType="numeric"
+                  maxLength={10} // Ensure only 10 digits
+                />
 
                 <Text style={styles.label}>Email</Text>
                 <TextInput
@@ -159,7 +302,7 @@ export default function EditMembers({ onChangePassword }: EditMembersProps) {
                 <TextInput
                   style={styles.input}
                   placeholder="YYYY-MM-DD"
-                  value={dob}
+                  value={date_of_birth}
                   onChangeText={setDOB}
                 />
                 <Text style={styles.text}>Gender (Required)</Text>
@@ -181,7 +324,7 @@ export default function EditMembers({ onChangePassword }: EditMembersProps) {
                 <Text style={styles.text}>Blood Group</Text>
                 <View style={styles.BloodPickerContainer}>
                   <Picker
-                    selectedValue={bloodGroup}
+                    selectedValue={blood_group}
                     style={styles.inputbox}
                     onValueChange={(itemValue) => setBloodGroup(itemValue)}
                   >
@@ -234,6 +377,48 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 16,
+  },
+  profileContainer: {
+    alignSelf: "center",
+    position: "relative",
+  },
+  adminImg: {
+    height: 150,
+    width: 150,
+    borderRadius: 75,
+    borderWidth: 1,
+    borderColor: "#E0E5E9",
+  },
+  cameraIcon: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    backgroundColor: "black",
+    padding: 5,
+    borderRadius: 20,
+  },
+  optionBox: {
+    position: "absolute",
+    bottom: -50,
+    right: 0,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 5,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    shadowOffset: { width: 1, height: 1 },
+  },
+  optionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
+  },
+  optionText: {
+    marginLeft: 5,
+    fontSize: 14,
+    color: "black",
   },
   modalContent: {
     backgroundColor: "#FFFFFF",

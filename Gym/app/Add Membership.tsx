@@ -22,6 +22,8 @@ import { AppState } from "react-native";
 import { useRef } from "react";
 
 import axios from "axios";
+import { useLocalSearchParams } from "expo-router";
+import config from "./config";
 
 const member = [
   {
@@ -54,8 +56,24 @@ const AddMembership = () => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const [membershipData, setMembershipData] = useState<any>(null);
-
+  const { id } = useLocalSearchParams();
+  const [member, setMember] = useState<any>(null);
   const appState = useRef(AppState.currentState);
+
+  console.log("memberIdddd" ,id)
+  useEffect(() => {
+    const fetchMember = async () => {
+      try {
+        const response = await axios.get(`${config.BASE_URL}/members/${id}`);
+        setMember(response.data.data);
+      } catch (error) {
+        console.error("Error fetching member:", error);
+      }
+    };
+
+    if (id) fetchMember();
+  }, [id]);
+
 
   const handleConfirm = (selectedDate: Date) => {
     setDate(selectedDate);
@@ -107,7 +125,7 @@ const AddMembership = () => {
   useEffect(() => {
     const fetchMembership = async () => {
       try {
-        const response = await axios.get("https://your-api.com/membership/123");
+        const response = await axios.get(`${config.BASE_URL}/members/${id}/`);
         setMembershipData(response.data);
       } catch (error) {
         console.error("Error fetching membership:", error);
@@ -201,17 +219,19 @@ const AddMembership = () => {
   return (
     <ScrollView>
       <View style={styles.container}>
-        {member.map((item) => (
+        {member && (
           <ProfileMember
-            key={item.id}
-            id={item.id}
-            image={item.image}
-            name={item.name}
-            phoneNumber={item.phoneNumber}
-            plan={item.plan}
-            status={item.status}
+            key={member.id}
+            id={member.id}
+            profile_picture={member.profile_picture}
+            name={member.name}
+            phone_number={member.phone_number}
+            gender={member.gender}
+            status={member.status}
           />
-        ))}
+        )}
+
+    
 
         <View style={styles.subContainer}>
           <View style={styles.membersubContainers}>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
   Text,
   View,
@@ -17,9 +17,22 @@ import { useNavigation } from "expo-router";
 import config from "./config";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import { Asset } from "expo-asset";
+import { useMember } from "./context/MemberContext";
+import { RootStackParamList } from "./navigation/type";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import { useRoute } from "@react-navigation/native";
-import * as FileSystem from "expo-file-system";
+
+type AddMembershipParams = {
+  profile_picture: string;
+  phone_number: string;
+  status: string;
+  gender: string;
+};
+
+type AddMembershipNav = NativeStackNavigationProp<RootStackParamList, "Add Membership">;
+
+
 
 type FormErrors = {
   name?: string;
@@ -39,13 +52,23 @@ const NewMember = () => {
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
 
+  const { setMember } = useMember();
+  const navigation = useNavigation();
+  const navigationById = useNavigation<AddMembershipNav>();
+
+
+
+
   const [showOptions, setShowOptions] = useState(false);
+  const [isImagePicked, setIsImagePicked] = useState(false);
+
 
   const [profile_picture, setProfileImage] = useState<any>(
     require("../assets/images/member2.png")
   );
+ 
+  
 
-  const navigation = useNavigation();
   const [errors, setErrors] = useState<FormErrors>({});
 
   const validateField = (field: string, value: string) => {
@@ -96,142 +119,133 @@ const NewMember = () => {
     return `${yyyy}-${mm}-${dd}`;
   };
 
-  const pickImage = async () => {
-    setShowOptions(false); // 🔁 Immediately close options
-
+  const pickImageFromGallery = async () => {
+    setShowOptions(false);
+  
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      base64: true,
+      aspect: [4, 3],
+      quality: 1,
+      base64: false,
+    });
+  
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      
+      setProfileImage({ uri: asset.uri });
+      setIsImagePicked(true);          }
+  };
+  
+  const pickImageFromCamera = async () => {
+    setShowOptions(false);
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-
+  
     if (!result.canceled) {
       const asset = result.assets[0];
-
       const uri = asset.uri;
-      const base64 = asset.base64!;
-      let fileExt = uri.split(".").pop()?.toLowerCase() || "jpg";
-      let mimeType = `image/${fileExt === "jpg" ? "jpeg" : fileExt}`;
-
-      // Fallback MIME type check for some Android URIs
-      if (!mimeType.includes("/")) mimeType = "image/jpeg";
-
-      const fileName = `profile.${fileExt}`;
-
-      if (Platform.OS === "web") {
-        const res = await fetch(uri);
-        const blob = await res.blob();
-        const file = new File([blob], fileName, { type: mimeType });
-        setProfileImage(file);
-      } else {
-        const fileUri = FileSystem.cacheDirectory + fileName;
-        await FileSystem.writeAsStringAsync(fileUri, base64, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-
-        setProfileImage({
-          uri: fileUri,
-          name: fileName,
-          type: mimeType,
-        });
-      }
-    }
+      
+      setProfileImage({ uri: asset.uri });
+      setIsImagePicked(true);       }
   };
-
-  const openCamera = async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      alert("Camera permission required!");
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-      base64: true,
-    });
-
-    if (!result.canceled) {
-      const image = result.assets[0];
-      const fileType = image.uri.split(".").pop();
-      const fileName = `profile.${fileType}`;
-      const mimeType = `image/${fileType === "jpg" ? "jpeg" : fileType}`;
-
-      if (Platform.OS === "web") {
-        const response = await fetch(image.uri);
-        const blob = await response.blob();
-        const file = new File([blob], fileName, { type: mimeType });
-        setProfileImage(file);
-      } else {
-        const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
-        await FileSystem.writeAsStringAsync(fileUri, image.base64!, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-
-        setProfileImage({
-          uri: fileUri,
-          name: fileName,
-          type: mimeType,
-        });
-      }
-    }
-  };
-
+  
+  
+  
   const handleSubmit = async () => {
     if (!validateForm()) {
       Alert.alert("Validation Error", "Please correct the form fields.");
       return;
     }
-
+  
     const formData = new FormData();
-
-    // Add profile picture if exists
-    if (profile_picture?.uri) {
-      const fileName = profile_picture.uri.split("/").pop();
-      const fileType = profile_picture.uri.split(".").pop();
-
-      formData.append("profile_picture", {
-        uri: profile_picture.uri,
-        name: fileName || `photo.${fileType}`,
-        type: `image/${fileType}`,
-      } as any);
-    }
-
-    // Append all other fields
+  
+    // Append fields
     if (name) formData.append("name", name);
     if (phone_number) formData.append("phone_number", phone_number);
     if (email) formData.append("email", email);
-    if (date_of_birth)
+    if (date_of_birth) {
       formData.append("date_of_birth", formatDOBForBackend(date_of_birth));
+    }
     if (blood_group) formData.append("blood_group", blood_group);
     if (gender) formData.append("gender", gender);
     if (address) formData.append("address", address);
     if (notes) formData.append("notes", notes);
-
+  
+    // ✅ If user picked image from camera/gallery
+    if (isImagePicked && profile_picture?.uri) {
+      const fileName = profile_picture.uri.split("/").pop();
+      const fileType = fileName?.split(".").pop();
+  
+      formData.append("profile_picture", {
+        uri: Platform.OS === "ios"
+          ? profile_picture.uri.replace("file://", "")
+          : profile_picture.uri,
+        name: fileName || `photo.${fileType}`,
+        type: `image/${fileType}`,
+      } as any);
+    } else {
+      // ✅ Use local asset image if not picked from gallery/camera
+      const asset = Asset.fromModule(require("../assets/images/member2.png"));
+      await asset.downloadAsync(); // Make sure it's available
+  
+      const localUri = asset.localUri || asset.uri;
+      const fileName = localUri.split("/").pop();
+      const fileType = fileName?.split(".").pop();
+  
+      formData.append("profile_picture", {
+        uri: localUri,
+        name: fileName || `default.${fileType}`,
+        type: `image/${fileType || "jpeg"}`,
+      } as any);
+    }
+  
     try {
-      await axios.post(`${config.BASE_URL}/members/create/`, formData, {
+      const response = await axios.post(`${config.BASE_URL}/members/create/`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
+      const createdMember = response.data;
+      setMember(createdMember);
+
+      console.log("newMember",createdMember)
+  
       Alert.alert("Success", "Member added successfully!");
-      navigation.navigate("Add  Membership" as never);
+
+      // (navigation.navigate as Function)('AddMembership', {
+      //   profile_picture: profile_picture.uri,
+      //   phone_number: phone_number,
+      //   name: name,
+      //   status: 'Active',
+      //   gender: gender,
+      // });
+
+      // const { id } = route.params;
+      console.log("Created member ID:", createdMember?.id);
+      if (createdMember?.data?.id) {
+        navigationById.navigate("Add Membership", { id: createdMember.data.id });
+      }
+          
+      
     } catch (error: any) {
       console.error("API Error:", error.response?.data || error.message);
-
+  
       let errorMessage = "Failed to add member. Try again.";
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
       }
-
+  
       Alert.alert("Error", errorMessage);
     }
   };
+  
+  
 
   return (
     <ScrollView>
@@ -249,14 +263,14 @@ const NewMember = () => {
             {showOptions && (
               <View style={styles.optionBox}>
                 <TouchableOpacity
-                  onPress={pickImage}
+                  onPress={pickImageFromGallery}
                   style={styles.optionButton}
                 >
                   <MaterialIcons name="photo-library" size={20} color="black" />
                   <Text style={styles.optionText}>Gallery</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={openCamera}
+                  onPress={pickImageFromCamera}
                   style={styles.optionButton}
                 >
                   <MaterialIcons name="camera-alt" size={20} color="black" />

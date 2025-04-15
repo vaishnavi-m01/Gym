@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -13,6 +13,9 @@ import { useNavigation } from "expo-router";
 import axios from "axios";
 import MembersPage from "../components/dahboard/MembersPage";
 import config from "../config";
+import { useIsFocused } from "@react-navigation/native";
+import { useMember } from "../context/MemberContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Dummy fallback data
 const datas = [
@@ -43,53 +46,107 @@ const datas = [
 
 type Member = {
   id: number;
-  image: string | number;
   name: string;
-  phoneNumber: string;
+  profile_picture: string | number;
+  phone_number: string;
   plan: string;
   status?: "Active" | "Inactive";
 };
 
-export default function TabTwoScreen() {
+export default function Members() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"All" | "Active" | "Inactive">("All");
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const { member, setMember, removeMember } = useMember();
+
+  
   const navigation = useNavigation();
+  
+ 
+
+  const isFocused = useIsFocused();
+  // const { updatedImage } = (route.params as { updatedImage?: string }) || {};
+
+  // useEffect(() => {
+  //   if (updatedImage && typeof updatedImage === "string") {
+  //     const newImage = { uri: updatedImage };
+  //     setProfileImage(newImage);
+  //     AsyncStorage.setItem("profileImage", updatedImage); // Save it locally
+  //   }
+  // }, [updatedImage]);
+
 
   useEffect(() => {
     fetchMembers();
   }, []);
 
+
   const fetchMembers = async () => {
     try {
       const response = await axios.get(`${config.BASE_URL}/members/`);
+      const membersFromAPI = response.data.data;
 
-      if (Array.isArray(response.data)) {
-        setMembers(response.data);  
+      if (Array.isArray(membersFromAPI)) {
+        const formattedMembers: Member[] = membersFromAPI.map((member: any) => ({
+          id: member.id,
+          name: member.name,
+          profile_picture: member.profile_picture
+            ? `${config.BASE_URL}${member.profile_picture}`
+            : require("../../assets/images/member2.png"),
+          phone_number: member.phone_number || "N/A",
+          email: member.email || "",
+          date_of_birth: member.date_of_birth || "",
+          gender: member.gender || "",
+          blood_group: member.blood_group || "",
+          address: member.address || "",
+          notes: member.notes || "",
+          plan: member.plan || "No Plan",
+          status: member.status === "active" ? "Active" : "Inactive",
+        }));
+
+        setMembers(formattedMembers);
       } else {
-        throw new Error("Invalid response format");
+        console.warn("Unexpected data format:", response.data);
+        setMembers([]);
       }
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to fetch members.");
-       setMembers(datas); 
-    } finally { 
+    } finally {
       setLoading(false);
     }
   };
 
+
+
   const getFilteredMembers = () => {
     const query = searchQuery.toLowerCase();
-  
+
     return members
       .filter((member) => filter === "All" || member.status === filter)
       .filter((member) =>
         member.name.toLowerCase().includes(query) ||
-        member.phoneNumber.toLowerCase().includes(query) ||
+        member.phone_number.toLowerCase().includes(query) ||
         member.plan.toLowerCase().includes(query)
       );
   };
-  
+
+  useEffect(() => {
+    if (isFocused) {
+      fetchMembers(); //  Fetch fresh data when screen is focused
+    }
+  }, [isFocused]);
+
+  const handleDeleteMember = (id: number) => {
+    setMembers((prev) => prev.filter((m) => m.id !== id));
+  };
+
+
+  const handleClick = () =>{
+    navigation.navigate("Member Details" as never)
+  }
+
+
 
   return (
     <View style={styles.container}>
@@ -142,15 +199,18 @@ export default function TabTwoScreen() {
 
           {getFilteredMembers().length > 0 ? (
             getFilteredMembers().map((item) => (
+              <TouchableOpacity onPress={handleClick}>
               <MembersPage
                 key={item.id}
                 id={item.id}
-                image={item.image}
+                profile_picture={item.profile_picture}
                 name={item.name}
-                phoneNumber={item.phoneNumber}
+                phone_number={item.phone_number}
                 plan={item.plan}
                 status={item.status}
+                onDelete={handleDeleteMember}
               />
+              </TouchableOpacity>
             ))
           ) : (
             <Text style={styles.emptyMessage}>No members found.</Text>
@@ -226,8 +286,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   scrollContent: {
-    paddingBottom: 20,
-    flexGrow: 1,
+    paddingBottom: 90,
+    // marginBottom: 30,
   },
   emptyMessage: {
     textAlign: "center",

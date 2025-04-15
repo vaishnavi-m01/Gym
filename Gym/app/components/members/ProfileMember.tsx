@@ -1,54 +1,69 @@
+import config from "@/app/config";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { Image } from "react-native";
 import { View, Text, StyleSheet } from "react-native";
 
 type members = {
     id?: number;
-    image: string | number;
+    profile_picture: string | number;
     name: string;
-    phoneNumber: string;
-    plan: string;
+    phone_number: string;
+    gender: string;
     status: string | undefined;
 };
-const ProfileMember = ({ image, name, phoneNumber, plan, status }: members) => {
 
+// type ImageFile = {
+//     uri: string;
+//     // Add other properties like name, type if necessary
+//   };
+
+const ProfileMember = ({ profile_picture, name, phone_number, gender, status }: members) => {
+
+
+    console.log("profilepIC", profile_picture)
 
     return (
         <View style={style.container}>
             <View style={style.subcontainer}>
                 <Image
-                    source={typeof image === "string" ? { uri: image } : image}
+                    source={
+                        typeof profile_picture === "string"
+                            ? { uri: `${config.BASE_URL}/${profile_picture}` } 
+                            : profile_picture
+                    }
                     style={style.image}
                 />
+
 
                 <View style={style.textContainer}>
                     <View style={style.numberNameRow}>
                         <Text style={style.name}>{name}</Text>
                         <View style={style.iconContainer}>
-                        <AntDesign name="arrowright" size={22} color="black" />
+                            <AntDesign name="arrowright" size={22} color="black" />
 
                         </View>
                     </View>
-                    <Text style={style.phoneNumber}>{phoneNumber}</Text>
+                    <Text style={style.phoneNumber}>{phone_number}</Text>
                 </View>
             </View>
 
             <View style={style.bottomContainer}>
                 {status && (
-                   
-                        <View style={style.statusContainer}>
-                            <Entypo
-                                name="dot-single"
-                                size={25}
-                                color={status === "Active" ? "#1EAF5B" : "#FFA500"}
-                                style={style.dot}
-                            />
-                            <Text style={style.statusText}>{status}</Text>
-                        </View>
+
+                    <View style={style.statusContainer}>
+                        <Entypo
+                            name="dot-single"
+                            size={25}
+                            color={status === "Active" ? "#1EAF5B" : "#FFA500"}
+                            style={style.dot}
+                        />
+                        <Text style={style.statusText}>{status}</Text>
+                    </View>
 
                 )}
-                <Text style={style.plan}>{plan}</Text>
+                <Text style={style.plan}>{gender}</Text>
 
             </View>
 
@@ -106,7 +121,7 @@ const style = StyleSheet.create({
         borderRadius: 15,
         fontSize: 14,
         fontFamily: "Jost",
-        padding:10,
+        padding: 10,
         fontWeight: "700",
         color: "black",
     },
@@ -134,7 +149,7 @@ const style = StyleSheet.create({
         marginTop: 20,
         borderRadius: 15,
         fontFamily: "Jost",
-        padding:10,
+        padding: 10,
         fontWeight: "700",
         color: "black",
     },
@@ -158,5 +173,5 @@ const style = StyleSheet.create({
         alignItems: "center",
         fontSize: 14,
     },
-   
+
 });
