@@ -11,6 +11,7 @@ import {
   Pressable,
   Alert,
   Modal,
+  BackHandler,
 } from "react-native";
 import ProfileMember from "./components/members/ProfileMember";
 import { useEffect, useState } from "react";
@@ -57,22 +58,29 @@ const AddMembership = () => {
   const [discount, setDiscount] = useState("");
   const [amountReceived, setAmountReceived] = useState("");
 
+  const [planAmount, setPlanAmount] = useState(0);
+  const [balanceAmount, setBalanceAmount] = useState(0);
+
+
   const [date, setDate] = useState(new Date());
   const [isPickerVisible, setPickerVisible] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [apiCalled, setApiCalled] = useState(false);
+
 
   const [membershipData, setMembershipData] = useState<any>(null);
   const { id } = useLocalSearchParams();
   const [member, setMember] = useState<any>(null);
   const appState = useRef(AppState.currentState);
 
-  const [plans,setPlans] = useState<Member[]>([]);
+  const [plans, setPlans] = useState<Member[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
   const isFocused = useIsFocused();
 
 
-  console.log("memberIdddd" ,id)
+  console.log("memberIdddd", id)
   useEffect(() => {
     const fetchMember = async () => {
       try {
@@ -94,6 +102,33 @@ const AddMembership = () => {
       fetchPlans();
     }
   }, [isFocused]);
+
+
+  useEffect(() => {
+    if (modalVisible) {
+      handleSubmit();
+    }
+  }, [modalVisible]);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (modalVisible) {
+          setModalVisible(false);
+          return true; // prevent default behavior
+        }
+        return false;
+      }
+    );
+    return () => backHandler.remove(); // cleanup
+  }, [modalVisible]);
+
+
+  const handleConfirmPress = () => {
+    setApiCalled(false);         // Reset before showing modal
+    setModalVisible(true);       // Show modal first
+  };
 
   const fetchPlans = async () => {
     try {
@@ -117,30 +152,65 @@ const AddMembership = () => {
     setPickerVisible(false);
   };
 
+
+  const handlePlanChange = (selectedPlanName: string) => {
+    setPlan(selectedPlanName);
+    const selected = plans.find(p => p.plan_name === selectedPlanName);
+    const amount = selected?.plan_amount || 0;
+    setPlanAmount(amount);
+
+    const discountValue = parseFloat(discount || "0");
+    const received = amount - discountValue;
+    setAmountReceived(received.toString());
+
+    const balance = amount - discountValue - received;
+    setBalanceAmount(balance);
+  };
+
+
+
+  const handleDiscountChange = (value: string) => {
+    setDiscount(value);
+    const discountValue = parseFloat(value || "0");
+    const received = planAmount - discountValue;
+    setAmountReceived(received.toString());
+
+    const balance = planAmount - discountValue - received;
+    setBalanceAmount(balance);
+  };
+
+
+  const handleAmountReceivedChange = (value: string) => {
+    setAmountReceived(value);
+    const received = parseFloat(value || "0");
+    const discountValue = parseFloat(discount || "0");
+    const balance = planAmount - discountValue - received;
+    setBalanceAmount(balance);
+  };
+
+
   const handleSubmit = async () => {
-    if (!plan || !paymentMethod || !amountReceived) {
+    if (!selectedPlanId || !paymentMethod || !amountReceived) {
       Alert.alert("Error", "Please fill all required fields.");
       return;
     }
 
     try {
       setIsSubmitting(true);
-      setModalVisible(true);
-
       const payload = {
-        member: member[0],
-        plan,
-        paymentMethod,
-        discount,
-        amountReceived,
-        startDate: date.toISOString().split("T")[0],
+        member_id: member.id, 
+        plan_id: selectedPlanId,
+        discount: discount || 0,
+        amount_received: amountReceived,
+        payment_method: paymentMethod,
+        start_date: date.toISOString().split("T")[0],
       };
 
-      const response = await axios.post(
-        "https://your-api.com/memberships",
-        payload
-      );
+      console.log("payloadd",payload)
 
+      const response = await axios.post(`${config.BASE_URL}/membership/create/`, payload);
+
+      console.log("responseee",payload)
       if (response.status === 200 || response.status === 201) {
         console.log("Success:", response.data);
         Alert.alert("Success", "Membership added successfully!");
@@ -155,9 +225,9 @@ const AddMembership = () => {
       );
     } finally {
       setIsSubmitting(false);
-      setModalVisible(false);
     }
   };
+
 
   useEffect(() => {
     const fetchMembership = async () => {
@@ -172,12 +242,12 @@ const AddMembership = () => {
     fetchMembership();
   }, []);
 
-  const getEndDate = () => {
-    if (!membershipData) return "";
 
-    const start = new Date(membershipData.startDate);
-    const end = new Date(start);
-    end.setDate(start.getDate() + membershipData.durationDays);
+  const getEndDate = () => {
+    const selected = plans.find(p => p.plan_name === plan);
+    const days = parseInt(selected?.plan_duration_days || "0");
+    const end = new Date(date);
+    end.setDate(end.getDate() + days);
 
     return end.toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -186,55 +256,55 @@ const AddMembership = () => {
     });
   };
 
-  const handleSendWhatsApp = () => {
-    const phoneNumber = "6385542771"; // replace with dynamic number
-    const message = `Hello Vaishu,
-  Your membership to 8 months was successfully added and will expire on 01 Jun 2025.
-  Amount: ₹5,000
-  Paid: ₹5,000.00
-  Balance: ₹0.00
-  Thank you.`;
-
-    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
-      message
-    )}`;
-
-    Linking.canOpenURL(url)
-      .then((supported) => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          Alert.alert("WhatsApp not installed!");
-        }
-      })
-      .catch((err) => console.error("An error occurred", err));
-  };
 
   // const handleSendWhatsApp = () => {
-  //   if (!membershipData) return;
+  //   const phoneNumber = "6385542771"; // replace with dynamic number
+  //   const message = `Hello Vaishu,
+  // Your membership to 8 months was successfully added and will expire on 01 Jun 2025.
+  // Amount: ₹5,000
+  // Paid: ₹5,000.00
+  // Balance: ₹0.00
+  // Thank you.`;
 
-  //   const phoneNumber = membershipData.phoneNumber;
-  //   const name = membershipData.name;
-  //   const plan = membershipData.plan;
-  //   const endDate = getEndDate();
-  //   const amount = membershipData.amount;
-  //   const paid = membershipData.paid;
-  //   const balance = (amount - paid).toFixed(2);
-
-  //   const message = `Hello ${name},\n\nYour membership to ${plan} was successfully added and will expire on ${endDate}.\n\nAmount: ₹${amount}\nPaid: ₹${paid.toFixed(2)}\nBalance: ₹${balance}\n\nThank you.`;
-
-  //   const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+  //   const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
+  //     message
+  //   )}`;
 
   //   Linking.canOpenURL(url)
-  //     .then(supported => {
+  //     .then((supported) => {
   //       if (supported) {
   //         Linking.openURL(url);
   //       } else {
-  //         Alert.alert('Error', 'WhatsApp not installed on your device');
+  //         Alert.alert("WhatsApp not installed!");
   //       }
   //     })
-  //     .catch(err => console.error("WhatsApp Error:", err));
+  //     .catch((err) => console.error("An error occurred", err));
   // };
+
+  const handleSendWhatsApp = () => {
+    const phoneNumber = member?.phone_number;
+    const name = member?.name;
+    const endDate = getEndDate(); // If needed, calculate using plan duration
+    const paid = parseFloat(amountReceived || "0");
+    const total = planAmount;
+    const balance = (total - paid).toFixed(2);
+
+    const message = `Hello ${name},\n\nYour membership to ${plan} was successfully added and will expire on ${endDate}.\n\nAmount: ₹${total}\nPaid: ₹${paid.toFixed(2)}\nBalance: ₹${balance}\n\nThank you.`;
+
+    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+
+    Linking.canOpenURL(url)
+      .then(supported => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          Alert.alert('Error', 'WhatsApp not installed on your device');
+        }
+      })
+      .catch(err => console.error("WhatsApp Error:", err));
+  };
+
+
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (
@@ -253,6 +323,13 @@ const AddMembership = () => {
     };
   }, []);
 
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2,
+    }).format(amount);
+
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -268,7 +345,7 @@ const AddMembership = () => {
           />
         )}
 
-    
+
 
         <View style={styles.subContainer}>
           <View style={styles.membersubContainers}>
@@ -282,7 +359,8 @@ const AddMembership = () => {
           </View>
 
           <View>
-            <RadioButton.Group onValueChange={setPlan} value={plan}>
+            <RadioButton.Group onValueChange={handlePlanChange} value={plan}>
+
               {plans.map((item, index) => (
                 <View key={index}>
                   <View style={styles.radioButton}>
@@ -305,27 +383,33 @@ const AddMembership = () => {
           <View style={styles.paymentSubContainer}>
             <View style={styles.inputContainer}>
               <TextInput
-                style={styles.inputbox}
-                placeholderTextColor="gray"
+                placeholder="Enter Discount"
+                keyboardType="numeric"
                 value={discount}
-                onChangeText={setDiscount}
-              />{" "}
+                onChangeText={handleDiscountChange}
+              />
             </View>
             <View style={styles.inputContainer}>
               <TextInput
-                style={styles.inputbox}
-                placeholderTextColor="gray"
+                placeholder="Amount Received"
+                keyboardType="numeric"
                 value={amountReceived}
-                onChangeText={setAmountReceived}
-                keyboardType={"number-pad"}
-              />{" "}
+                onChangeText={handleAmountReceivedChange}
+              />
             </View>
           </View>
+
         </View>
+        {amountReceived !== "" && (
+          <Text style={{ marginTop: 5, marginRight: 50, fontWeight: "bold", alignSelf: "flex-end", color: balanceAmount === 0 ? "green" : "red" }}>
+            Balance: ₹{balanceAmount.toFixed(2)}
+          </Text>
+        )}
+
         <Text style={styles.paymentTitle}>Payment Method</Text>
         <View>
           <RadioButton.Group
-            onValueChange={setPaymentMethod}
+            onValueChange={(value) => setPaymentMethod(value)}
             value={paymentMethod}
           >
             <View style={styles.radioButton}>
@@ -395,10 +479,18 @@ const AddMembership = () => {
 
         <TouchableOpacity
           style={styles.sumbitButton}
-          onPress={() => setModalVisible(true)}
+          onPress={() => {
+            setModalVisible(true); // 🔹 Open modal
+          }}
         >
           <Text style={styles.buttontext}>Confirm</Text>
         </TouchableOpacity>
+
+
+
+
+
+
       </View>
       <Modal
         animationType="slide"
@@ -415,20 +507,21 @@ const AddMembership = () => {
 
             <View style={styles.messageContainer}>
               <Text style={styles.messageText}>To:</Text>
-              <Text style={styles.phoneNumber}>+919876543210</Text>
+              <Text style={styles.phoneNumber}>+{member?.phone_number || "N/A"}</Text>
             </View>
             <Text style={styles.title}>Message</Text>
             <View style={styles.messageSubContainer}>
-              <Text style={styles.memberName}>Hello Vaishu,</Text>
+              <Text style={styles.memberName}> Hello {member?.name || "Member"},</Text>
               <Text style={styles.message}>
-                Your membership to 8 months was successfully added and will
-                expire on 01 Jun 2025.
+                Your membership to {plan} was successfully added and will
+                expire on {getEndDate()}.
               </Text>
               <View style={styles.AmmountContainer}>
                 {" "}
-                <Text style={styles.message}>Amount: ₹5,000 </Text>
-                <Text style={styles.message}>Paid: ₹5,000.00 </Text>
-                <Text style={styles.message}>Balance: ₹0.00 </Text>
+                <Text style={styles.message}>Amount: {formatCurrency(planAmount)}</Text>
+                <Text style={styles.message}>Paid: {formatCurrency(parseFloat(amountReceived || "0"))}</Text>
+                <Text style={styles.message}>Balance: {formatCurrency(balanceAmount)}</Text>
+
                 <Text style={styles.thankYouText}>Thank you </Text>
               </View>
             </View>
@@ -441,32 +534,7 @@ const AddMembership = () => {
           </View>
         </View>
       </Modal>
-      {/* {membershipData && (
-        <>
-          <Text style={styles.phoneNumber}>{membershipData.phoneNumber}</Text>
 
-          <Text style={styles.title}>Message</Text>
-          <View style={styles.messageSubContainer}>
-            <Text style={styles.memberName}>Hello {membershipData.name},</Text>
-            <Text style={styles.message}>
-              Your membership to {membershipData.plan} was successfully added and will expire on {getEndDate()}.
-            </Text>
-
-            <View style={styles.AmmountContainer}>
-              <Text style={styles.message}>Amount: ₹{membershipData.amount}</Text>
-              <Text style={styles.message}>Paid: ₹{membershipData.paid.toFixed(2)}</Text>
-              <Text style={styles.message}>
-                Balance: ₹{(membershipData.amount - membershipData.paid).toFixed(2)}
-              </Text>
-              <Text style={styles.thankYouText}>Thank you</Text>
-            </View>
-            <TouchableOpacity style={styles.sendMessageButton} onPress={handleSendWhatsApp}>
-              <Text style={styles.buttontext}>Send message</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      )}
- */}
     </ScrollView>
   );
 };
