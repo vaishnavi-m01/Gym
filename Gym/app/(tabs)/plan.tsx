@@ -16,6 +16,7 @@ type Member = {
   id: number;
   plan_name: string;
   plan_amount: number;
+  plan_duration: string;
   plan_duration_days: string;
 };
 
@@ -23,6 +24,21 @@ export default function PlanDashboard() {
   const [members, setMembers] = useState<Member[]>([]);
   const navigation = useNavigation();
 
+    const isFocused = useIsFocused();
+  
+
+    useEffect(() => {
+      if (isFocused) {
+        fetchPlans();
+      }
+    }, [isFocused]);
+
+    const handleEditMember = (updatedPlan: Member) => {
+      setMembers((prev) =>
+        prev.map((m) => (m.id === updatedPlan.id ? updatedPlan : m))
+      );
+    };
+      
 
   const fetchPlans = async () => {
     try {
@@ -41,6 +57,10 @@ export default function PlanDashboard() {
     }
   };
 
+  const handleDeleteMember = (id: number) => {
+    setMembers((prev) => prev.filter((m) => m.id !== id));
+  };
+
   const handleSubmit = () => {
     navigation.navigate("New Plan" as never);
   };
@@ -55,9 +75,12 @@ export default function PlanDashboard() {
             <Plan
               key={item.id}
               id={item.id}
-              planName={item.plan_name}
-              amount={item.plan_amount}
-              duration={item.plan_duration_days}
+              plan_name={item.plan_name}
+              plan_amount={item.plan_amount}
+              plan_duration={item.plan_duration_days}
+              onDelete={handleDeleteMember}
+              onEdit={handleEditMember}  
+
             />
           ))
         ) : (

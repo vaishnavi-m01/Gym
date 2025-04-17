@@ -3,6 +3,10 @@ import MembersPage from "./components/dahboard/MembersPage";
 import ProfileMemberDetails from "./components/members/ProfileMemberDetails";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import config from "./config";
 const member = [
     {
         id: 1,
@@ -11,31 +15,49 @@ const member = [
         phoneNumber: "+1234567890",
         plan: "Premium",
         status: "Active",
+
     },
 ];
 
 
 const MemberDetails = () => {
 
+    const { id } = useLocalSearchParams();
+    const [member, setMember] = useState<any>(null);    
     const navigation =  useNavigation();
 
+
+    useEffect(() => {
+        const fetchMember = async () => {
+          try {
+            const response = await axios.get(`${config.BASE_URL}/members/${id}`);
+            setMember(response.data.data);
+          } catch (error) {
+            console.error("Error fetching member:", error);
+          }
+        };
+    
+        if (id) fetchMember();
+      }, [id]);
+    
     const handleClick = ()=>{
       navigation.navigate("Add Membership" as never)
     }
     return (
         <ScrollView>
             <View style={styles.container} >
-                {member.map((item) => (
-                    <ProfileMemberDetails
-                        key={item.id}
-                        id={item.id}
-                        image={item.image}
-                        name={item.name}
-                        phoneNumber={item.phoneNumber}
-                        plan={item.plan}
-                        status={item.status}
-                    />
-                ))}
+            {member && (
+          <ProfileMemberDetails
+            key={member.id}
+            id={member.id}
+            profile_picture={member.profile_picture}
+            name={member.name}
+            phone_number={member.phone_number}
+            gender={member.gender}
+            status={member.status}
+          />
+        )}
+
                 <View style={styles.paymentContainer}>
                     <View style={styles.subContainers}>
                         <View style={styles.memberContents}>

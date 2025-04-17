@@ -56,7 +56,7 @@ const ProfileMember = ({ profile_picture, name, phone_number, gender, status }: 
                         <Entypo
                             name="dot-single"
                             size={25}
-                            color={status === "Active" ? "#1EAF5B" : "#FFA500"}
+                            color={status === "Active" ? "#1daf60" : "#FFA500"}
                             style={style.dot}
                         />
                         <Text style={style.statusText}>{status}</Text>
@@ -163,6 +163,7 @@ const style = StyleSheet.create({
 
     activeStatus: {
         backgroundColor: "#eff0f4",
+        paddingRight:5
     },
     inactiveStatus: {
         backgroundColor: "#eff0f4",

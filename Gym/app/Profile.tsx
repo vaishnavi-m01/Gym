@@ -19,6 +19,7 @@ import { useRoute } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useNavigation } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import ChangePassword from "./components/dahboard/ChangePassword";
 
 type ImageFile = {
   uri: string;
@@ -254,6 +255,7 @@ const Profile = () => {
             keyboardType="numeric"
           />
         </View>
+        <ChangePassword></ChangePassword>
 
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>Save changes</Text>

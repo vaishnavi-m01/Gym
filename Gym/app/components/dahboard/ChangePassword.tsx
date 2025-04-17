@@ -10,11 +10,11 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message"; 
 
-type ShopCreateIconsProps = {
-  onChangePassword: (review: any) => void;
-};
+// type ShopCreateIconsProps = {
+//   onChangePassword: (review: any) => void;
+// };
 
-export default function ChangePassword({ onChangePassword }: ShopCreateIconsProps) {
+export default function ChangePassword() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [reviewText, setReviewText] = useState("");
@@ -34,8 +34,6 @@ export default function ChangePassword({ onChangePassword }: ShopCreateIconsProp
       verified: false,
       date: new Date().toLocaleDateString(),
     };
-
-    onChangePassword(newReview); // ✅ Instantly update UI
 
     fetch("https://your-api.com/reviews", {
       method: "POST",

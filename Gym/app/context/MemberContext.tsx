@@ -13,6 +13,7 @@ interface Member {
   notes: string;
   plan_name: string;
   plan_amount: number;
+  plan_duration: string;
   plan_duration_days: string;
 }
 

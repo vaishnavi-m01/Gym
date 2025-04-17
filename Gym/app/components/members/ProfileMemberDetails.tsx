@@ -4,28 +4,34 @@ import { Image } from "react-native";
 import { View, Text, StyleSheet } from "react-native";
 import EditMembers from "./EditMembers";
 import { useState } from "react";
+import config from "@/app/config";
+
+
 
 type members = {
-    id?: number;
-    image: string | number;
+    id: number;
+    profile_picture: string | number;
     name: string;
-    phoneNumber: string;
-    plan: string;
+    phone_number: string;
+    gender: string;
     status: string | undefined;
 };
-const ProfileMemberDetails = ({ image, name, phoneNumber, plan, status }: members) => {
+const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender, status }: members) => {
 
-     const [_changePassword, setChangePassword] = useState<any[]>([]);
-    
-      const handleChangePassword = (changePassword: any) => {
-        setChangePassword((prevPasswor) => [changePassword, ...prevPasswor]);
-      };
+    const [editModalVisible, setEditModalVisible] = useState(false);
+
+
+
 
     return (
         <View style={style.container}>
             <View style={style.subcontainer}>
                 <Image
-                    source={typeof image === "string" ? { uri: image } : image}
+                    source={
+                        typeof profile_picture === "string"
+                            ? { uri: `${config.BASE_URL}/${profile_picture}` }
+                            : profile_picture
+                    }
                     style={style.image}
                 />
 
@@ -35,18 +41,16 @@ const ProfileMemberDetails = ({ image, name, phoneNumber, plan, status }: member
                         <View style={style.iconContainer}>
                             <AntDesign
                                 name="delete"
-                                size={20}
+                                size={22}
                                 color="#F34E3A"
                                 style={style.deletIcon}
                             />
-                            {/* <FontAwesome5 name="edit" size={20} color="#1230B4" /> */}
-                            <EditMembers
-                                onChangePassword={handleChangePassword}
-                            ></EditMembers>
+                            <EditMembers id={id} visible={editModalVisible} onClose={() => setEditModalVisible(false)} />
+
                         </View>
 
                     </View>
-                    <Text style={style.phoneNumber}>{phoneNumber}</Text>
+                    <Text style={style.phoneNumber}>{phone_number}</Text>
                 </View>
             </View>
 
@@ -64,7 +68,7 @@ const ProfileMemberDetails = ({ image, name, phoneNumber, plan, status }: member
                     </View>
 
                 )}
-                <Text style={style.plan}>{plan}</Text>
+                <Text style={style.plan}>{gender}</Text>
 
             </View>
 
@@ -111,6 +115,7 @@ const style = StyleSheet.create({
         fontFamily: "Jost",
         fontSize: 16,
         fontWeight: "bold",
+        top: 8
     },
     phoneNumber: {
         color: "#555",
@@ -176,7 +181,7 @@ const style = StyleSheet.create({
         fontSize: 14,
     },
     deletIcon: {
-        bottom: 5,
-      },
+        top: 2,
+    },
 
 });

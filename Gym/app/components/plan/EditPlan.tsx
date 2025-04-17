@@ -1,5 +1,9 @@
+import config from "@/app/config";
+import { useMember } from "@/app/context/MemberContext";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
+import axios from "axios";
+import { useNavigation } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -14,14 +18,23 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 
+type EditPlanProps = {
+  id: number;
+  planName: string;
+  amount: number;
+  duration: string;
+  onPlanUpdate: (updated: any) => void; // ✅ Add this
 
+};
 
-export default function EditPlan() {
+const EditPlan = ({ id, amount, duration,onPlanUpdate }: EditPlanProps) =>{
   const [open, setOpen] = useState(false);
   const [planName, setPlanName] = useState("");
   const [planAmount, setPlanAmount] = useState("");
   const [planDuration, setPlanDuration] = useState("");
-
+  const { setMember } = useMember();
+  
+  const navigation = useNavigation();
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -38,22 +51,72 @@ export default function EditPlan() {
     return () => backHandler.remove();
   }, [open]);
 
-  const handleSubmit = () => {
+  console.log("plannId",id)
+
+  useEffect(() => {
+    fetchProfile();
+  }, [id]);
+
+
+  const fetchProfile = async () => {
+    try {
+      const response = await axios.get(`${config.BASE_URL}/plans/${id}`);
+      const { plan_name, plan_amount, plan_duration } = response.data.data;
+  
+      setPlanName(plan_name);
+      setPlanAmount(String(plan_amount)); 
+      setPlanDuration(String(plan_duration)); 
+    } catch (error) {
+      console.error("Failed to fetch plan details:", error);
+      Alert.alert("Error", "Could not fetch plan details.");
+    }
+  };
+  
+  const handleOpen = async () => {
+    await fetchProfile();
+    setOpen(true);
+  };
+  
+
+  const handleSubmit = async () => {
     if (!planName || !planAmount || !planDuration) {
       Alert.alert("Error", "All required fields must be filled!");
       return;
     }
+  
+    try {
+      const response = await axios.put(`${config.BASE_URL}/plans/${id}/`, {
+        plan_name: planName,
+        plan_amount: planAmount,
+        plan_duration: planDuration,
+      });
 
-    const userData = {
-      id: Math.random(),
-      planName,
-      planAmount,
-      planDuration,
-    };
-
-    Toast.show({ type: "success", text1: "Details Updated Successfully!" });
-    setOpen(false);
+      
+      const updateData = response.data.data;
+      onPlanUpdate(updateData); // ✅ update the PlanDashboard state
+      console.log("updateData",updateData)
+  
+      if (response.status === 200 || response.status === 201) {
+        const successMsg = response.data.message || "Plan updated successfully!";
+        
+        Toast.show({ type: "success", text1: successMsg });
+  
+        setTimeout(() => {
+          setOpen(false);
+  
+          // Optional: navigate after closing
+          // navigation.navigate("(tabs)/plan");
+        }, 1500); // 1.5s delay so user sees the Toast
+      } else {
+        Alert.alert("Error", "Failed to update plan. Please try again.");
+      }
+    } catch (error: any) {
+      console.error("API error:", error);
+      const errorMsg = error.response?.data?.message || "Something went wrong while updating the plan.";
+      Alert.alert("Error", errorMsg);
+    }
   };
+  
 
   return (
     <>
@@ -118,6 +181,9 @@ export default function EditPlan() {
     </>
   );
 }
+
+
+export default EditPlan
 
 const styles = StyleSheet.create({
   button: { padding: 5 },

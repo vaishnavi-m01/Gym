@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { useNavigation } from "expo-router";
 import { ActivityIndicator, RadioButton } from "react-native-paper";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Linking } from "react-native";
 import { AppState } from "react-native";
 import { useRef } from "react";
@@ -43,6 +44,11 @@ const plans = [
   { name: "6 Month", amount: 4300, duration: "180 days" },
 ];
 
+export type RootStackParamList = {
+  "Member Details": { id: string }; 
+};
+
+
 type Member = {
   id: number;
   plan_name: string;
@@ -51,12 +57,13 @@ type Member = {
 };
 
 const AddMembership = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [plan, setPlan] = useState("One Month");
   const [planName, setPlanName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [discount, setDiscount] = useState("");
   const [amountReceived, setAmountReceived] = useState("");
+
 
   const [planAmount, setPlanAmount] = useState(0);
   const [balanceAmount, setBalanceAmount] = useState(0);
@@ -81,6 +88,8 @@ const AddMembership = () => {
 
 
   console.log("memberIdddd", id)
+  console.log("planId",selectedPlanId)
+
   useEffect(() => {
     const fetchMember = async () => {
       try {
@@ -155,17 +164,24 @@ const AddMembership = () => {
 
   const handlePlanChange = (selectedPlanName: string) => {
     setPlan(selectedPlanName);
+  
     const selected = plans.find(p => p.plan_name === selectedPlanName);
+  
     const amount = selected?.plan_amount || 0;
     setPlanAmount(amount);
-
+  
     const discountValue = parseFloat(discount || "0");
     const received = amount - discountValue;
     setAmountReceived(received.toString());
-
+  
     const balance = amount - discountValue - received;
     setBalanceAmount(balance);
+  
+    if (selected?.id) {
+      setSelectedPlanId(selected.id); 
+    }
   };
+  
 
 
 
@@ -198,14 +214,14 @@ const AddMembership = () => {
     try {
       setIsSubmitting(true);
       const payload = {
-        member_id: member.id, 
-        plan_id: selectedPlanId,
+        member_id: member.id,
+        plan_id: selectedPlanId, 
         discount: discount || 0,
         amount_received: amountReceived,
         payment_method: paymentMethod,
         start_date: date.toISOString().split("T")[0],
       };
-
+      
       console.log("payloadd",payload)
 
       const response = await axios.post(`${config.BASE_URL}/membership/create/`, payload);
@@ -313,10 +329,12 @@ const AddMembership = () => {
       ) {
         // User is back in the app, close modal
         setModalVisible(false);
-        navigation.navigate("Member Details" as never);
+
+        navigation.navigate("Member Details", { id: Array.isArray(id) ? id[0] : id });
       }
       appState.current = nextAppState;
     });
+
 
     return () => {
       subscription.remove();
@@ -414,14 +432,14 @@ const AddMembership = () => {
           >
             <View style={styles.radioButton}>
               <View style={styles.radioOption}>
-                <RadioButton value="Cash" />
+                <RadioButton value="cash" />
                 <Text style={styles.radioText}>Cash</Text>
               </View>
 
               <View style={styles.leftspacer} />
 
               <View style={styles.radioOption}>
-                <RadioButton value="UPI" />
+                <RadioButton value="upi" />
                 <Text style={styles.radioText}>UPI</Text>
               </View>
             </View>
@@ -469,7 +487,7 @@ const AddMembership = () => {
           isVisible={isPickerVisible}
           mode="date"
           date={date}
-          minimumDate={new Date()} // disables past dates
+          minimumDate={new Date()} 
           onConfirm={handleConfirm}
           onCancel={() => setPickerVisible(false)}
         />
@@ -485,11 +503,6 @@ const AddMembership = () => {
         >
           <Text style={styles.buttontext}>Confirm</Text>
         </TouchableOpacity>
-
-
-
-
-
 
       </View>
       <Modal

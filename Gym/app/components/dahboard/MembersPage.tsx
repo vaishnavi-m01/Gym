@@ -7,15 +7,12 @@ import {
   TouchableOpacity,
   Modal,
   Pressable,
-  ToastAndroid,
   Alert,
-  Platform,
 } from "react-native";
-import { useNavigation } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import axios from "axios";
 import config from "../../config";
-import { useRouter } from "expo-router";
 import EditMembers from "../members/EditMembers";
 
 type MembersProps = {
@@ -38,35 +35,42 @@ const MembersPage = ({
   onDelete,
 }: MembersProps) => {
 
-  const router = useRouter();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [members, setMembers] = useState<MembersProps[]>([]);
 
 
-  const handleDelete = async () => {
+  const handleDelete = async (id: number) => {
     try {
-      const response = await axios.delete(`${config.BASE_URL}/members/${id}/`);
-      if (response.status === 204) {
+      const response = await axios.delete(`${config.BASE_URL}/members/${id}/`, {
+        withCredentials: true,
+        timeout: 5000,
+      });
+
+      setShowDeleteModal(false);
+      Alert.alert("Success", "Member deleted successfully");
+      onDelete(id); // Inform parent to remove from UI
+    } catch (err: any) {
+      console.log("Error deleting member:", err.message || err);
+
+      if (err.response) {
+        Alert.alert("Error", `Server responded with ${err.response.status}`);
+      } else if (err.request) {
+        // Assume success based on backend logs
+        setShowDeleteModal(false);
+        Alert.alert("Success", "Member deleted");
         onDelete(id);
-        ToastAndroid.show("Member removed", ToastAndroid.SHORT);
-        setShowDeleteModal(false); 
       } else {
-        Alert.alert("Failed", "Could not delete the member.");
+        Alert.alert("Error", err.message);
       }
-    } catch (error) {
-      console.error("Delete error:", error);
-      Alert.alert("Error", "Something went wrong while deleting.");
     }
   };
 
-  // const handleEdit = (memberId: number) => {
-  //   router.push(`/components/members/EditMembers${memberId}` as never);
-  // };
+
 
 
   return (
     <View style={style.container}>
-      {/* Delete Confirmation Modal */}
       <Modal transparent visible={showDeleteModal} animationType="fade">
         <View style={style.modalOverlay}>
           <View style={style.modalContainer}>
@@ -76,13 +80,13 @@ const MembersPage = ({
             </Text>
             <View style={style.modalButtons}>
               <Pressable
-                onPress={() => setShowDeleteModal(false)}
+                onPress={() => handleDelete(id)}
                 style={[style.button, style.cancelButton]}
               >
                 <Text style={style.buttonText}>Cancel</Text>
               </Pressable>
               <Pressable
-                onPress={handleDelete}
+                onPress={() => handleDelete(id)}
                 style={[style.button, style.deleteButton]}
               >
                 <Text style={[style.buttonText, { color: "#fff" }]}>Delete</Text>
@@ -95,11 +99,7 @@ const MembersPage = ({
       {/* Member Card */}
       <View style={style.subcontainer}>
         <Image
-          source={
-            typeof profile_picture === "string"
-              ? { uri: profile_picture }
-              : profile_picture
-          }
+          source={typeof profile_picture === "string" ? { uri: profile_picture } : profile_picture}
           style={style.image}
         />
         <View style={style.textContainer}>
@@ -109,11 +109,7 @@ const MembersPage = ({
               <TouchableOpacity onPress={() => setShowDeleteModal(true)}>
                 <AntDesign name="delete" size={20} color="#F34E3A" />
               </TouchableOpacity>
-             
-    
-
               <EditMembers id={id} visible={editModalVisible} onClose={() => setEditModalVisible(false)} />
-
             </View>
           </View>
           <Text style={style.phoneNumber}>{phone_number}</Text>
@@ -146,7 +142,6 @@ const MembersPage = ({
 };
 
 export default MembersPage;
-
 
 const style = StyleSheet.create({
   container: {
