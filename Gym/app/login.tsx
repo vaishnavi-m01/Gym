@@ -32,23 +32,31 @@ const LoginScreen = () => {
       ToastAndroid.show("Please enter email and password!", ToastAndroid.SHORT);
       return;
     }
-
+  
     try {
       const response = await axios.post(`${config.BASE_URL}/login/`, {
         email,
         password,
       });
-
-      const { token } = response.data;
-      await AsyncStorage.setItem('jwtToken', token);
-
-      Alert.alert('Success', 'Login successful!');
-    } catch (error:any) {
-      console.error('Login error:', error.response?.data || error.message);
-      Alert.alert('Error', 'Login failed');
+  
+      const { access, refresh, message } = response.data;
+  
+      console.log("Login Response:", response.data);
+  
+    
+      await AsyncStorage.setItem("jwtToken", access);
+      await AsyncStorage.setItem("refreshToken", refresh);
+  
+      Alert.alert("Success", message || "Login successful!");
+  
+      router.replace("/(tabs)");
+    } catch (error: any) {
+      console.error("Login Error:", error.response?.data || error.message);
+      Alert.alert("Error", "Login failed. Please check your credentials.");
     }
-    router.replace("/(tabs)");
   };
+  
+  
 
   return (
     <KeyboardAvoidingView
@@ -131,7 +139,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 350,
+    height: 400,
     justifyContent: "flex-end",
   },
   overlay: {

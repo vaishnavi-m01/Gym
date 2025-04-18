@@ -30,7 +30,7 @@ const Profile = () => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [phone_number, setPhone] = useState("");
-  const [profile_picture, setProfileImage] = useState<ImageFile | null>(null); // Updated to store URI object
+  const [profile_picture, setProfileImage] = useState<ImageFile | null>(null); 
 
   const [showOptions, setShowOptions] = useState(false);
 
@@ -50,9 +50,11 @@ const Profile = () => {
       setName(name);
       setEmail(email);
       setPhone(phone_number);
+      console.log("profile_impure",profile_picture)
       if (profile_picture) {
-        setProfileImage({ uri: `${config.BASE_URL}${profile_picture}` }); // Update to an object with URI
+        setProfileImage({ uri:`${config.BASE_URL}${profile_picture}` }); 
       }
+      console.log("setProfile",profile_picture)
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
@@ -74,8 +76,7 @@ const Profile = () => {
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
 
-      // Save the object (includes uri, width, height, etc.)
-      setProfileImage({ uri: asset.uri }); // Set as an object with uri
+      setProfileImage({ uri: asset.uri }); 
     }
     console.log("selectedImge", profile_picture);
   };
@@ -90,9 +91,9 @@ const Profile = () => {
     if (!result.canceled) {
       const asset = result.assets[0];
       const uri = asset.uri;
-      const name = uri.split("/").pop(); // Get the file name from the URI
+      const name = uri.split("/").pop(); 
 
-      setProfileImage({ uri }); // Store only the uri in an object
+      setProfileImage({ uri }); 
     }
   };
 
@@ -136,63 +137,69 @@ const Profile = () => {
   // };
 
   const handleSubmit = async () => {
-    const token = await AsyncStorage.getItem("jwtToken");
-
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("email", email);
-    formData.append("phone_number", phone_number);
-
-    if (profile_picture?.uri) {
-      const uri = profile_picture.uri;
-      const fileName = uri.split("/").pop() || `profile_${Date.now()}.jpg`;
-      const fileType = fileName.endsWith(".png") ? "image/png" : "image/jpeg";
-
-      const imageFile = {
-        uri,
-        name: fileName,
-        type: fileType,
-      };
-
-      formData.append("profile_picture", imageFile as any);
-    }
-
     try {
+      // If no token is needed, no need to fetch it from AsyncStorage
+      // const token = await AsyncStorage.getItem("jwtToken");  
+  
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("phone_number", phone_number);
+  
+      if (profile_picture?.uri) {
+        const uri = profile_picture.uri;
+        const fileName = uri.split("/").pop() || `profile_${Date.now()}.jpg`;
+        const fileType = fileName.endsWith(".png") ? "image/png" : "image/jpeg";
+  
+        const imageFile = {
+          uri,
+          name: fileName,
+          type: fileType,
+        };
+  
+        formData.append("profile_picture", imageFile as any);
+      }
+  
+      console.log("Submitting picture:", profile_picture);
+  
+    
       const response = await axios.put(
-        `${config.BASE_URL}/profile/${id}/`,
+        `${config.BASE_URL}/profile/${id}/`,  
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",  
           },
         }
       );
-
+  
       console.log("Upload Success:", response.data);
       ToastAndroid.show("Profile successfully updated!", ToastAndroid.SHORT);
-
-    
+  
       router.push({
         pathname: "/(tabs)",
         params: {
           updatedImage: profile_picture?.uri,
         },
       });
-
-      
-      fetchProfile(); 
+  
+      fetchProfile();
+  
     } catch (error: any) {
       console.error("Upload Error:", error.response?.data || error.message);
       ToastAndroid.show("Upload failed!", ToastAndroid.SHORT);
     }
   };
+  
+  
+  console.log("picture",profile_picture)
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <View style={styles.containers}>
         <View style={styles.profileContainer}>
-          {profile_picture && (
+    
+          {profile_picture?.uri && (
             <Image
               source={{ uri: profile_picture.uri }}
               style={styles.adminImg}

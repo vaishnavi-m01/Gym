@@ -28,7 +28,7 @@ export default function HomeScreen() {
     if (updatedImage && typeof updatedImage === "string") {
       const newImage = { uri: updatedImage };
       setProfileImage(newImage);
-      AsyncStorage.setItem("profileImage", updatedImage); // Save it locally
+      AsyncStorage.setItem("profileImage", updatedImage); 
     }
   }, [updatedImage]);
 
@@ -46,7 +46,6 @@ export default function HomeScreen() {
       if (profile) {
         setId(profile.id);
 
-        // If backend image available and no local override, load that
         if (!profile_picture) {
           setProfileImage({ uri: `${config.BASE_URL}${profile.profile_picture}` });
         }
@@ -58,8 +57,8 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (isFocused) {
-      loadStoredImage();     // 🔹 Load from local storage first
-      fetchProfileData();    // 🔹 Then call backend
+      loadStoredImage();     
+      fetchProfileData();    
     }
   }, [isFocused]);
 
@@ -97,6 +96,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    height: 400,
     backgroundColor: "#ffffff",
   },
   subContainer: {

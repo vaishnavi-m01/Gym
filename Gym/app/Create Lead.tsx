@@ -14,23 +14,24 @@ import axios from "axios";
 import { useNavigation } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import config from "./config";
 
 
 type FormErrors = {
     name?: string;
     phone_number?: string;
     Refferal?: string;
-
     blood_group?: string;
 };
 
 const CreateLead = () => {
-    const [name, setName] = useState("");
-    const [phone_number, setPhoneNumber] = useState("");
+    const [full_name, setName] = useState("");
+    const [phone, setPhoneNumber] = useState("");
 
-    const [chanceOfJoining, setChanceOfJoining] = useState("");
-    const [refferal,setRefferal] = useState();
+    const [chance_of_joining, setChanceOfJoining] = useState("");
+    const [referral,setRefferal] = useState();
     const [notes, setNotes] = useState("");
+    const [followup_date,setFollowupDate] = useState();
 
     const [date, setDate] = useState(new Date());
     const [isPickerVisible, setPickerVisible] = useState(false);
@@ -61,8 +62,8 @@ const CreateLead = () => {
 
     const validateForm = () => {
         let newErrors: FormErrors = {
-            name: validateField("name", name),
-            phone_number: validateField("phone", phone_number),
+            name: validateField("name", full_name),
+            phone_number: validateField("phone", phone),
             // email: validateField("email", email),
             // date_of_birth: validateField("dob", date_of_birth),
             // address: validateField("address", address),
@@ -77,46 +78,54 @@ const CreateLead = () => {
         setPickerVisible(false);
     };
 
-    // const handleSubmit = async () => {
-    //   if (!validateForm()) {
-    //     Alert.alert("Validation Error", "Please fix errors before submitting.");
-    //     return;
-    //   }
 
-    //   const requestData = {
-    //     name,
-    //     phone_number,
-    //     email,
-    //     date_of_birth,
-    //     gender,
-    //     blood_group,
-    //     address,
-    //     notes,
-    //   };
+    const formatDOBForBackend = (date: Date) => {
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${year}-${month}-${day}`;
+    };
+    
+    const handleSubmit = async () => {
+      if (!validateForm()) {
+        Alert.alert("Validation Error", "Please fix errors before submitting.");
+        return;
+      }
 
-    //   try {
-    //     await axios.post("http://192.168.1.8:8001/members/create/", requestData);
-    //     Alert.alert("Success", "Member added successfully!");
-    //     console.log("data", requestData);
+      const requestData = {
+     
+        full_name,
+        phone,
+        referral,
+        chance_of_joining,
+        notes,
+        followup_date: formatDOBForBackend(date),
 
-    //     navigation.navigate("AddMembership" as never);
-    //   } catch (error: any) {
-    //     console.error("API Error:", error.response?.data || error.message);
+      };
 
-    //     let errorMessage = "Failed to add member. Try again.";
-    //     if (error.response?.data?.message) {
-    //       errorMessage = error.response.data.message;
-    //     } else if (error.response?.data?.error) {
-    //       errorMessage = error.response.data.error;
-    //     }
+      try {
+        await axios.post(`${config.BASE_URL}/leads/`, requestData);
+        Alert.alert("Success", "Member added successfully!");
+        console.log("data", requestData);
 
-    //     Alert.alert("Error", errorMessage);
-    //   }
-    // };
+        navigation.navigate("AddMembership" as never);
+      } catch (error: any) {
+        console.error("API Error:", error.response?.data || error.message);
 
-    const handleSubmit = () => {
-        navigation.navigate("Potential Leads" as never);
-    }
+        let errorMessage = "Failed to add member. Try again.";
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        }
+
+        Alert.alert("Error", errorMessage);
+      }
+    };
+
+    // const handleSubmit = () => {
+    //     navigation.navigate("Potential Leads" as never);
+    // }
 
     return (
         <ScrollView>
@@ -129,7 +138,7 @@ const CreateLead = () => {
                         <TextInput
                             style={styles.inputbox}
                             placeholder="Enter name"
-                            value={name}
+                            value={full_name}
                             onChangeText={(text) => {
                                 setName(text);
                                 setErrors({ ...errors, name: validateField("name", text) });
@@ -144,7 +153,7 @@ const CreateLead = () => {
                         <TextInput
                             style={styles.inputbox}
                             placeholder="9895xxxxxx"
-                            value={phone_number}
+                            value={phone}
                             onChangeText={(text) => {
                                 setPhoneNumber(text);
                                 setErrors({
@@ -164,11 +173,10 @@ const CreateLead = () => {
                     <Text style={styles.text}>Refferal </Text>
                     <View style={styles.BloodPickerContainer}>
                         <Picker
-                            selectedValue={refferal}
+                            selectedValue={referral}
                             style={styles.inputbox}
                             onValueChange={(itemValue) => setRefferal(itemValue)}
                         >
-                            <Picker.Item label="Walk-in" value="Walk-in" />
                             <Picker.Item label="Walk-in" value="Walk-in" />
                             <Picker.Item label="Friend/Family" value="Friend/Family" />
                             <Picker.Item label="Online Ad" value="Online Ad" />
@@ -182,7 +190,7 @@ const CreateLead = () => {
                     <Text style={styles.text}>Chance of Joining </Text>
                     <View style={styles.BloodPickerContainer}>
                         <Picker
-                            selectedValue={chanceOfJoining}
+                            selectedValue={chance_of_joining}
                             style={styles.inputbox}
                             onValueChange={(itemValue) => setChanceOfJoining(itemValue)}
                         >
