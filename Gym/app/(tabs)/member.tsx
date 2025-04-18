@@ -9,13 +9,17 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Searchbar } from "react-native-paper";
-import { useNavigation } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import axios from "axios";
 import MembersPage from "../components/dahboard/MembersPage";
 import config from "../config";
 import { useIsFocused } from "@react-navigation/native";
 import { useMember } from "../context/MemberContext";
+import { NavigationProp } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { RouteProp, useRoute } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
 
 // Dummy fallback data
 const datas = [
@@ -44,6 +48,12 @@ const datas = [
   },
 ];
 
+
+export type RootStackParamList = {
+  "Member Details": { id: string }; 
+};
+
+
 type Member = {
   id: number;
   name: string;
@@ -59,11 +69,15 @@ export default function Members() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const { member, setMember, removeMember } = useMember();
+    const { id } = useLocalSearchParams();
+  
 
-  
-  const navigation = useNavigation();
-  
- 
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+
+
+
+
 
   const isFocused = useIsFocused();
   // const { updatedImage } = (route.params as { updatedImage?: string }) || {};
@@ -75,7 +89,7 @@ export default function Members() {
   //     AsyncStorage.setItem("profileImage", updatedImage); // Save it locally
   //   }
   // }, [updatedImage]);
- 
+
 
   useEffect(() => {
     if (isFocused) {
@@ -144,11 +158,12 @@ export default function Members() {
   };
 
 
-  const handleClick = () =>{
-    navigation.navigate("Member Details" as never)
-  }
+  const handleClick = (id: number) => {
+    navigation.navigate("Member Details", { id: Array.isArray(id) ? id[0] : id });
+  };
 
-
+  
+  
 
   return (
     <View style={styles.container}>
@@ -201,17 +216,17 @@ export default function Members() {
 
           {getFilteredMembers().length > 0 ? (
             getFilteredMembers().map((item) => (
-              <TouchableOpacity onPress={handleClick}>
-              <MembersPage
-                key={item.id}
-                id={item.id}
-                profile_picture={item.profile_picture}
-                name={item.name}
-                phone_number={item.phone_number}
-                plan={item.plan}
-                status={item.status}
-                onDelete={handleDeleteMember}
-              />
+              <TouchableOpacity key={item.id} onPress={() => handleClick(item.id)}>
+                <MembersPage
+                  key={item.id}
+                  id={item.id}
+                  profile_picture={item.profile_picture}
+                  name={item.name}
+                  phone_number={item.phone_number}
+                  plan={item.plan}
+                  status={item.status}
+                  onDelete={handleDeleteMember}
+                />
               </TouchableOpacity>
             ))
           ) : (

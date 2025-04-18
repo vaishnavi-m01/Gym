@@ -1,9 +1,17 @@
 import config from "@/app/config";
 import { AntDesign, Entypo } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Image } from "react-native";
-import { View, Text, StyleSheet } from "react-native";
+import {
+    Image,
+    Modal,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
+    Text,
+    StyleSheet,
+    KeyboardAvoidingView,
+    Platform
+} from "react-native";
 
 type members = {
     id?: number;
@@ -14,64 +22,52 @@ type members = {
     status: string | undefined;
 };
 
-// type ImageFile = {
-//     uri: string;
-//     // Add other properties like name, type if necessary
-//   };
-
 const ProfileMember = ({ profile_picture, name, phone_number, gender, status }: members) => {
-
-
-    console.log("profilepIC", profile_picture)
 
     return (
         <View style={style.container}>
-            <View style={style.subcontainer}>
-                <Image
-                    source={
-                        typeof profile_picture === "string"
-                            ? { uri: `${config.BASE_URL}/${profile_picture}` } 
-                            : profile_picture
-                    }
-                    style={style.image}
-                />
-
-
-                <View style={style.textContainer}>
-                    <View style={style.numberNameRow}>
-                        <Text style={style.name}>{name}</Text>
-                        <View style={style.iconContainer}>
-                            <AntDesign name="arrowright" size={22} color="black" />
-
+                <View style={style.subcontainer}>
+                    <Image
+                        source={
+                            typeof profile_picture === "string"
+                                ? { uri: `${config.BASE_URL}/${profile_picture}` }
+                                : profile_picture
+                        }
+                        style={style.image}
+                    />
+                    <View style={style.textContainer}>
+                        <View style={style.numberNameRow}>
+                            <Text style={style.name}>{name}</Text>
+                            <View style={style.iconContainer}>
+                                <AntDesign name="arrowright" size={22} color="black" />
+                            </View>
                         </View>
+                        <Text style={style.phoneNumber}>{phone_number}</Text>
                     </View>
-                    <Text style={style.phoneNumber}>{phone_number}</Text>
                 </View>
-            </View>
 
-            <View style={style.bottomContainer}>
-                {status && (
+                <View style={style.bottomContainer}>
+                    {status && (
+                        <View style={style.statusContainer}>
+                            <Entypo
+                                name="dot-single"
+                                size={25}
+                                color={status === "Active" ? "#1daf60" : "#FFA500"}
+                                style={style.dot}
+                            />
+                            <Text style={style.statusText}>{status}</Text>
+                        </View>
+                    )}
+                    <Text style={style.plan}>{gender}</Text>
+                </View>
 
-                    <View style={style.statusContainer}>
-                        <Entypo
-                            name="dot-single"
-                            size={25}
-                            color={status === "Active" ? "#1daf60" : "#FFA500"}
-                            style={style.dot}
-                        />
-                        <Text style={style.statusText}>{status}</Text>
-                    </View>
-
-                )}
-                <Text style={style.plan}>{gender}</Text>
-
-            </View>
-
+            
         </View>
     );
 };
 
 export default ProfileMember;
+
 
 const style = StyleSheet.create({
     container: {
@@ -163,7 +159,7 @@ const style = StyleSheet.create({
 
     activeStatus: {
         backgroundColor: "#eff0f4",
-        paddingRight:5
+        paddingRight: 5
     },
     inactiveStatus: {
         backgroundColor: "#eff0f4",
@@ -173,6 +169,25 @@ const style = StyleSheet.create({
         color: "black",
         alignItems: "center",
         fontSize: 14,
+    },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: "flex-end",
+        backgroundColor: "rgba(0,0,0,0.5)",
+    },
+    modalContent: {
+        backgroundColor: "white",
+        padding: 20,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+    },
+    modalText: {
+        marginTop: 5,
+        fontSize: 16,
+        fontWeight: 700,
+        fontFamily: "Jost",
+        lineHeight: 30,
+        paddingLeft: 10,
     },
 
 });

@@ -65,6 +65,7 @@ const AddMembership = () => {
   const [amountReceived, setAmountReceived] = useState("");
 
 
+
   const [planAmount, setPlanAmount] = useState(0);
   const [balanceAmount, setBalanceAmount] = useState(0);
 
@@ -135,8 +136,8 @@ const AddMembership = () => {
 
 
   const handleConfirmPress = () => {
-    setApiCalled(false);         // Reset before showing modal
-    setModalVisible(true);       // Show modal first
+    setApiCalled(false);         
+    setModalVisible(true);      
   };
 
   const fetchPlans = async () => {
@@ -498,7 +499,7 @@ const AddMembership = () => {
         <TouchableOpacity
           style={styles.sumbitButton}
           onPress={() => {
-            setModalVisible(true); // 🔹 Open modal
+            setModalVisible(true); 
           }}
         >
           <Text style={styles.buttontext}>Confirm</Text>

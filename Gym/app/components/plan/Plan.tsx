@@ -64,7 +64,7 @@ const Plan = ({ id, plan_name, plan_amount, plan_duration, onDelete,onEdit  }: m
                 />
               </Pressable>
               <EditPlan id={id} planName={plan_name} amount={plan_amount} duration={plan_duration}    
-               onPlanUpdate={onEdit} // ✅ Pass the update handler
+               onPlanUpdate={onEdit} 
  />
             </View>
           </View>

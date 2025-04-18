@@ -1,112 +1,221 @@
 import React, { useState } from 'react';
-import { Button, View, Alert, Image, Text, Platform } from 'react-native';
+import { Button, View, StyleSheet, Alert, Image, Text, Platform, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
+import { Modal } from 'react-native';
 
 export default function App() {
-  const [previewUri, setPreviewUri] = useState<string | null>(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
-  const handlePickImage = async () => {
-    try {
-      // Step 1: Request permission
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission required', 'Please allow access to your photos');
-        return;
-      }
+  const [timeline, setTimeline] = useState("Today");
+  const [paymentType, setPaymentType] = useState("All");
 
-      // Step 2: Pick image
-      const result = await ImagePicker.launchImageLibraryAsync({
-        quality: 1,
-      });
+  const [timelineVisible, setTimelineVisible] = useState(false);
+  const [paymentVisible, setPaymentVisible] = useState(false);
 
-      if (result.canceled) return;
+  const timelineOptions = ["Today", "This Week", "This Month"];
+  const paymentOptions = ["Cash", "UPI", "Card", "All"];
 
-      const image = result.assets[0];
-      const { uri } = image;
 
-      setPreviewUri(uri); // Show preview
+  const renderOption = (option: any, setter: any, closeModal: any) => (
+    <TouchableOpacity
+      style={styles.optionItem}
+      onPress={() => {
+        setter(option);
+        closeModal(false);
+      }}
+    >
+      <Text style={styles.optionText}>{option}</Text>
+    </TouchableOpacity>
+  );
 
-      // Step 3: Create file object
-      const fileName = uri.split('/').pop() || 'image.jpg';
-      const match = /\.(\w+)$/.exec(fileName);
-      const fileType = match ? `image/${match[1]}` : 'image/jpeg';
 
-      const file = {
-        uri,
-        name: fileName,
-        type: fileType,
-      };
-
-      const formData = new FormData();
-      formData.append('file', file as any);
-
-      // Debug log
-      console.log('📤 Uploading file:', JSON.stringify(file, null, 2));
-
-      // Step 4: Upload to server (fake upload)
-      const uploadResponse = await axios.post(
-        'https://jsonplaceholder.typicode.com/posts', // Replace with your real image server
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-
-      // Step 5: Simulated image URL
-      const imageUrl = `https://192.168.1.2/image/${fileName}.${fileType}`;
-      setUploadedImageUrl(imageUrl);
-
-      console.log('✅ Image uploaded:', imageUrl);
-
-      // Step 6: Send profile update request
-      const profileUpdate = {
-        profile_picture: imageUrl,
-      };
-
-      const finalResponse = await axios.post(
-        'https://jsonplaceholder.typicode.com/posts', // Replace with real API
-        profileUpdate,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      console.log('✅ Final API request:', profileUpdate);
-      console.log('🟢 Server Response:', finalResponse.data);
-
-      // Step 7: Show success alert
-      Alert.alert('Success', 'Profile picture updated!');
-    } catch (err: any) {
-      console.error('❌ Error:', err.message);
-      Alert.alert('Upload Failed', err.message);
-    }
-  };
 
   return (
-    <View style={{ marginTop: 100, paddingHorizontal: 20 }}>
-      <Button title="Choose & Upload Image" onPress={handlePickImage} />
+    <View style={styles.container}>
+      <Text style={styles.title}>Reports</Text>
+      <View style={styles.reportsContainer}>
+        <Text style={styles.text}>Filter By</Text>
 
-      {previewUri && (
-        <View style={{ marginTop: 20, alignItems: 'center' }}>
-          <Image
-            source={{ uri: previewUri }}
-            style={{ width: 200, height: 200, borderRadius: 10 }}
-          />
-          <Text style={{ marginTop: 10 }}>📷 Selected Image Preview</Text>
+        <TouchableOpacity
+          style={styles.dropdown}
+          onPress={() => setTimelineVisible(true)}
+        >
+          <Text style={styles.dropdownText}>Timeline: {timeline} ⌄</Text>
+        </TouchableOpacity>
+
+
+        <TouchableOpacity
+          style={styles.dropdown}
+          onPress={() => setPaymentVisible(true)}
+        >
+          <Text style={styles.dropdownText}>Payment Type: {paymentType} ⌄</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.subcontainer}>
+        <View style={styles.totalAmountBox}>
+          <Text style={styles.amountTitle}>Total received</Text>
+          <Text style={styles.amount}>₹18,000</Text>
         </View>
-      )}
 
-      {uploadedImageUrl && (
-        <Text style={{ marginTop: 20, color: 'green' }}>
-          ✅ Uploaded URL: {uploadedImageUrl}
-        </Text>
-      )}
+        <View style={styles.blanceAmountBox}>
+          <Text style={styles.blanceTitle}>All time balance</Text>
+          <Text style={styles.blance}>₹18,000</Text>
+        </View>
+      </View>
+
+
+
+
+
+
+
+
+
+
+
+      <Modal transparent visible={timelineVisible} animationType="fade">
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          onPress={() => setTimelineVisible(false)}
+        >
+          <View style={styles.modalBox}>
+            {timelineOptions.map((item) =>
+              renderOption(item, setTimeline, setTimelineVisible)
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+
+      <Modal transparent visible={paymentVisible} animationType="fade">
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          onPress={() => setPaymentVisible(false)}
+        >
+          <View style={styles.modalBox}>
+            {paymentOptions.map((item) =>
+              renderOption(item, setPaymentType, setPaymentVisible)
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 30,
+    backgroundColor: "#ffffff"
+  },
+  title: {
+    fontFamily: "Jost",
+    color: "#111827",
+    fontWeight: 700,
+    paddingTop: 30,
+  },
+  text: {
+    fontFamily: "Jost",
+    color: "#111827",
+    fontWeight: 700,
+    top: 6,
+    fontSize: 14
+  },
+  totalAmountBox: {
+    width: "50%",
+    borderColor: "#1B1A18",
+    backgroundColor: "#1B1A18",
+    borderRadius: 15,
+    padding: 15,
+    borderWidth: 1,
+
+  },
+  amountTitle: {
+    color: "#FFFFFF",
+    fontWeight: 700,
+    fontFamily: "Jost",
+    textAlign: "left",
+    paddingLeft: 10
+  },
+  amount: {
+    color: "#FFFFFF",
+    fontWeight: 700,
+    fontFamily: "Jost",
+    textAlign: "left",
+    fontSize: 18,
+    paddingLeft: 19,
+    top: 5,
+    paddingBottom: 10
+  },
+  blanceAmountBox: {
+    width: "50%",
+    borderColor: "#1B1A18",
+    borderWidth: 1,
+    backgroundColor: "#ffffff",
+    borderRadius: 15,
+    padding: 15,
+  },
+  blanceTitle:{
+    color: "#1B1A18",
+    fontWeight: 700,
+    fontFamily: "Jost",
+    textAlign: "left",
+    paddingLeft: 10
+  },
+  blance:{
+    color: "#1B1A18",
+    fontWeight: 700,
+    fontFamily: "Jost",
+    textAlign: "left",
+    fontSize: 18,
+    paddingLeft: 19,
+    top: 5,
+    paddingBottom: 10
+  },
+  reportsContainer: {
+    paddingTop: 20,
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "space-around"
+  },
+  subcontainer: {
+    paddingTop: 20,
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "space-around"
+  },
+  dropdown: {
+    backgroundColor: "#000",
+    paddingHorizontal: 3,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  dropdownText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    paddingTop: 110,
+    paddingLeft: 100,
+    justifyContent: "flex-start",
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
+  modalBox: {
+    width: "50%",
+    marginHorizontal: 20,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 10,
+  },
+  optionItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
+  optionText: {
+    fontSize: 16,
+  },
+})

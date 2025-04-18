@@ -93,7 +93,7 @@ const EditPlan = ({ id, amount, duration,onPlanUpdate }: EditPlanProps) =>{
 
       
       const updateData = response.data.data;
-      onPlanUpdate(updateData); // ✅ update the PlanDashboard state
+      onPlanUpdate(updateData); 
       console.log("updateData",updateData)
   
       if (response.status === 200 || response.status === 201) {
@@ -132,7 +132,6 @@ const EditPlan = ({ id, amount, duration,onPlanUpdate }: EditPlanProps) =>{
         <Modal visible={open} animationType="slide" transparent>
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
-              {/* Cancel (X) Button */}
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={() => setOpen(false)}
@@ -190,7 +189,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
+    // alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.1)",
   },
   titleLabel: {

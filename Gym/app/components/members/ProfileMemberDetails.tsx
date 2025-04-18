@@ -1,10 +1,11 @@
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { Image } from "react-native";
+import { Image, TouchableOpacity } from "react-native";
 import { View, Text, StyleSheet } from "react-native";
 import EditMembers from "./EditMembers";
 import { useState } from "react";
 import config from "@/app/config";
+import { Modal } from "react-native";
 
 
 
@@ -14,65 +15,116 @@ type members = {
     name: string;
     phone_number: string;
     gender: string;
+    date_of_birth:string
     status: string | undefined;
+    blood_group:string;
+    address:string;
+    notes:string;
 };
-const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender, status }: members) => {
+const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender, status,date_of_birth,blood_group,address,notes }: members) => {
 
     const [editModalVisible, setEditModalVisible] = useState(false);
+    const [modelVisible, setModelVisible] = useState(false)
 
-
-
+ console.log("dob",date_of_birth)
 
     return (
-        <View style={style.container}>
-            <View style={style.subcontainer}>
-                <Image
-                    source={
-                        typeof profile_picture === "string"
-                            ? { uri: `${config.BASE_URL}/${profile_picture}` }
-                            : profile_picture
-                    }
-                    style={style.image}
-                />
+        <TouchableOpacity onPress={() => setModelVisible(true)}>
+            <View style={style.container}>
+                <View style={style.subcontainer}>
+                    <Image
+                        source={
+                            typeof profile_picture === "string"
+                                ? { uri: `${config.BASE_URL}/${profile_picture}` }
+                                : profile_picture
+                        }
+                        style={style.image}
+                    />
 
-                <View style={style.textContainer}>
-                    <View style={style.numberNameRow}>
-                        <Text style={style.name}>{name}</Text>
-                        <View style={style.iconContainer}>
-                            <AntDesign
-                                name="delete"
-                                size={22}
-                                color="#F34E3A"
-                                style={style.deletIcon}
-                            />
-                            <EditMembers id={id} visible={editModalVisible} onClose={() => setEditModalVisible(false)} />
+                    <View style={style.textContainer}>
+                        <View style={style.numberNameRow}>
+                            <Text style={style.name}>{name}</Text>
+                            <View style={style.iconContainer}>
+                                <AntDesign
+                                    name="delete"
+                                    size={22}
+                                    color="#F34E3A"
+                                    style={style.deletIcon}
+                                />
+                                <EditMembers id={id} visible={editModalVisible} onClose={() => setEditModalVisible(false)} />
+
+                            </View>
 
                         </View>
-
+                        <Text style={style.phoneNumber}>{phone_number}</Text>
                     </View>
-                    <Text style={style.phoneNumber}>{phone_number}</Text>
+                </View>
+
+                <View style={style.bottomContainer}>
+                    {status && (
+
+                        <View style={style.statusContainer}>
+                            <Entypo
+                                name="dot-single"
+                                size={25}
+                                color={status === "Active" ? "#1EAF5B" : "#FFA500"}
+                                style={style.dot}
+                            />
+                            <Text style={style.statusText}>{status}</Text>
+                        </View>
+
+                    )}
+                    <Text style={style.plan}>{gender}</Text>
+
                 </View>
             </View>
 
-            <View style={style.bottomContainer}>
-                {status && (
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modelVisible}
+                onRequestClose={() => setModelVisible(false)}
+            >
+                <View style={style.modalOverlay}>
 
-                    <View style={style.statusContainer}>
-                        <Entypo
-                            name="dot-single"
-                            size={25}
-                            color={status === "Active" ? "#1EAF5B" : "#FFA500"}
-                            style={style.dot}
-                        />
-                        <Text style={style.statusText}>{status}</Text>
+                    <View style={style.modalContent}>
+                        <View style={style.bottomLine}></View>
+
+                        <Text style={style.modalText}>Member Info</Text>
+                        <View style={style.modelSubcontainer}>
+                            <Text>Gender</Text>
+                            <Text>Joining date</Text>
+                        </View>
+                        <View style={style.modelSubcontainer}>
+                            <Text style={style.text}>{gender || "--"}</Text>
+                            <Text style={style.text}>Joining date</Text>
+                        </View>
+
+                        <View style={style.modelSubcontainer}>
+                            <Text>DOB</Text>
+                            <Text>Blood Group</Text>
+                        </View>
+                        <View style={style.modelSubcontainer}>
+                            <Text style={style.text}>{date_of_birth.split("-").reverse().join("-") || ""}</Text>
+                            <Text style={style.text}>{blood_group || "--"}</Text>
+                        </View>
+                        
+
+                        <Text style={style.title}>Address</Text>
+                        <Text style={style.text}>{address || "--"}</Text>
+
+                        <Text style={style.title}>Notes</Text>
+                        <Text style={style.text}>{notes || "--"}</Text>
+
                     </View>
+                </View>
+            </Modal>
 
-                )}
-                <Text style={style.plan}>{gender}</Text>
 
-            </View>
+        </TouchableOpacity>
 
-        </View>
+
+
     );
 };
 
@@ -183,5 +235,62 @@ const style = StyleSheet.create({
     deletIcon: {
         top: 2,
     },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: "flex-end",
+        backgroundColor: "rgba(0,0,0,0.5)",
+    },
+    modalContent: {
+        backgroundColor: "white",
+        padding: 20,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+    },
+    modalText: {
+        marginTop: 25,
+        fontSize: 16,
+        fontWeight: 700,
+        fontFamily: "Jost",
+        lineHeight: 40,
+        paddingLeft: 10,
+        bottom:4
+    },
+    messageText: {
+        fontSize: 17,
+        fontWeight: 700,
+        fontFamily: "Jost",
+        lineHeight: 40,
+    },
+
+    bottomLine: {
+        alignSelf: "center",
+        borderWidth: 2,
+        borderColor: "#617085",
+        backgroundColor: "#617085",
+        width: 90,
+        borderRadius: 50
+
+    },
+    modelSubcontainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginRight: 40,
+        marginLeft: 10,
+    },
+    text:{
+        color: "#111827",
+        fontWeight: "700",
+        fontSize:16,
+        top:5,
+        fontFamily: "Jost",
+        marginBottom:30,
+        alignSelf: "flex-start",
+
+    },
+    title:{
+        marginLeft:10
+    }
+
 
 });
