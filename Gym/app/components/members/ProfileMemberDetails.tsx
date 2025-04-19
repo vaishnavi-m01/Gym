@@ -15,18 +15,18 @@ type members = {
     name: string;
     phone_number: string;
     gender: string;
-    date_of_birth:string
+    date_of_birth: string
     status: string | undefined;
-    blood_group:string;
-    address:string;
-    notes:string;
+    blood_group: string;
+    address: string;
+    notes: string;
 };
-const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender, status,date_of_birth,blood_group,address,notes }: members) => {
+const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender, status, date_of_birth, blood_group, address, notes }: members) => {
 
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [modelVisible, setModelVisible] = useState(false)
 
- console.log("dob",date_of_birth)
+    console.log("dob", date_of_birth)
 
     return (
         <TouchableOpacity onPress={() => setModelVisible(true)}>
@@ -105,10 +105,12 @@ const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender,
                             <Text>Blood Group</Text>
                         </View>
                         <View style={style.modelSubcontainer}>
-                            <Text style={style.text}>{date_of_birth.split("-").reverse().join("-") || ""}</Text>
+                            <Text style={style.text}>
+                                {(date_of_birth || "").split("-").reverse().join("-")}
+                            </Text>
                             <Text style={style.text}>{blood_group || "--"}</Text>
                         </View>
-                        
+
 
                         <Text style={style.title}>Address</Text>
                         <Text style={style.text}>{address || "--"}</Text>
@@ -253,7 +255,7 @@ const style = StyleSheet.create({
         fontFamily: "Jost",
         lineHeight: 40,
         paddingLeft: 10,
-        bottom:4
+        bottom: 4
     },
     messageText: {
         fontSize: 17,
@@ -278,18 +280,18 @@ const style = StyleSheet.create({
         marginRight: 40,
         marginLeft: 10,
     },
-    text:{
+    text: {
         color: "#111827",
         fontWeight: "700",
-        fontSize:16,
-        top:5,
+        fontSize: 16,
+        top: 5,
         fontFamily: "Jost",
-        marginBottom:30,
+        marginBottom: 30,
         alignSelf: "flex-start",
 
     },
-    title:{
-        marginLeft:10
+    title: {
+        marginLeft: 10
     }
 
 

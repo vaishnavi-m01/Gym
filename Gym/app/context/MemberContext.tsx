@@ -15,6 +15,11 @@ interface Member {
   plan_amount: number;
   plan_duration: string;
   plan_duration_days: string;
+  full_name: string;
+  phone:string;
+  referral:string;
+  chance_of_joining: string;
+  followup_date:string;
 }
 
 interface MemberContextType {

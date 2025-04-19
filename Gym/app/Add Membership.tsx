@@ -306,7 +306,7 @@ const AddMembership = () => {
     const total = planAmount;
     const balance = (total - paid).toFixed(2);
 
-    const message = `Hello ${name},\n\nYour membership to ${plan} was successfully added and will expire on ${endDate}.\n\nAmount: ₹${total}\nPaid: ₹${paid.toFixed(2)}\nBalance: ₹${balance}\n\nThank you.`;
+    const message = `Hello ${name},\n\nYour membership to ${plan} was successfully added and will expire on ${endDate}.\n\nAmount: ₹${total}\nDiscount: ₹${discount}\nPaid: ₹${paid.toFixed(2)}\nBalance: ₹${balance}\n\nThank you.`;
 
     const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
 
@@ -533,6 +533,7 @@ const AddMembership = () => {
               <View style={styles.AmmountContainer}>
                 {" "}
                 <Text style={styles.message}>Amount: {formatCurrency(planAmount)}</Text>
+                <Text style={styles.message}>Discount: {formatCurrency(parseFloat(discount || "0"))}</Text>
                 <Text style={styles.message}>Paid: {formatCurrency(parseFloat(amountReceived || "0"))}</Text>
                 <Text style={styles.message}>Balance: {formatCurrency(balanceAmount)}</Text>
 

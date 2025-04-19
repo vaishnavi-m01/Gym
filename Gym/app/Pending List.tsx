@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Text, View, StyleSheet, ScrollView } from "react-native"
 import PendingListComponent from "./components/pendingList/PendingListComponent";
+import axios from "axios";
+import config from "./config";
 
 const datas = [
     {
@@ -9,7 +11,7 @@ const datas = [
         name: "Hari",
         duration: "10 Nov 2025 - 07 Feb 2026",
         pendingAmount: 2700
-    }, 
+    },
     {
         id: 2,
         image: require("../assets/images/member2.png"),
@@ -77,6 +79,28 @@ type Member = {
 const PendingList = () => {
     const [members, setMembers] = useState<Member[]>([]);
 
+
+    useEffect(() => {
+        fetchPlans();
+    }, []);
+
+    const fetchPlans = async () => {
+        try {
+            const response = await axios.get(`${config.BASE_URL}/memberships/pending`);
+
+            const pending = response.data.data;
+
+            if (Array.isArray(pending)) {
+                setMembers(pending);
+            } else {
+                console.warn("Unexpected data format:", response.data);
+                setMembers([]);
+            }
+        } catch (error) {
+            console.error("Failed to fetch plans:", error);
+        }
+    };
+
     return (
         <View style={styles.containers}>
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}
@@ -102,7 +126,7 @@ const styles = StyleSheet.create({
     containers: {
         flex: 1,
         padding: 10,
-        paddingTop:50,
+        paddingTop: 50,
         backgroundColor: "#ffffff"
     },
     scrollView: {

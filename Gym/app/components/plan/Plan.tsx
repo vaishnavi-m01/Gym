@@ -68,7 +68,7 @@ const Plan = ({ id, plan_name, plan_amount, plan_duration, onDelete,onEdit  }: m
  />
             </View>
           </View>
-          <Text>{plan_duration} - ₹{plan_amount}</Text>
+          <Text style={style.amount}>{plan_duration} Days - ₹{plan_amount}</Text>
         </View>
       </View>
 
@@ -163,6 +163,9 @@ const style = StyleSheet.create({
     marginBottom: 30,
   },
 
+  amount:{
+   fontWeight:700
+  },
   buttontext: {
     textAlign: "center",
     color: "#FFFFFF",

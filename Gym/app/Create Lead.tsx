@@ -15,6 +15,7 @@ import { useNavigation } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import config from "./config";
+import { useMember } from "./context/MemberContext";
 
 
 type FormErrors = {
@@ -29,14 +30,17 @@ const CreateLead = () => {
     const [phone, setPhoneNumber] = useState("");
 
     const [chance_of_joining, setChanceOfJoining] = useState("");
-    const [referral,setRefferal] = useState();
+    const [referral, setRefferal] = useState();
     const [notes, setNotes] = useState("");
-    const [followup_date,setFollowupDate] = useState();
+    const [followup_date, setFollowupDate] = useState();
 
     const [date, setDate] = useState(new Date());
     const [isPickerVisible, setPickerVisible] = useState(false);
 
     const navigation = useNavigation();
+
+    const { setMember } = useMember();
+
 
     const [errors, setErrors] = useState<FormErrors>({});
 
@@ -85,43 +89,47 @@ const CreateLead = () => {
         const year = date.getFullYear();
         return `${year}-${month}-${day}`;
     };
-    
+
     const handleSubmit = async () => {
-      if (!validateForm()) {
-        Alert.alert("Validation Error", "Please fix errors before submitting.");
-        return;
-      }
-
-      const requestData = {
-     
-        full_name,
-        phone,
-        referral,
-        chance_of_joining,
-        notes,
-        followup_date: formatDOBForBackend(date),
-
-      };
-
-      try {
-        await axios.post(`${config.BASE_URL}/leads/`, requestData);
-        Alert.alert("Success", "Member added successfully!");
-        console.log("data", requestData);
-
-        navigation.navigate("AddMembership" as never);
-      } catch (error: any) {
-        console.error("API Error:", error.response?.data || error.message);
-
-        let errorMessage = "Failed to add member. Try again.";
-        if (error.response?.data?.message) {
-          errorMessage = error.response.data.message;
-        } else if (error.response?.data?.error) {
-          errorMessage = error.response.data.error;
+        if (!validateForm()) {
+            Alert.alert("Validation Error", "Please fix errors before submitting.");
+            return;
         }
 
-        Alert.alert("Error", errorMessage);
-      }
-    };
+        const requestData = {
+            full_name,
+            phone,
+            referral,
+            chance_of_joining,
+            notes,
+            followup_date: formatDOBForBackend(date),
+        };
+
+        try {
+            const response = await axios.post(`${config.BASE_URL}/leads/`, requestData);
+
+            const createdLead = response.data;
+            setMember(createdLead);
+
+            const successMessage = response.data?.message || "Lead created successfully!";
+
+            Alert.alert("Success", successMessage);
+            console.log("Submitted data:", requestData);
+
+            navigation.navigate("Potential Leads" as never);
+        } catch (error: any) {
+            console.error("API Error:", error.response?.data || error.message);
+
+            let errorMessage = "Failed to add member. Try again.";
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.response?.data?.error) {
+                errorMessage = error.response.data.error;
+            }
+
+            Alert.alert("Error", errorMessage);
+        }
+    }
 
     // const handleSubmit = () => {
     //     navigation.navigate("Potential Leads" as never);
@@ -237,11 +245,10 @@ const CreateLead = () => {
                         isVisible={isPickerVisible}
                         mode="date"
                         date={date}
-                        minimumDate={new Date()} // disables past dates
+                        minimumDate={new Date()}
                         onConfirm={handleConfirm}
                         onCancel={() => setPickerVisible(false)}
                     />
-
 
 
                     <TouchableOpacity style={styles.sumbitButton} onPress={handleSubmit}>
