@@ -9,19 +9,20 @@ import {
   Alert,
   Image,
   Platform,
+  Pressable,
 } from "react-native";
 import { RadioButton } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import { useNavigation } from "expo-router";
 import config from "./config";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { Asset } from "expo-asset";
 import { useMember } from "./context/MemberContext";
 import { RootStackParamList } from "./navigation/type";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 type AddMembershipParams = {
   profile_picture: string;
@@ -30,9 +31,10 @@ type AddMembershipParams = {
   gender: string;
 };
 
-type AddMembershipNav = NativeStackNavigationProp<RootStackParamList, "Add Membership">;
-
-
+type AddMembershipNav = NativeStackNavigationProp<
+  RootStackParamList,
+  "Add Membership"
+>;
 
 type FormErrors = {
   name?: string;
@@ -50,24 +52,23 @@ const NewMember = () => {
   const [gender, setGender] = useState("Male");
   const [blood_group, setBloodGroup] = useState("");
   const [address, setAddress] = useState("");
+  const [city,setCity] = useState("");
+  const [pincode,setPincode] = useState("")
   const [notes, setNotes] = useState("");
+
+  const [date, setDate] = useState(new Date());
 
   const { setMember } = useMember();
   const navigation = useNavigation();
   const navigationById = useNavigation<AddMembershipNav>();
-
-
-
+  const [isPickerVisible, setPickerVisible] = useState(false);
 
   const [showOptions, setShowOptions] = useState(false);
   const [isImagePicked, setIsImagePicked] = useState(false);
 
-
   const [profile_picture, setProfileImage] = useState<any>(
     require("../assets/images/member2.png")
   );
- 
-  
 
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -121,7 +122,7 @@ const NewMember = () => {
 
   const pickImageFromGallery = async () => {
     setShowOptions(false);
-  
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -129,39 +130,39 @@ const NewMember = () => {
       quality: 1,
       base64: false,
     });
-  
+
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
-      
+
       setProfileImage({ uri: asset.uri });
-      setIsImagePicked(true);          }
+      setIsImagePicked(true);
+    }
   };
-  
+
   const pickImageFromCamera = async () => {
     setShowOptions(false);
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-  
+
     if (!result.canceled) {
       const asset = result.assets[0];
       const uri = asset.uri;
-      
+
       setProfileImage({ uri: asset.uri });
-      setIsImagePicked(true);       }
+      setIsImagePicked(true);
+    }
   };
-  
-  
-  
+
   const handleSubmit = async () => {
     if (!validateForm()) {
       Alert.alert("Validation Error", "Please correct the form fields.");
       return;
     }
-  
+
     const formData = new FormData();
-  
+
     // Append fields
     if (name) formData.append("name", name);
     if (phone_number) formData.append("phone_number", phone_number);
@@ -173,16 +174,17 @@ const NewMember = () => {
     if (gender) formData.append("gender", gender);
     if (address) formData.append("address", address);
     if (notes) formData.append("notes", notes);
-  
+
     // ✅ If user picked image from camera/gallery
     if (isImagePicked && profile_picture?.uri) {
       const fileName = profile_picture.uri.split("/").pop();
       const fileType = fileName?.split(".").pop();
-  
+
       formData.append("profile_picture", {
-        uri: Platform.OS === "ios"
-          ? profile_picture.uri.replace("file://", "")
-          : profile_picture.uri,
+        uri:
+          Platform.OS === "ios"
+            ? profile_picture.uri.replace("file://", "")
+            : profile_picture.uri,
         name: fileName || `photo.${fileType}`,
         type: `image/${fileType}`,
       } as any);
@@ -190,30 +192,34 @@ const NewMember = () => {
       // ✅ Use local asset image if not picked from gallery/camera
       const asset = Asset.fromModule(require("../assets/images/member2.png"));
       await asset.downloadAsync(); // Make sure it's available
-  
+
       const localUri = asset.localUri || asset.uri;
       const fileName = localUri.split("/").pop();
       const fileType = fileName?.split(".").pop();
-  
+
       formData.append("profile_picture", {
         uri: localUri,
         name: fileName || `default.${fileType}`,
         type: `image/${fileType || "jpeg"}`,
       } as any);
     }
-  
+
     try {
-      const response = await axios.post(`${config.BASE_URL}/members/create/`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await axios.post(
+        `${config.BASE_URL}/members/create/`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       const createdMember = response.data;
       setMember(createdMember);
 
-      console.log("newMember",createdMember)
-  
+      console.log("newMember", createdMember);
+
       Alert.alert("Success", "Member added successfully!");
 
       // (navigation.navigate as Function)('AddMembership', {
@@ -227,25 +233,28 @@ const NewMember = () => {
       // const { id } = route.params;
       console.log("Created member ID:", createdMember?.id);
       if (createdMember?.data?.id) {
-        navigationById.navigate("Add Membership", { id: createdMember.data.id });
+        navigationById.navigate("Add Membership", {
+          id: createdMember.data.id,
+        });
       }
-          
-      
     } catch (error: any) {
       console.error("API Error:", error.response?.data || error.message);
-  
+
       let errorMessage = "Failed to add member. Try again.";
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
       }
-  
+
       Alert.alert("Error", errorMessage);
     }
   };
-  
-  
+
+  const handleConfirm = (selectedDate: Date) => {
+    setDate(selectedDate);
+    setPickerVisible(false);
+  };
 
   return (
     <ScrollView>
@@ -398,9 +407,55 @@ const NewMember = () => {
               setErrors({ ...errors, address: validateField("address", text) });
             }}
           />
-          {errors.address && (
-            <Text style={styles.errorText}>{errors.address}</Text>
-          )}
+
+          <Text style={styles.text}>City</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.inputbox}
+              placeholder="Enter city"
+              value={city}
+              onChangeText={setCity}
+              />
+          </View>
+
+          <Text style={styles.text}>Pincode</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.inputbox}
+              placeholder="Enter pincode"
+              value={pincode}
+              onChangeText={setPincode}
+              />
+          </View>
+       
+       
+          <Text style={styles.memberStartDateText}> Joining date</Text>
+          <Pressable
+            style={styles.inputWrapper}
+            onPress={() => setPickerVisible(true)}
+          >
+            <TextInput
+              style={styles.input}
+              editable={false}
+              value={date.toLocaleDateString()}
+              pointerEvents="none"
+            />
+            <Ionicons
+              name="calendar"
+              size={24}
+              color="#666"
+              style={styles.icon}
+            />
+          </Pressable>
+
+          <DateTimePickerModal
+            isVisible={isPickerVisible}
+            mode="date"
+            date={date}
+            minimumDate={new Date()}
+            onConfirm={handleConfirm}
+            onCancel={() => setPickerVisible(false)}
+          />
 
           <Text style={styles.text}>Notes</Text>
           <TextInput
@@ -560,5 +615,28 @@ const styles = StyleSheet.create({
   },
   required: {
     color: "red",
+  },
+  memberStartDateText: {
+    marginTop: 30,
+    fontFamily: "Jost",
+    fontWeight: 800,
+    color: "#111827",
+    marginBottom: 20,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+  },
+  icon: {
+    marginLeft: 10,
   },
 });
