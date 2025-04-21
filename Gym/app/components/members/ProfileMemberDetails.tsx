@@ -1,6 +1,6 @@
-import { AntDesign, Entypo } from "@expo/vector-icons";
+import { AntDesign, Entypo, Feather } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { Image, TouchableOpacity } from "react-native";
+import { Image, Linking, TouchableOpacity } from "react-native";
 import { View, Text, StyleSheet } from "react-native";
 import EditMembers from "./EditMembers";
 import { useState } from "react";
@@ -24,9 +24,17 @@ type members = {
 const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender, status, date_of_birth, blood_group, address, notes }: members) => {
 
     const [editModalVisible, setEditModalVisible] = useState(false);
-    const [modelVisible, setModelVisible] = useState(false)
+    const [modelVisible, setModelVisible] = useState(false);
+    const [model, setModel] = useState(false);
 
-    console.log("dob", date_of_birth)
+
+     const handleMemberMessage = () =>{
+         const phoneNumber =  phone_number;
+                const url = `whatsapp://send?phone=${phoneNumber}`;
+                Linking.openURL(url).catch(() => {
+                  alert('Make sure WhatsApp is installed on your device');
+                });
+     }
 
     return (
         <TouchableOpacity onPress={() => setModelVisible(true)}>
@@ -52,6 +60,9 @@ const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender,
                                     style={style.deletIcon}
                                 />
                                 <EditMembers id={id} visible={editModalVisible} onClose={() => setEditModalVisible(false)} />
+                                <TouchableOpacity onPress={() => setModel(true)}>
+                                    <Entypo name="dots-three-vertical" size={18} color="black" />
+                                </TouchableOpacity>
 
                             </View>
 
@@ -118,6 +129,26 @@ const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender,
                         <Text style={style.title}>Notes</Text>
                         <Text style={style.text}>{notes || "--"}</Text>
 
+                    </View>
+                </View>
+            </Modal>
+
+
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={model}
+                onRequestClose={() => setModel(false)}
+            >
+                <View style={style.modalOverlay}>
+                    <View style={style.modalContent}>
+                        <View style={style.modalRow}>
+                            <Feather name="message-circle" size={22} color="black" style={style.modalIcon} />
+                            <TouchableOpacity onPress={handleMemberMessage}>
+                                <Text style={style.modalItem}>Message Template</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </Modal>
@@ -240,7 +271,7 @@ const style = StyleSheet.create({
     modalOverlay: {
         flex: 1,
         justifyContent: "flex-end",
-        backgroundColor: "rgba(0,0,0,0.5)",
+        backgroundColor: "rgba(0,0,0,0.2)",
     },
     modalContent: {
         backgroundColor: "white",
@@ -292,7 +323,19 @@ const style = StyleSheet.create({
     },
     title: {
         marginLeft: 10
-    }
-
-
+    },
+    modalRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 3,
+    },
+    modalIcon: {
+        marginRight: 3,
+    },
+    modalItem: {
+        fontSize: 14,
+        fontWeight: "bold",
+        paddingVertical: 10,
+        color: "#1E3A8A",
+    },
 });

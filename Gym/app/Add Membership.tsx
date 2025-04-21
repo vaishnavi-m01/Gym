@@ -45,7 +45,7 @@ const plans = [
 ];
 
 export type RootStackParamList = {
-  "Member Details": { id: string }; 
+  "Member Details": { id: string };
 };
 
 
@@ -63,6 +63,7 @@ const AddMembership = () => {
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [discount, setDiscount] = useState("");
   const [amountReceived, setAmountReceived] = useState("");
+
 
 
 
@@ -87,9 +88,10 @@ const AddMembership = () => {
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
   const isFocused = useIsFocused();
 
+  const [editableMessage, setEditableMessage] = useState('');
 
   console.log("memberIdddd", id)
-  console.log("planId",selectedPlanId)
+  console.log("planId", selectedPlanId)
 
   useEffect(() => {
     const fetchMember = async () => {
@@ -136,8 +138,8 @@ const AddMembership = () => {
 
 
   const handleConfirmPress = () => {
-    setApiCalled(false);         
-    setModalVisible(true);      
+    setApiCalled(false);
+    setModalVisible(true);
   };
 
   const fetchPlans = async () => {
@@ -165,24 +167,24 @@ const AddMembership = () => {
 
   const handlePlanChange = (selectedPlanName: string) => {
     setPlan(selectedPlanName);
-  
+
     const selected = plans.find(p => p.plan_name === selectedPlanName);
-  
+
     const amount = selected?.plan_amount || 0;
     setPlanAmount(amount);
-  
+
     const discountValue = parseFloat(discount || "0");
     const received = amount - discountValue;
     setAmountReceived(received.toString());
-  
+
     const balance = amount - discountValue - received;
     setBalanceAmount(balance);
-  
+
     if (selected?.id) {
-      setSelectedPlanId(selected.id); 
+      setSelectedPlanId(selected.id);
     }
   };
-  
+
 
 
 
@@ -216,18 +218,18 @@ const AddMembership = () => {
       setIsSubmitting(true);
       const payload = {
         member_id: member.id,
-        plan_id: selectedPlanId, 
+        plan_id: selectedPlanId,
         discount: discount || 0,
         amount_received: amountReceived,
         payment_method: paymentMethod,
         start_date: date.toISOString().split("T")[0],
       };
-      
-      console.log("payloadd",payload)
+
+      console.log("payloadd", payload)
 
       const response = await axios.post(`${config.BASE_URL}/membership/create/`, payload);
 
-      console.log("responseee",payload)
+      console.log("responseee", payload)
       if (response.status === 200 || response.status === 201) {
         console.log("Success:", response.data);
         Alert.alert("Success", "Membership added successfully!");
@@ -274,42 +276,43 @@ const AddMembership = () => {
   };
 
 
-  // const handleSendWhatsApp = () => {
-  //   const phoneNumber = "6385542771"; // replace with dynamic number
-  //   const message = `Hello Vaishu,
-  // Your membership to 8 months was successfully added and will expire on 01 Jun 2025.
-  // Amount: ₹5,000
-  // Paid: ₹5,000.00
-  // Balance: ₹0.00
-  // Thank you.`;
+  
 
-  //   const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
-  //     message
-  //   )}`;
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2,
+    }).format(amount);
 
-  //   Linking.canOpenURL(url)
-  //     .then((supported) => {
-  //       if (supported) {
-  //         Linking.openURL(url);
-  //       } else {
-  //         Alert.alert("WhatsApp not installed!");
-  //       }
-  //     })
-  //     .catch((err) => console.error("An error occurred", err));
-  // };
+    useEffect(() => {
+      if (member && plan && planAmount) {
+        const paid = parseFloat(amountReceived || "0");
+        const discountValue = parseFloat(discount || "0");
+        const balance = planAmount - discountValue - paid;
+    
+        const newMessage = `Hello ${member.name || "Member"},
+        
+    Your membership to ${plan} was successfully added and will expire on ${getEndDate()}.
+    
+    Amount: ${formatCurrency(planAmount)}
+    Discount: ${formatCurrency(discountValue)}
+    Paid: ${formatCurrency(paid)}
+    Balance: ${formatCurrency(balance)}
+    
+    Thank you.`;
+    
+        setEditableMessage(newMessage);
+      }
+    }, [member, plan, discount, amountReceived, planAmount]);
+    
+
+
 
   const handleSendWhatsApp = () => {
     const phoneNumber = member?.phone_number;
-    const name = member?.name;
-    const endDate = getEndDate(); // If needed, calculate using plan duration
-    const paid = parseFloat(amountReceived || "0");
-    const total = planAmount;
-    const balance = (total - paid).toFixed(2);
-
-    const message = `Hello ${name},\n\nYour membership to ${plan} was successfully added and will expire on ${endDate}.\n\nAmount: ₹${total}\nDiscount: ₹${discount}\nPaid: ₹${paid.toFixed(2)}\nBalance: ₹${balance}\n\nThank you.`;
-
-    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
-
+    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(editableMessage)}`;
+  
     Linking.canOpenURL(url)
       .then(supported => {
         if (supported) {
@@ -320,7 +323,7 @@ const AddMembership = () => {
       })
       .catch(err => console.error("WhatsApp Error:", err));
   };
-
+  
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
@@ -342,12 +345,7 @@ const AddMembership = () => {
     };
   }, []);
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 2,
-    }).format(amount);
+
 
   return (
     <ScrollView>
@@ -488,7 +486,7 @@ const AddMembership = () => {
           isVisible={isPickerVisible}
           mode="date"
           date={date}
-          minimumDate={new Date()} 
+          minimumDate={new Date()}
           onConfirm={handleConfirm}
           onCancel={() => setPickerVisible(false)}
         />
@@ -499,7 +497,7 @@ const AddMembership = () => {
         <TouchableOpacity
           style={styles.sumbitButton}
           onPress={() => {
-            setModalVisible(true); 
+            setModalVisible(true);
           }}
         >
           <Text style={styles.buttontext}>Confirm</Text>
@@ -525,20 +523,13 @@ const AddMembership = () => {
             </View>
             <Text style={styles.title}>Message</Text>
             <View style={styles.messageSubContainer}>
-              <Text style={styles.memberName}> Hello {member?.name || "Member"},</Text>
-              <Text style={styles.message}>
-                Your membership to {plan} was successfully added and will
-                expire on {getEndDate()}.
-              </Text>
-              <View style={styles.AmmountContainer}>
-                {" "}
-                <Text style={styles.message}>Amount: {formatCurrency(planAmount)}</Text>
-                <Text style={styles.message}>Discount: {formatCurrency(parseFloat(discount || "0"))}</Text>
-                <Text style={styles.message}>Paid: {formatCurrency(parseFloat(amountReceived || "0"))}</Text>
-                <Text style={styles.message}>Balance: {formatCurrency(balanceAmount)}</Text>
-
-                <Text style={styles.thankYouText}>Thank you </Text>
-              </View>
+              <TextInput
+                style={styles.textArea}
+                multiline
+                value={editableMessage}
+                onChangeText={setEditableMessage}
+                textAlignVertical="top"
+              />
             </View>
             <TouchableOpacity
               style={styles.sendMessageButton}
@@ -546,9 +537,16 @@ const AddMembership = () => {
             >
               <Text style={styles.buttontext}>Send message</Text>
             </TouchableOpacity>
+
+            {/* <TouchableOpacity style={styles.editButton} onPress={() => setShowEdit(!showEdit)}>
+              <Text style={styles.buttontext}>{showEdit ? "Done" : "Edit"}</Text>
+            </TouchableOpacity> */}
           </View>
         </View>
       </Modal>
+
+
+      
 
     </ScrollView>
   );
@@ -757,8 +755,6 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   messageSubContainer: {
-    borderWidth: 1,
-    borderColor: "#E2E3E8",
     backgroundColor: "#E2E3E8",
     borderRadius: 5,
     padding: 20,
@@ -795,4 +791,18 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 10,
   },
+  textArea: {
+    borderRadius: 8,
+    fontSize: 16,
+    minHeight: 160,
+  },
+  editButton: {
+    backgroundColor: '#007bff',
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignSelf: 'flex-end',
+    marginTop: 10,
+  },
+
+
 });

@@ -1,16 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import { Searchbar } from "react-native-paper";
 import moment from "moment";
 import axios from "axios";
 import AttendancePage from "./components/attendance/AttendancePage";
 import Toast from "react-native-toast-message";
+import config from "./config";
+import { useIsFocused } from "@react-navigation/native";
 
 // Map backend image strings to actual require() references
 const imageMap: Record<string, any> = {
@@ -20,87 +23,120 @@ const imageMap: Record<string, any> = {
 
 type Member = {
   id: number;
-  image: string;
   name: string;
-  plan: string;
-  status?: "present" | "absent";
+  profile_picture: string | number;
+  membership_status?: "Active" | "Inactive";
+  attendance_status?: "present" | "absent" | null; 
 };
 
-const initialMembers: Member[] = [
-  {
-    id: 1,
-    image: "../assets/images/member2.png",
-    name: "Hari",
-    plan: "No Plan",
-  },
-  {
-    id: 2,
-    image: "../assets/images/member2.png",
-    name: "Surya",
-    plan: "One month",
-  },
-  {
-    id: 3,
-    image: "../assets/images/member2.png",
-    name: "Sanjay",
-    plan: "One month",
-  },
-  {
-    id: 4,
-    image: "../assets/images/member2.png",
-    name: "Sankari",
-    plan: "No Plan",
-  },
-  {
-    id: 5,
-    image: "../assets/images/member2.png",
-    name: "Vaishu",
-    plan: "No Plan",
-  },
-];
+
+// const initialMembers: Member[] = [
+//   {
+//     id: 1,
+//     image: "../assets/images/member2.png",
+//     name: "Hari",
+//   },
+//   {
+//     id: 2,
+//     image: "../assets/images/member2.png",
+//     name: "Surya",
+//   },
+//   {
+//     id: 3,
+//     image: "../assets/images/member2.png",
+//     name: "Sanjay",
+//   },
+//   {
+//     id: 4,
+//     image: "../assets/images/member2.png",
+//     name: "Sankari",
+//   },
+//   {
+//     id: 5,
+//     image: "../assets/images/member2.png",
+//     name: "Vaishu",
+//   },
+// ];
 
 const Attendance = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"Attendance" | "Present" | "Absent">("Attendance");
-  const [attendanceData, setAttendanceData] = useState<Member[]>(initialMembers);
+  const [attendanceData, setAttendanceData] = useState<Member[]>();
+  const [members, setMembers] = useState<Member[]>([]);
+  const isFocused = useIsFocused();
+
 
   const currentDate = moment().format("dddd, D MMMM YYYY");
+  useEffect(() => {
+    if (isFocused) {
+      fetchMembers();
+    }
+  }, [isFocused]);
 
-
-  const handleAttendance = async (name: string, newStatus: "present" | "absent") => {
-    const updated = attendanceData.map((item) =>
-      item.name === name ? { ...item, status: newStatus } : item
-    );
-    setAttendanceData(updated);
-  
+  const fetchMembers = async () => {
     try {
-      const res = await axios.post("https://your-api.com/attendance", {
-        name,
-        status: newStatus,
-        date: new Date().toISOString(),
-      });
+      const response = await axios.get(`${config.BASE_URL}/members/`);
+      const membersFromAPI = response.data.data;
   
-      Toast.show({
-        type: "success",
-        text1: `${name}'s attendance marked as ${newStatus}`,
-      });
-    } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: `Error submitting attendance for ${name}`,
-      });
-      console.error("API Error:", error);
+      if (Array.isArray(membersFromAPI)) {
+        const formattedMembers: Member[] = membersFromAPI.map((member: any) => ({
+          id: member.id,
+          name: member.name,
+          profile_picture: member.profile_picture
+            ? `${config.BASE_URL}${member.profile_picture}`
+            : require("../assets/images/member2.png"),
+          membership_status: member.status === "active" ? "Active" : "Inactive",
+        }));
+  
+        setMembers(formattedMembers);
+      } else {
+        console.warn("Unexpected data format:", response.data);
+        setMembers([]);
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to fetch members.");
     }
   };
   
 
-  const filteredData = attendanceData
-    .filter((member) =>
-      filter === "Attendance" ? true : member.status === filter.toLowerCase()
-    )
+
+
+
+  const handleAttendance = async (id: number, newStatus: "present" | "absent") => { 
+  const updated = members.map((item) =>
+      item.id === id ? { ...item, attendance_status: newStatus } : item
+    );
+    setMembers(updated);
+
+    try {
+      await axios.post(`${config.BASE_URL}/attendance`, {
+        id,
+        status: newStatus,
+        date: new Date().toISOString(),
+      });
+
+      Toast.show({
+        type: "success",
+        text1: `Attendance marked as ${newStatus}`,
+      });
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: `Error submitting attendance`,
+      });
+      console.error("API Error:", error);
+    }
+  };
+
+  const filteredData = members
+    .filter((member) => {
+      if (filter === "Attendance") return true;
+      return member.attendance_status === filter.toLowerCase();
+    })
     .filter((member) =>
       member.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
 
   return (
     <View style={styles.containers}>
@@ -137,14 +173,20 @@ const Attendance = () => {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {filteredData.map((item) => (
-          <AttendancePage
-            key={item.id}
-            id={item.id}
-            image={imageMap[item.image] ?? require("../assets/images/member2.png")}
-            name={item.name}
-            status={item.status}
-            onAttendanceChange={(_, status) => handleAttendance(item.name, status)}
-          />
+        <AttendancePage
+        key={item.id}
+        id={item.id}
+        image={
+          item.profile_picture
+            ? { uri: String(item.profile_picture) }
+            : require("../assets/images/member2.png")
+        }
+        
+        name={item.name}
+        membership_status={item.membership_status}
+        onAttendanceChange={(id, status) => handleAttendance(id, status)}
+        />
+      
         ))}
       </ScrollView>
     </View>

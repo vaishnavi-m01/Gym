@@ -1,4 +1,5 @@
-import React from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,21 +9,45 @@ import {
   ImageSourcePropType,
 } from "react-native";
 
-type Props = {
+type AttendancePageProps = {
   id: number;
-  image: ImageSourcePropType;
+  image: any;
   name: string;
-  status?: "present" | "absent";
+  membership_status?: "Active" | "Inactive";
+  attendance_status?: "present" | "absent" | null; // <--- optional
   onAttendanceChange: (id: number, status: "present" | "absent") => void;
 };
 
-const AttendancePage: React.FC<Props> = ({
+
+
+const AttendancePage: React.FC<AttendancePageProps> = ({
   id,
   image,
   name,
-  status,
+  membership_status,
+  attendance_status: status, 
   onAttendanceChange,
+
 }) => {
+  const [statuss, setStatus] = useState<"present" | "absent" | null>(null);
+  const todayKey = `attendance_${id}_${new Date().toISOString().split("T")[0]}`;
+
+  useEffect(() => {
+    const loadAttendance = async () => {
+      const savedStatus = await AsyncStorage.getItem(todayKey);
+      if (savedStatus === "present" || savedStatus === "absent") {
+        setStatus(savedStatus);
+      }
+    };
+    loadAttendance();
+  }, []);
+
+  const handleAttendance = async (newStatus: "present" | "absent") => {
+    await AsyncStorage.setItem(todayKey, newStatus);
+    setStatus(newStatus);
+    onAttendanceChange(id, newStatus);
+  };
+
   return (
     <View style={styles.card}>
       <Image source={image} style={styles.avatar} />
@@ -34,7 +59,7 @@ const AttendancePage: React.FC<Props> = ({
               styles.button,
               status === "present" && styles.activePresent,
             ]}
-            onPress={() => onAttendanceChange(id, "present")}
+            onPress={() => handleAttendance("present")}
           >
             <Text style={styles.buttonText}>Present</Text>
           </TouchableOpacity>
@@ -43,10 +68,11 @@ const AttendancePage: React.FC<Props> = ({
               styles.button,
               status === "absent" && styles.activeAbsent,
             ]}
-            onPress={() => onAttendanceChange(id, "absent")}
+            onPress={() => handleAttendance("absent")}
           >
             <Text style={styles.buttonText}>Absent</Text>
           </TouchableOpacity>
+          
         </View>
       </View>
     </View>

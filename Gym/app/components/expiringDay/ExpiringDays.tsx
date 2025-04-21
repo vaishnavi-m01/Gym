@@ -9,9 +9,11 @@ import {
   Modal,
   Linking,
   Alert,
+  TextInput,
 } from "react-native";
 import { useState } from "react";
 import EditMembers from "../members/EditMembers";
+// import { TextInput } from "react-native-paper";
 
 type members = {
   id: number;
@@ -22,23 +24,15 @@ type members = {
 const ExpiringDays = ({ image, name, duration }: members) => {
   const [_changePassword, setChangePassword] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [message, setMessage] = useState("Hello Vaishu,\n\n We regret to inform you that your membership to {planName} has expired on {endDate} and the due date has passed.\n\n Please renew your membership as soon as possible\n\n\n Thank you \n{gymName}");
 
-  const handleChangePassword = (changePassword: any) => {
-    setChangePassword((prevPasswor) => [changePassword, ...prevPasswor]);
-  };
+  // const handleChangePassword = (changePassword: any) => {
+  //   setChangePassword((prevPasswor) => [changePassword, ...prevPasswor]);
+  // };
 
   const handleSendWhatsApp = () => {
     const phoneNumber = "6385542771";
-    const message = `Hello Vaishu,
-    Your membership to 8 months was successfully added and will expire on 01 Jun 2025.
-    Amount: ₹5,000
-    Paid: ₹5,000.00
-    Balance: ₹0.00
-    Thank you.`;
-
-    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
-      message
-    )}`;
+    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
 
     Linking.canOpenURL(url)
       .then((supported) => {
@@ -87,7 +81,7 @@ const ExpiringDays = ({ image, name, duration }: members) => {
         </View>
       </View>
 
-      <Modal
+      {/* <Modal
         animationType="slide"
         transparent={true}
         visible={modalVisible}
@@ -122,6 +116,38 @@ const ExpiringDays = ({ image, name, duration }: members) => {
               style={style.sendMessageButton}
               onPress={handleSendWhatsApp}
             >
+              <Text style={style.buttontext}>Send message</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal> */}
+
+<Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={style.modalOverlay}>
+          <View style={style.modalContent}>
+            <Text style={style.modalText}>Send Message?</Text>
+            <Text style={style.messageTitle}>Your message would look like this</Text>
+
+            <View style={style.messageContainer}>
+              <Text style={style.messageText}>To:</Text>
+              <Text style={style.phoneNumber}>+91 6385542771</Text>
+            </View>
+
+            <Text style={style.title}>Message</Text>
+
+            <TextInput
+              style={style.messageInput}
+              value={message}
+              onChangeText={setMessage}
+              multiline
+            />
+
+            <TouchableOpacity style={style.sendMessageButton} onPress={handleSendWhatsApp}>
               <Text style={style.buttontext}>Send message</Text>
             </TouchableOpacity>
           </View>
@@ -305,5 +331,17 @@ const style = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: 600,
     fontSize: 18,
+  },
+  messageInput: {
+    borderWidth: 1,
+    borderColor: "#E2E3E8",
+    backgroundColor: "#E2E3E8",
+    borderRadius: 5,
+    padding: 10,
+    paddingLeft:18,
+    marginVertical: 20,
+    minHeight: 100,
+    fontFamily: "Jost",
+    fontWeight:600
   },
 });

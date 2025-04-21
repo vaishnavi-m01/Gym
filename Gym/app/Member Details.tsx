@@ -30,12 +30,18 @@ const MemberDetails = () => {
     const [member, setMember] = useState<any>(null);
     const [amount, setAmount] = useState("");
     const [paymentMethod, setPaymentMethod] = useState("Cash");
+    const [modalVisible, setModalVisible] = useState(false);
 
 
     const navigation = useNavigation();
     const [modelVisible, setModelVisible] = useState(false);
     const [settlemodel, setSettleModel] = useState(false);
     const [whatsAppModel, setWhatsAppModel] = useState(false);
+    const [birthMessage, setBirthMessage] = useState(false);
+
+    const [message, setMessage] = useState(
+        `Happy Birthday! 🎉. May your day be filled with laughter, joy, and cherished moments with loved ones.`
+      );
 
 
     useEffect(() => {
@@ -67,7 +73,6 @@ const MemberDetails = () => {
     const handleSendWhatsApp = () => {
         const phoneNumber = member?.phone_number;
         const name = member.name;
-        // const balance = (total - paid).toFixed(2);
 
         const message = `Hello ${name}\n\n Thank you for paying ₹3,000 towards
 your balance settlement. Your current
@@ -85,6 +90,24 @@ balance is now ₹0 \n\n Thank you.`;
             })
             .catch(err => console.error("WhatsApp Error:", err));
     };
+    const isTodayBirthday = (dob: string): boolean => {
+        const today = new Date();
+        const birthDate = new Date(dob);
+
+        return (
+            birthDate.getDate() === today.getDate() &&
+            birthDate.getMonth() === today.getMonth()
+        );
+    };
+
+    const handleSendBirthDayMessageWhatsApp = () => {
+        const phoneNumber =  member?.phone_number;
+        const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+        // use Linking to open WhatsApp
+        Linking.openURL(url).catch(() => {
+          alert('Make sure WhatsApp is installed on your device');
+        });
+      };
 
     return (
         <ScrollView>
@@ -104,6 +127,23 @@ balance is now ₹0 \n\n Thank you.`;
                         notes={member.notes}
                     />
                 )}
+
+                {member && isTodayBirthday(member.date_of_birth) && (
+                    <View style={styles.birthdayMessageContainer}>
+                        <Text style={styles.messagetext}>🎉 It's {member.name}'s birthday today 🥳.</Text>
+                        <Text style={styles.messagetext}>Wish your client a very happy birthday and</Text>
+                        <Text style={styles.messagetext}>make their day better 🎊</Text>
+
+                        <TouchableOpacity style={styles.button} onPress={() => setBirthMessage(true)} >
+                            <Text style={styles.buttonText}>🥳🥳 Wish now 🥳🥳</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+
+
+
+
 
                 <View style={styles.paymentContainer}>
                     <TouchableOpacity style={styles.subContainers} onPress={() => setModelVisible(true)}>
@@ -327,6 +367,48 @@ balance is now ₹0 \n\n Thank you.`;
                     </View>
                 </View>
             </Modal>
+
+            {/* Birthday Message */}
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={birthMessage}
+                onRequestClose={() => setBirthMessage(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>Send Message?</Text>
+                        <Text style={styles.messageTitle}>
+                            Your message would look like this
+                        </Text>
+
+                        <View style={styles.messageContainer}>
+                            <Text style={styles.messageText}>To:</Text>
+                            <Text style={styles.phoneNumber}>+{member?.phone_number || "N/A"}</Text>
+                        </View>
+                        <Text style={styles.title}>Message</Text>
+                        <View style={styles.messageSubContainer}>
+                            <TextInput
+                                style={styles.textInput}
+                                multiline
+                                value={message}
+                                onChangeText={setMessage}
+                            />                        </View>
+                        <TouchableOpacity
+                            style={styles.sendMessageButton}
+                            onPress={handleSendBirthDayMessageWhatsApp}
+                        >
+                            <Text style={styles.buttontext}>Send message</Text>
+                        </TouchableOpacity>
+
+
+                    </View>
+                </View>
+            </Modal>
+
+
+
 
 
         </ScrollView>
@@ -668,11 +750,38 @@ const styles = StyleSheet.create({
         marginTop: 20,
         marginBottom: 10,
     },
+    birthdayMessageContainer: {
+        padding: 10,
+        marginTop: 10,
+        margin: 5
+    },
     buttontext: {
         textAlign: "center",
         color: "#FFFFFF",
         fontWeight: 600,
         fontSize: 18,
     },
-
+    button: {
+        padding: 10,
+        borderWidth: 1,
+        borderColor: "#ffcccc",
+        backgroundColor: "red",
+        borderRadius: 15,
+        marginTop: 10
+    },
+    // buttonText:{
+    //     textAlign:"center",
+    //     fontFamily: "Jost",
+    //     color: "#fff"
+    // }
+    messagetext: {
+        textAlign: "center",
+        fontFamily: "Jost",
+        fontWeight: 800,
+        fontSize: 14,
+    },
+    textInput:{
+        lineHeight:30,
+        // paddingTop:30,
+    }
 })
