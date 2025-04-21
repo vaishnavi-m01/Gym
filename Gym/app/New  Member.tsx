@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   Text,
   View,
@@ -52,8 +52,9 @@ const NewMember = () => {
   const [gender, setGender] = useState("Male");
   const [blood_group, setBloodGroup] = useState("");
   const [address, setAddress] = useState("");
-  const [city,setCity] = useState("");
-  const [pincode,setPincode] = useState("")
+  const [city, setCity] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [joining_date, setJoinedDate] = useState("");
   const [notes, setNotes] = useState("");
 
   const [date, setDate] = useState(new Date());
@@ -71,6 +72,7 @@ const NewMember = () => {
   );
 
   const [errors, setErrors] = useState<FormErrors>({});
+  console.log("JoinedDate", joining_date);
 
   const validateField = (field: string, value: string) => {
     let errorMessage = "";
@@ -105,6 +107,7 @@ const NewMember = () => {
     let newErrors: FormErrors = {
       name: validateField("name", name),
       phone_number: validateField("phone", phone_number),
+
       // email: validateField("email", email),
       // date_of_birth: validateField("dob", date_of_birth),
       // address: validateField("address", address),
@@ -163,7 +166,6 @@ const NewMember = () => {
 
     const formData = new FormData();
 
-    // Append fields
     if (name) formData.append("name", name);
     if (phone_number) formData.append("phone_number", phone_number);
     if (email) formData.append("email", email);
@@ -173,6 +175,7 @@ const NewMember = () => {
     if (blood_group) formData.append("blood_group", blood_group);
     if (gender) formData.append("gender", gender);
     if (address) formData.append("address", address);
+    if (joining_date) formData.append("joining_date", joining_date);
     if (notes) formData.append("notes", notes);
 
     // ✅ If user picked image from camera/gallery
@@ -250,10 +253,20 @@ const NewMember = () => {
       Alert.alert("Error", errorMessage);
     }
   };
+  
+  useEffect(() => {
+    const today = new Date();
+    setDate(today);
+    setJoinedDate(today.toISOString().split("T")[0]);
+  }, []);
+  
 
   const handleConfirm = (selectedDate: Date) => {
-    setDate(selectedDate);
     setPickerVisible(false);
+    setDate(selectedDate);
+
+    const formatted = selectedDate.toISOString().split("T")[0]; // e.g., "2025-04-21"
+    setJoinedDate(formatted);
   };
 
   return (
@@ -305,7 +318,7 @@ const NewMember = () => {
           {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
 
           <Text style={styles.text}>
-            Number <Text style={styles.required}>*</Text>
+            Phone Number <Text style={styles.required}>*</Text>
           </Text>
           <View style={styles.inputContainer}>
             <TextInput
@@ -376,7 +389,6 @@ const NewMember = () => {
               </View>
             </RadioButton.Group>
           </View>
-
           <Text style={styles.text}>Blood Group</Text>
           <View style={styles.BloodPickerContainer}>
             <Picker
@@ -415,7 +427,7 @@ const NewMember = () => {
               placeholder="Enter city"
               value={city}
               onChangeText={setCity}
-              />
+            />
           </View>
 
           <Text style={styles.text}>Pincode</Text>
@@ -425,10 +437,9 @@ const NewMember = () => {
               placeholder="Enter pincode"
               value={pincode}
               onChangeText={setPincode}
-              />
+            />
           </View>
-       
-       
+
           <Text style={styles.memberStartDateText}> Joining date</Text>
           <Pressable
             style={styles.inputWrapper}
@@ -437,9 +448,10 @@ const NewMember = () => {
             <TextInput
               style={styles.input}
               editable={false}
-              value={date.toLocaleDateString()}
+              value={date.toLocaleDateString()} 
               pointerEvents="none"
             />
+
             <Ionicons
               name="calendar"
               size={24}
