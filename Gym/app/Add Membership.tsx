@@ -48,7 +48,6 @@ export type RootStackParamList = {
   "Member Details": { id: string };
 };
 
-
 type Member = {
   id: number;
   plan_name: string;
@@ -57,19 +56,17 @@ type Member = {
 };
 
 const AddMembership = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [plan, setPlan] = useState("One Month");
   const [planName, setPlanName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [discount, setDiscount] = useState("");
   const [amountReceived, setAmountReceived] = useState("");
-
-
-
+  const [initialAmount, setInitialAmount] = useState("");
 
   const [planAmount, setPlanAmount] = useState(0);
   const [balanceAmount, setBalanceAmount] = useState(0);
-
 
   const [date, setDate] = useState(new Date());
   const [isPickerVisible, setPickerVisible] = useState(false);
@@ -77,7 +74,6 @@ const AddMembership = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [apiCalled, setApiCalled] = useState(false);
-
 
   const [membershipData, setMembershipData] = useState<any>(null);
   const { id } = useLocalSearchParams();
@@ -88,10 +84,10 @@ const AddMembership = () => {
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
   const isFocused = useIsFocused();
 
-  const [editableMessage, setEditableMessage] = useState('');
+  const [editableMessage, setEditableMessage] = useState("");
 
-  console.log("memberIdddd", id)
-  console.log("planId", selectedPlanId)
+  console.log("memberIdddd", id);
+  console.log("planId", selectedPlanId);
 
   useEffect(() => {
     const fetchMember = async () => {
@@ -106,15 +102,11 @@ const AddMembership = () => {
     if (id) fetchMember();
   }, [id]);
 
-
-
-
   useEffect(() => {
     if (isFocused) {
       fetchPlans();
     }
   }, [isFocused]);
-
 
   useEffect(() => {
     if (modalVisible) {
@@ -124,7 +116,7 @@ const AddMembership = () => {
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
+      "hardwareBackPress",
       () => {
         if (modalVisible) {
           setModalVisible(false);
@@ -135,7 +127,6 @@ const AddMembership = () => {
     );
     return () => backHandler.remove(); // cleanup
   }, [modalVisible]);
-
 
   const handleConfirmPress = () => {
     setApiCalled(false);
@@ -164,11 +155,10 @@ const AddMembership = () => {
     setPickerVisible(false);
   };
 
-
   const handlePlanChange = (selectedPlanName: string) => {
     setPlan(selectedPlanName);
 
-    const selected = plans.find(p => p.plan_name === selectedPlanName);
+    const selected = plans.find((p) => p.plan_name === selectedPlanName);
 
     const amount = selected?.plan_amount || 0;
     setPlanAmount(amount);
@@ -185,9 +175,6 @@ const AddMembership = () => {
     }
   };
 
-
-
-
   const handleDiscountChange = (value: string) => {
     setDiscount(value);
     const discountValue = parseFloat(value || "0");
@@ -198,7 +185,6 @@ const AddMembership = () => {
     setBalanceAmount(balance);
   };
 
-
   const handleAmountReceivedChange = (value: string) => {
     setAmountReceived(value);
     const received = parseFloat(value || "0");
@@ -206,7 +192,6 @@ const AddMembership = () => {
     const balance = planAmount - discountValue - received;
     setBalanceAmount(balance);
   };
-
 
   const handleSubmit = async () => {
     if (!selectedPlanId || !paymentMethod || !amountReceived) {
@@ -225,11 +210,14 @@ const AddMembership = () => {
         start_date: date.toISOString().split("T")[0],
       };
 
-      console.log("payloadd", payload)
+      console.log("payloadd", payload);
 
-      const response = await axios.post(`${config.BASE_URL}/membership/create/`, payload);
+      const response = await axios.post(
+        `${config.BASE_URL}/membership/create/`,
+        payload
+      );
 
-      console.log("responseee", payload)
+      console.log("responseee", payload);
       if (response.status === 200 || response.status === 201) {
         console.log("Success:", response.data);
         Alert.alert("Success", "Membership added successfully!");
@@ -247,7 +235,6 @@ const AddMembership = () => {
     }
   };
 
-
   useEffect(() => {
     const fetchMembership = async () => {
       try {
@@ -261,9 +248,8 @@ const AddMembership = () => {
     fetchMembership();
   }, []);
 
-
   const getEndDate = () => {
-    const selected = plans.find(p => p.plan_name === plan);
+    const selected = plans.find((p) => p.plan_name === plan);
     const days = parseInt(selected?.plan_duration_days || "0");
     const end = new Date(date);
     end.setDate(end.getDate() + days);
@@ -275,9 +261,6 @@ const AddMembership = () => {
     });
   };
 
-
-  
-
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -285,13 +268,13 @@ const AddMembership = () => {
       minimumFractionDigits: 2,
     }).format(amount);
 
-    useEffect(() => {
-      if (member && plan && planAmount) {
-        const paid = parseFloat(amountReceived || "0");
-        const discountValue = parseFloat(discount || "0");
-        const balance = planAmount - discountValue - paid;
-    
-        const newMessage = `Hello ${member.name || "Member"},
+  useEffect(() => {
+    if (member && plan && planAmount) {
+      const paid = parseFloat(amountReceived || "0");
+      const discountValue = parseFloat(discount || "0");
+      const balance = planAmount - discountValue - paid;
+
+      const newMessage = `Hello ${member.name || "Member"},
         
     Your membership to ${plan} was successfully added and will expire on ${getEndDate()}.
     
@@ -301,29 +284,27 @@ const AddMembership = () => {
     Balance: ${formatCurrency(balance)}
     
     Thank you.`;
-    
-        setEditableMessage(newMessage);
-      }
-    }, [member, plan, discount, amountReceived, planAmount]);
-    
 
-
+      setEditableMessage(newMessage);
+    }
+  }, [member, plan, discount, amountReceived, planAmount]);
 
   const handleSendWhatsApp = () => {
     const phoneNumber = member?.phone_number;
-    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(editableMessage)}`;
-  
+    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
+      editableMessage
+    )}`;
+
     Linking.canOpenURL(url)
-      .then(supported => {
+      .then((supported) => {
         if (supported) {
           Linking.openURL(url);
         } else {
-          Alert.alert('Error', 'WhatsApp not installed on your device');
+          Alert.alert("Error", "WhatsApp not installed on your device");
         }
       })
-      .catch(err => console.error("WhatsApp Error:", err));
+      .catch((err) => console.error("WhatsApp Error:", err));
   };
-  
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
@@ -331,21 +312,19 @@ const AddMembership = () => {
         appState.current.match(/inactive|background/) &&
         nextAppState === "active"
       ) {
-        // User is back in the app, close modal
         setModalVisible(false);
 
-        navigation.navigate("Member Details", { id: Array.isArray(id) ? id[0] : id });
+        navigation.navigate("Member Details", {
+          id: Array.isArray(id) ? id[0] : id,
+        });
       }
       appState.current = nextAppState;
     });
-
 
     return () => {
       subscription.remove();
     };
   }, []);
-
-
 
   return (
     <ScrollView>
@@ -362,8 +341,6 @@ const AddMembership = () => {
           />
         )}
 
-
-
         <View style={styles.subContainer}>
           <View style={styles.membersubContainers}>
             <Text style={styles.title}>Select Plan</Text>
@@ -377,7 +354,6 @@ const AddMembership = () => {
 
           <View>
             <RadioButton.Group onValueChange={handlePlanChange} value={plan}>
-
               {plans.map((item, index) => (
                 <View key={index}>
                   <View style={styles.radioButton}>
@@ -391,6 +367,16 @@ const AddMembership = () => {
                 </View>
               ))}
             </RadioButton.Group>
+          </View>
+
+          <Text style={styles.InitialAmount}>Initial amount</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              placeholder="Enter Initial Amount"
+              keyboardType="numeric"
+              value={initialAmount}
+              // onChangeText={handleDiscountChange}
+            />
           </View>
 
           <View style={styles.paymentContainer}>
@@ -415,10 +401,17 @@ const AddMembership = () => {
               />
             </View>
           </View>
-
         </View>
         {amountReceived !== "" && (
-          <Text style={{ marginTop: 5, marginRight: 50, fontWeight: "bold", alignSelf: "flex-end", color: balanceAmount === 0 ? "green" : "red" }}>
+          <Text
+            style={{
+              marginTop: 5,
+              marginRight: 50,
+              fontWeight: "bold",
+              alignSelf: "flex-end",
+              color: balanceAmount === 0 ? "green" : "red",
+            }}
+          >
             Balance: ₹{balanceAmount.toFixed(2)}
           </Text>
         )}
@@ -502,7 +495,6 @@ const AddMembership = () => {
         >
           <Text style={styles.buttontext}>Confirm</Text>
         </TouchableOpacity>
-
       </View>
       <Modal
         animationType="slide"
@@ -519,7 +511,9 @@ const AddMembership = () => {
 
             <View style={styles.messageContainer}>
               <Text style={styles.messageText}>To:</Text>
-              <Text style={styles.phoneNumber}>+{member?.phone_number || "N/A"}</Text>
+              <Text style={styles.phoneNumber}>
+                +{member?.phone_number || "N/A"}
+              </Text>
             </View>
             <Text style={styles.title}>Message</Text>
             <View style={styles.messageSubContainer}>
@@ -544,10 +538,6 @@ const AddMembership = () => {
           </View>
         </View>
       </Modal>
-
-
-      
-
     </ScrollView>
   );
 };
@@ -643,6 +633,13 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     fontWeight: 600,
+  },
+  InitialAmount: {
+    fontSize: 16,
+    fontWeight: 600,
+    paddingTop: 20,
+    paddingLeft: 10,
+    paddingBottom: 10,
   },
   paymentSubContainer: {
     display: "flex",
@@ -797,12 +794,10 @@ const styles = StyleSheet.create({
     minHeight: 160,
   },
   editButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: "#007bff",
     paddingHorizontal: 20,
     borderRadius: 8,
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginTop: 10,
   },
-
-
 });

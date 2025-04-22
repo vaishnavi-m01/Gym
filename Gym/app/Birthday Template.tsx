@@ -22,7 +22,7 @@ export default function BirthdayTemplate() {
     const [selection, setSelection] = useState({ start: 0, end: 0 });
     const inputRef = useRef(null);
 
-    // Load saved template on mount
+ 
     useEffect(() => {
         const loadMessage = async () => {
             try {

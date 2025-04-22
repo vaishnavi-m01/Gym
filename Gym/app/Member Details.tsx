@@ -47,8 +47,6 @@ const MemberDetails = () => {
   const [whatsAppModel, setWhatsAppModel] = useState(false);
   const [birthMessage, setBirthMessage] = useState(false);
 
-
-
   const [message, setMessage] = useState(
     `Happy Birthday! 🎉. May your day be filled with laughter, joy, and cherished moments with loved ones.`
   );
@@ -68,7 +66,7 @@ const MemberDetails = () => {
 
   useEffect(() => {
     const loadTemplate = async () => {
-      const saved = await AsyncStorage.getItem('@birthday_message_template');
+      const saved = await AsyncStorage.getItem("@birthday_message_template");
       if (saved) setMessage(saved);
     };
     loadTemplate();
@@ -117,6 +115,14 @@ balance is now ₹0 \n\n Thank you.`;
     );
   };
 
+  const formattedDate = member?.joining_date
+    ? new Date(member.joining_date).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : "";
+
   const handleSendBirthDayMessageWhatsApp = () => {
     const phoneNumber = member?.phone_number;
     const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
@@ -128,7 +134,7 @@ balance is now ₹0 \n\n Thank you.`;
     });
   };
 
-  console.log("memberPhone",member?.joining_date)
+  console.log("memberPhone", member?.joining_date);
 
   return (
     <ScrollView>
@@ -187,7 +193,7 @@ balance is now ₹0 \n\n Thank you.`;
             <View style={styles.memberContents}>
               <Text style={styles.blanceText}>Joined Date</Text>
             </View>
-            <Text style={styles.joinedDate}>22 March 2025</Text>
+            <Text style={styles.joinedDate}>{formattedDate}</Text>
           </View>
         </View>
 
@@ -395,10 +401,10 @@ balance is now ₹0 \n\n Thank you.`;
       >
         <TouchableWithoutFeedback onPress={() => setBirthMessage(false)}>
           <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback onPress={() => { }}>
+            <TouchableWithoutFeedback onPress={() => {}}>
               <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-              // style={styles.keyboardAvoidingView}
+                // style={styles.keyboardAvoidingView}
               >
                 <ScrollView
                   // contentContainerStyle={styles.scrollViewContent}
@@ -440,9 +446,7 @@ balance is now ₹0 \n\n Thank you.`;
             </TouchableWithoutFeedback>
           </View>
         </TouchableWithoutFeedback>
-
       </Modal>
-
     </ScrollView>
   );
 };

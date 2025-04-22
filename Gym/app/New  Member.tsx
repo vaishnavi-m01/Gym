@@ -191,7 +191,8 @@ const NewMember = () => {
     if (gender) formData.append("gender", gender);
     if (address) formData.append("address", address);
     if (joining_date) formData.append("joining_date", joining_date);
-    // console.log("joinda",joining_date)
+    if (city) formData.append("city",city);
+    if (pincode) formData.append("pincode",pincode);
     if (notes) formData.append("notes", notes);
 
     //  If user picked image from camera/gallery
@@ -256,18 +257,30 @@ const NewMember = () => {
           id: createdMember.data.id,
         });
       }
-    } catch (error: any) {
-      console.error("API Error:", error.response?.data || error.message);
-
+     } catch (error: any) {
+      console.log("Full error object:", error);
+    
       let errorMessage = "Failed to add member. Try again.";
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
+    
+      const errorData = error.response?.data;
+    
+      if (errorData?.error) {
+        // Flatten and extract first error message from nested object
+        const firstKey = Object.keys(errorData.error)[0];
+        const firstError = errorData.error[firstKey][0];
+        errorMessage = firstError;
+      } else if (typeof errorData === "string") {
+        errorMessage = errorData;
+      } else if (error.message) {
+        errorMessage = error.message;
       }
-
+    
+      console.error("Final error message:", errorMessage);
       Alert.alert("Error", errorMessage);
     }
+    
+    
+    
   };
 
 
@@ -398,13 +411,13 @@ const NewMember = () => {
               style={[styles.inputbox, { flex: 1 }]}
               placeholder="DD-MM-YYYY"
               value={date_of_birth}
-              editable={false} // prevent manual input, since you're using calendar
+              editable={false} 
             />
             <Ionicons
               name="calendar-outline"
               size={24}
               color="#888"
-              style={{ marginLeft: 8 }}
+              style={{ marginLeft: 8,paddingTop:10 }}
               onPress={() => setDOBPickerVisible(true)}
             />
           </View>
