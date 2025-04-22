@@ -26,7 +26,7 @@ type Member = {
   name: string;
   profile_picture: string | number;
   membership_status?: "Active" | "Inactive";
-  attendance_status?: "present" | "absent" | null; 
+  attendance_status?: "Present" | "Absent" | null; 
 };
 
 
@@ -101,18 +101,16 @@ const Attendance = () => {
 
 
 
-
-  const handleAttendance = async (id: number, newStatus: "present" | "absent") => { 
+  const handleAttendance = async (member: number, newStatus: "Present" | "Absent") => { 
   const updated = members.map((item) =>
-      item.id === id ? { ...item, attendance_status: newStatus } : item
+      item.id === member ? { ...item, attendance_status: newStatus } : item
     );
     setMembers(updated);
 
     try {
-      await axios.post(`${config.BASE_URL}/attendance`, {
-        id,
+      await axios.post(`${config.BASE_URL}/attendance/`, {
+        member,
         status: newStatus,
-        date: new Date().toISOString(),
       });
 
       Toast.show({

@@ -18,10 +18,11 @@ type members = {
     date_of_birth: string
     status: string | undefined;
     blood_group: string;
+    joining_date:string;
     address: string;
     notes: string;
 };
-const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender, status, date_of_birth, blood_group, address, notes }: members) => {
+const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender, status, date_of_birth, blood_group, address,joining_date, notes }: members) => {
 
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [modelVisible, setModelVisible] = useState(false);

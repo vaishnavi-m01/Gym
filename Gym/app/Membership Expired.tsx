@@ -11,12 +11,20 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const variableList = ['{{gymName}}', '{{name}}', '{{admissionNo}}'];
-const STORAGE_KEY = '@birthday_message_template';
+const variableList = ['{{memberName}}', '{{planName}}', '{{endDate}}', '{{gymName}}','{{startDate}}'
+];
+const STORAGE_KEY = '@Membership_expired';
 
-export default function BirthdayTemplate() {
+export default function MembershipExpired() {
     const defaultMessage =
-        'Happy Birthday! 🎉 May your day be filled with laughter, joy, and cherished moments with loved ones.\n\n{{gymName}}';
+        `Hello {{memberName}},
+
+We regret to inform you that your membership to {{planName}} has expired on {{endDate}} and the due date has passed.
+
+Please renew your membership as soon as possible.
+
+Thank you,
+{{gymName}}`;
 
     const [message, setMessage] = useState(defaultMessage);
     const [selection, setSelection] = useState({ start: 0, end: 0 });
@@ -48,7 +56,7 @@ export default function BirthdayTemplate() {
         }
     };
 
-    const insertVariable = (variable:any) => {
+    const insertVariable = (variable: any) => {
         const start = selection.start;
         const end = selection.end;
         const newText =
@@ -69,10 +77,7 @@ export default function BirthdayTemplate() {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <Text style={styles.label}>Template: </Text>
-                 <Text style={styles.description}>
-                    Member birthday message
-                    </Text>
+                <Text style={styles.header}>Edit message template</Text>
 
                 <View style={styles.descriptionSection}>
                     <Text style={styles.label}>Description:</Text>
@@ -156,7 +161,6 @@ const styles = StyleSheet.create({
     description: {
         fontSize: 14,
         color: '#555',
-        marginBottom:9
     },
     variablesSection: {
         marginBottom: 20,
@@ -211,7 +215,7 @@ const styles = StyleSheet.create({
     },
     resetButton: {
         borderWidth: 1,
-        borderColor: '#003366',
+        borderColor: '#1b1a18',
         padding: 12,
         borderRadius: 10,
         flex: 0.48,
@@ -222,7 +226,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     saveButton: {
-        backgroundColor: '#003366',
+        backgroundColor: '#1b1a18',
         padding: 12,
         borderRadius: 10,
         flex: 0.48,

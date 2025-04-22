@@ -10,6 +10,7 @@ interface Member {
   gender: string;
   blood_group: string;
   address: string;
+  joining_date:string;
   notes: string;
   plan_name: string;
   plan_amount: number;

@@ -7,6 +7,9 @@ import {
   Modal,
   TextInput,
   Alert,
+  TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import MembersPage from "./components/dahboard/MembersPage";
 import ProfileMemberDetails from "./components/members/ProfileMemberDetails";
@@ -19,6 +22,7 @@ import { Linking } from "react-native";
 
 import axios from "axios";
 import config from "./config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const member = [
   {
     id: 1,
@@ -43,6 +47,8 @@ const MemberDetails = () => {
   const [whatsAppModel, setWhatsAppModel] = useState(false);
   const [birthMessage, setBirthMessage] = useState(false);
 
+
+
   const [message, setMessage] = useState(
     `Happy Birthday! 🎉. May your day be filled with laughter, joy, and cherished moments with loved ones.`
   );
@@ -59,6 +65,14 @@ const MemberDetails = () => {
 
     if (id) fetchMember();
   }, [id]);
+
+  useEffect(() => {
+    const loadTemplate = async () => {
+      const saved = await AsyncStorage.getItem('@birthday_message_template');
+      if (saved) setMessage(saved);
+    };
+    loadTemplate();
+  }, []);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-IN", {
@@ -114,6 +128,8 @@ balance is now ₹0 \n\n Thank you.`;
     });
   };
 
+  console.log("memberPhone",member?.joining_date)
+
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -128,6 +144,7 @@ balance is now ₹0 \n\n Thank you.`;
             status={member.status}
             date_of_birth={member.date_of_birth}
             blood_group={member.blood_group}
+            joining_date={member.joining_date}
             address={member.address}
             notes={member.notes}
           />
@@ -376,37 +393,56 @@ balance is now ₹0 \n\n Thank you.`;
         visible={birthMessage}
         onRequestClose={() => setBirthMessage(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Send Message?</Text>
-            <Text style={styles.messageTitle}>
-              Your message would look like this
-            </Text>
+        <TouchableWithoutFeedback onPress={() => setBirthMessage(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback onPress={() => { }}>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+              // style={styles.keyboardAvoidingView}
+              >
+                <ScrollView
+                  // contentContainerStyle={styles.scrollViewContent}
+                  keyboardShouldPersistTaps="handled"
+                >
+                  <View style={styles.modalContent}>
+                    <Text style={styles.modalText}>Send Message?</Text>
+                    <Text style={styles.messageTitle}>
+                      Your message would look like this
+                    </Text>
 
-            <View style={styles.messageContainer}>
-              <Text style={styles.messageText}>To:</Text>
-              <Text style={styles.phoneNumber}>
-                +{member?.phone_number || "N/A"}
-              </Text>
-            </View>
-            <Text style={styles.title}>Message</Text>
-            <View style={styles.messageSubContainer}>
-              <TextInput
-                style={styles.textInput}
-                multiline
-                value={message}
-                onChangeText={setMessage}
-              />{" "}
-            </View>
-            <TouchableOpacity
-              style={styles.sendMessageButton}
-              onPress={handleSendBirthDayMessageWhatsApp}
-            >
-              <Text style={styles.buttontext}>Send message</Text>
-            </TouchableOpacity>
+                    <View style={styles.messageContainer}>
+                      <Text style={styles.messageText}>To:</Text>
+                      <Text style={styles.phoneNumber}>
+                        +{member?.phone_number || "N/A"}
+                      </Text>
+                    </View>
+
+                    <Text style={styles.title}>Message</Text>
+                    <View style={styles.messageSubContainer}>
+                      <TextInput
+                        style={styles.textInput}
+                        multiline
+                        value={message}
+                        editable={false}
+                        textAlignVertical="top"
+                      />
+                    </View>
+
+                    <TouchableOpacity
+                      style={styles.sendMessageButton}
+                      onPress={handleSendBirthDayMessageWhatsApp}
+                    >
+                      <Text style={styles.buttontext}>Send message</Text>
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
+              </KeyboardAvoidingView>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
+
       </Modal>
+
     </ScrollView>
   );
 };

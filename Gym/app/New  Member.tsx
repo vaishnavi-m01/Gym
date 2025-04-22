@@ -23,6 +23,7 @@ import { useMember } from "./context/MemberContext";
 import { RootStackParamList } from "./navigation/type";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import moment from "moment";
 
 type AddMembershipParams = {
   profile_picture: string;
@@ -42,6 +43,7 @@ type FormErrors = {
   email?: string;
   date_of_birth?: string;
   address?: string;
+  gender?:string;
 };
 
 const NewMember = () => {
@@ -66,6 +68,7 @@ const NewMember = () => {
 
   const [showOptions, setShowOptions] = useState(false);
   const [isImagePicked, setIsImagePicked] = useState(false);
+  const [isDOBPickerVisible, setDOBPickerVisible] = useState(false);
 
   const [profile_picture, setProfileImage] = useState<any>(
     require("../assets/images/member2.png")
@@ -103,10 +106,22 @@ const NewMember = () => {
     return errorMessage;
   };
 
+  const handleDOBConfirm = (date:any) => {
+    const formattedDate = moment(date).format('DD-MM-YYYY');
+    setDOB(formattedDate);
+    setDOBPickerVisible(false);
+    setErrors({
+      ...errors,
+      date_of_birth: validateField('dob', formattedDate),
+    });
+  };
+
   const validateForm = () => {
     let newErrors: FormErrors = {
       name: validateField("name", name),
       phone_number: validateField("phone", phone_number),
+      gender: validateField("gender",gender)
+    
 
       // email: validateField("email", email),
       // date_of_birth: validateField("dob", date_of_birth),
@@ -176,9 +191,10 @@ const NewMember = () => {
     if (gender) formData.append("gender", gender);
     if (address) formData.append("address", address);
     if (joining_date) formData.append("joining_date", joining_date);
+    // console.log("joinda",joining_date)
     if (notes) formData.append("notes", notes);
 
-    // ✅ If user picked image from camera/gallery
+    //  If user picked image from camera/gallery
     if (isImagePicked && profile_picture?.uri) {
       const fileName = profile_picture.uri.split("/").pop();
       const fileType = fileName?.split(".").pop();
@@ -253,13 +269,14 @@ const NewMember = () => {
       Alert.alert("Error", errorMessage);
     }
   };
-  
+
+
   useEffect(() => {
     const today = new Date();
     setDate(today);
     setJoinedDate(today.toISOString().split("T")[0]);
   }, []);
-  
+
 
   const handleConfirm = (selectedDate: Date) => {
     setPickerVisible(false);
@@ -355,7 +372,7 @@ const NewMember = () => {
           </View>
           {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
 
-          <Text style={styles.text}>Date of Birth</Text>
+          {/* <Text style={styles.text}>Date of Birth</Text>
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.inputbox}
@@ -372,9 +389,38 @@ const NewMember = () => {
           </View>
           {errors.date_of_birth && (
             <Text style={styles.errorText}>{errors.date_of_birth}</Text>
+          )} */}
+
+
+          <Text style={styles.text}>Date of Birth</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={[styles.inputbox, { flex: 1 }]}
+              placeholder="DD-MM-YYYY"
+              value={date_of_birth}
+              editable={false} // prevent manual input, since you're using calendar
+            />
+            <Ionicons
+              name="calendar-outline"
+              size={24}
+              color="#888"
+              style={{ marginLeft: 8 }}
+              onPress={() => setDOBPickerVisible(true)}
+            />
+          </View>
+          {errors.date_of_birth && (
+            <Text style={styles.errorText}>{errors.date_of_birth}</Text>
           )}
 
-          <Text style={styles.text}>Gender (Required)</Text>
+          <DateTimePickerModal
+            isVisible={isDOBPickerVisible}
+            mode="date"
+            onConfirm={handleDOBConfirm}
+            onCancel={() => setDOBPickerVisible(false)}
+          />
+
+
+          <Text style={styles.text}>Gender <Text style={styles.required}>*</Text></Text>
           <View style={styles.radioContainer}>
             <RadioButton.Group onValueChange={setGender} value={gender}>
               <View style={styles.radioRow}>
@@ -448,7 +494,7 @@ const NewMember = () => {
             <TextInput
               style={styles.input}
               editable={false}
-              value={date.toLocaleDateString()} 
+              value={date.toLocaleDateString()}
               pointerEvents="none"
             />
 
@@ -464,7 +510,7 @@ const NewMember = () => {
             isVisible={isPickerVisible}
             mode="date"
             date={date}
-            minimumDate={new Date()}
+            // minimumDate={new Date()}
             onConfirm={handleConfirm}
             onCancel={() => setPickerVisible(false)}
           />
@@ -550,6 +596,7 @@ const styles = StyleSheet.create({
     paddingLeft: 5,
   },
   inputContainer: {
+    flexDirection: "row",
     borderWidth: 1,
     borderColor: "#E0E5E9",
     borderRadius: 15,
@@ -576,7 +623,8 @@ const styles = StyleSheet.create({
   },
   radioRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    // justifyContent: "space-between",
+    gap:20,
     alignItems: "center",
   },
   radioButton: {

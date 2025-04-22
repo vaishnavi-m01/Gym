@@ -5,7 +5,7 @@ const MessageTemplates = () => {
     
     const navigation = useNavigation();
     const handleClick = () =>{
-        navigation.navigate("Edit Message Template" as never)
+        navigation.navigate("Membership Expired" as never)
     }
 
     const birthdayNavigation = useNavigation();

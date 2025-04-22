@@ -11,8 +11,9 @@ import {
   Alert,
   TextInput,
 } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EditMembers from "../members/EditMembers";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 // import { TextInput } from "react-native-paper";
 
 type members = {
@@ -29,6 +30,14 @@ const ExpiringDays = ({ image, name, duration }: members) => {
   // const handleChangePassword = (changePassword: any) => {
   //   setChangePassword((prevPasswor) => [changePassword, ...prevPasswor]);
   // };
+
+  useEffect(() => {
+    const loadTemplate = async () => {
+      const saved = await AsyncStorage.getItem('@Membership_expired');
+      if (saved) setMessage(saved);
+    };
+    loadTemplate();
+  }, []);
 
   const handleSendWhatsApp = () => {
     const phoneNumber = "6385542771";
@@ -122,12 +131,13 @@ const ExpiringDays = ({ image, name, duration }: members) => {
         </View>
       </Modal> */}
 
-<Modal
+      <Modal
         animationType="slide"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
+        
         <View style={style.modalOverlay}>
           <View style={style.modalContent}>
             <Text style={style.modalText}>Send Message?</Text>
@@ -144,6 +154,7 @@ const ExpiringDays = ({ image, name, duration }: members) => {
               style={style.messageInput}
               value={message}
               onChangeText={setMessage}
+              editable={false}
               multiline
             />
 
@@ -338,10 +349,10 @@ const style = StyleSheet.create({
     backgroundColor: "#E2E3E8",
     borderRadius: 5,
     padding: 10,
-    paddingLeft:18,
+    paddingLeft: 18,
     marginVertical: 20,
     minHeight: 100,
     fontFamily: "Jost",
-    fontWeight:600
+    fontWeight: 600
   },
 });
