@@ -43,7 +43,7 @@ type FormErrors = {
   email?: string;
   date_of_birth?: string;
   address?: string;
-  gender?:string;
+  gender?: string;
 };
 
 const NewMember = () => {
@@ -106,7 +106,7 @@ const NewMember = () => {
     return errorMessage;
   };
 
-  const handleDOBConfirm = (date:any) => {
+  const handleDOBConfirm = (date: any) => {
     const formattedDate = moment(date).format('DD-MM-YYYY');
     setDOB(formattedDate);
     setDOBPickerVisible(false);
@@ -120,8 +120,8 @@ const NewMember = () => {
     let newErrors: FormErrors = {
       name: validateField("name", name),
       phone_number: validateField("phone", phone_number),
-      gender: validateField("gender",gender)
-    
+      gender: validateField("gender", gender)
+
 
       // email: validateField("email", email),
       // date_of_birth: validateField("dob", date_of_birth),
@@ -191,8 +191,8 @@ const NewMember = () => {
     if (gender) formData.append("gender", gender);
     if (address) formData.append("address", address);
     if (joining_date) formData.append("joining_date", joining_date);
-    if (city) formData.append("city",city);
-    if (pincode) formData.append("pincode",pincode);
+    if (city) formData.append("city", city);
+    if (pincode) formData.append("pincode", pincode);
     if (notes) formData.append("notes", notes);
 
     //  If user picked image from camera/gallery
@@ -209,7 +209,7 @@ const NewMember = () => {
         type: `image/${fileType}`,
       } as any);
     } else {
-      // ✅ Use local asset image if not picked from gallery/camera
+      //  Use local asset image if not picked from gallery/camera
       const asset = Asset.fromModule(require("../assets/images/member2.png"));
       await asset.downloadAsync(); // Make sure it's available
 
@@ -242,28 +242,18 @@ const NewMember = () => {
 
       Alert.alert("Success", "Member added successfully!");
 
-      // (navigation.navigate as Function)('AddMembership', {
-      //   profile_picture: profile_picture.uri,
-      //   phone_number: phone_number,
-      //   name: name,
-      //   status: 'Active',
-      //   gender: gender,
-      // });
-
-      // const { id } = route.params;
-      console.log("Created member ID:", createdMember?.id);
       if (createdMember?.data?.id) {
         navigationById.navigate("Add Membership", {
           id: createdMember.data.id,
         });
       }
-     } catch (error: any) {
+    } catch (error: any) {
       console.log("Full error object:", error);
-    
+
       let errorMessage = "Failed to add member. Try again.";
-    
+
       const errorData = error.response?.data;
-    
+
       if (errorData?.error) {
         // Flatten and extract first error message from nested object
         const firstKey = Object.keys(errorData.error)[0];
@@ -274,13 +264,13 @@ const NewMember = () => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-    
+
       console.error("Final error message:", errorMessage);
       Alert.alert("Error", errorMessage);
     }
-    
-    
-    
+
+
+
   };
 
 
@@ -411,13 +401,13 @@ const NewMember = () => {
               style={[styles.inputbox, { flex: 1 }]}
               placeholder="DD-MM-YYYY"
               value={date_of_birth}
-              editable={false} 
+              editable={false}
             />
             <Ionicons
               name="calendar-outline"
               size={24}
               color="#888"
-              style={{ marginLeft: 8,paddingTop:10 }}
+              style={{ marginLeft: 8, paddingTop: 10 }}
               onPress={() => setDOBPickerVisible(true)}
             />
           </View>
@@ -637,7 +627,7 @@ const styles = StyleSheet.create({
   radioRow: {
     flexDirection: "row",
     // justifyContent: "space-between",
-    gap:20,
+    gap: 20,
     alignItems: "center",
   },
   radioButton: {

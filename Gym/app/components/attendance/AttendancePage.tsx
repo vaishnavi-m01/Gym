@@ -1,4 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useIsFocused } from "@react-navigation/native";
+import moment from "moment";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -6,7 +8,6 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  ImageSourcePropType,
 } from "react-native";
 
 type AttendancePageProps = {
@@ -18,18 +19,16 @@ type AttendancePageProps = {
   onAttendanceChange: (id: number, status: "Present" | "Absent") => void;
 };
 
-
-
 const AttendancePage: React.FC<AttendancePageProps> = ({
   id,
   image,
   name,
   membership_status,
-  attendance_status: status, 
+  attendance_status: status,
   onAttendanceChange,
-
 }) => {
   const [statuss, setStatus] = useState<"Present" | "Absent" | null>(null);
+  const [isButtonDisabled, setButtonDisabled] = useState(false);
   const todayKey = `attendance_${id}_${new Date().toISOString().split("T")[0]}`;
 
   useEffect(() => {
@@ -37,6 +36,13 @@ const AttendancePage: React.FC<AttendancePageProps> = ({
       const savedStatus = await AsyncStorage.getItem(todayKey);
       if (savedStatus === "Present" || savedStatus === "Absent") {
         setStatus(savedStatus);
+      }
+      
+      // Disable buttons after 12:00 PM today
+      const currentTime = moment();
+      const noonTime = moment().set({ hour: 12, minute: 0, second: 0, millisecond: 0 });
+      if (currentTime.isAfter(noonTime)) {
+        setButtonDisabled(true);
       }
     };
     loadAttendance();
@@ -55,24 +61,29 @@ const AttendancePage: React.FC<AttendancePageProps> = ({
         <Text style={styles.name}>{name}</Text>
         <View style={styles.buttons}>
           <TouchableOpacity
+            disabled={isButtonDisabled || statuss === "Present"} 
             style={[
               styles.button,
-              status === "Present" && styles.activePresent,
+              statuss === "Present" && styles.activePresent,
+              statuss !== "Present" && styles.inactiveButton,
+              isButtonDisabled && styles.disabledButton, // Disable style after 12 PM
             ]}
             onPress={() => handleAttendance("Present")}
           >
             <Text style={styles.buttonText}>Present</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            disabled={isButtonDisabled || statuss === "Absent"} // Disable if already marked or past 12 PM
             style={[
               styles.button,
-              status === "Absent" && styles.activeAbsent,
+              statuss === "Absent" && styles.activeAbsent,
+              statuss !== "Absent" && styles.inactiveButton,
+              isButtonDisabled && styles.disabledButton, // Disable style after 12 PM
             ]}
             onPress={() => handleAttendance("Absent")}
           >
             <Text style={styles.buttonText}>Absent</Text>
           </TouchableOpacity>
-          
         </View>
       </View>
     </View>
@@ -100,7 +111,7 @@ const styles = StyleSheet.create({
   },
   info: {
     display: "flex",
-    justifyContent:"space-between",
+    justifyContent: "space-between",
     marginLeft: 15,
     flex: 1,
   },
@@ -108,7 +119,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 8,
-    top:20
+    top: 20
   },
   buttons: {
     flexDirection: "row",
@@ -137,77 +148,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "500",
   },
+  inactiveButton: {
+    backgroundColor: "#ccc",
+    borderColor: "#ccc",
+  },
+  disabledButton: {
+    opacity: 0.6, 
+  },
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

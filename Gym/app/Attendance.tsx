@@ -14,6 +14,7 @@ import AttendancePage from "./components/attendance/AttendancePage";
 import Toast from "react-native-toast-message";
 import config from "./config";
 import { useIsFocused } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Map backend image strings to actual require() references
 const imageMap: Record<string, any> = {
@@ -73,6 +74,26 @@ const Attendance = () => {
     }
   }, [isFocused]);
 
+  useEffect(() => {
+    if (isFocused) {
+      loadFromStorageOrFetch();
+    }
+  }, [isFocused]);
+  
+  const loadFromStorageOrFetch = async () => {
+    const today = moment().format("YYYY-MM-DD");
+    const savedDate = await AsyncStorage.getItem("attendanceDate");
+    const savedData = await AsyncStorage.getItem("attendanceData");
+  
+    if (savedDate === today && savedData) {
+      setMembers(JSON.parse(savedData)); 
+    } else {
+      await fetchMembers(); // make sure this also sets attendance_status to null
+    }
+  };
+  
+  
+
   const fetchMembers = async () => {
     try {
       const response = await axios.get(`${config.BASE_URL}/members/`);
@@ -83,9 +104,12 @@ const Attendance = () => {
           id: member.id,
           name: member.name,
           profile_picture: member.profile_picture
-            ? `${config.BASE_URL}${member.profile_picture}`
-            : require("../assets/images/member2.png"),
+          ? `${config.BASE_URL}${member.profile_picture}`
+          : require("../assets/images/member2.png"),
+        
           membership_status: member.status === "active" ? "Active" : "Inactive",
+          attendance_status: null,
+
         }));
   
         setMembers(formattedMembers);
@@ -101,39 +125,49 @@ const Attendance = () => {
 
 
 
-  const handleAttendance = async (member: number, newStatus: "Present" | "Absent") => { 
-  const updated = members.map((item) =>
+  const handleAttendance = async (member: number, newStatus: "Present" | "Absent") => {
+    const updated = members.map((item) =>
       item.id === member ? { ...item, attendance_status: newStatus } : item
     );
     setMembers(updated);
-
+    await AsyncStorage.setItem("attendanceData", JSON.stringify(updated));
+    await AsyncStorage.setItem("attendanceDate", moment().format("YYYY-MM-DD"));
+  
     try {
-      await axios.post(`${config.BASE_URL}/attendance/`, {
+      const response = await axios.post(`${config.BASE_URL}/attendance/`, {
         member,
         status: newStatus,
       });
-
-      Toast.show({
-        type: "success",
-        text1: `Attendance marked as ${newStatus}`,
-      });
+  
+  
+      Alert.alert(
+        "Success",
+        `${response.data?.member_name || 'Member'} marked as ${newStatus}`,
+        [{ text: "OK" }]
+      );
+      
     } catch (error) {
-      Toast.show({
-        type: "error",
-        text1: `Error submitting attendance`,
-      });
+      Alert.alert(
+        "Error",
+        "Error submitting attendance",
+        [{ text: "OK" }]
+      );
       console.error("API Error:", error);
     }
   };
+  
 
-  const filteredData = members
-    .filter((member) => {
-      if (filter === "Attendance") return true;
-      return member.attendance_status === filter.toLowerCase();
-    })
-    .filter((member) =>
-      member.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  const filteredData = members.filter((member) => {
+    const matchesFilter =
+      filter === "Attendance" || member.attendance_status === filter;
+    const matchesSearch = member.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+  
+  
+  
 
 
   return (
@@ -179,7 +213,7 @@ const Attendance = () => {
             ? { uri: String(item.profile_picture) }
             : require("../assets/images/member2.png")
         }
-        
+
         name={item.name}
         membership_status={item.membership_status}
         onAttendanceChange={(id, status) => handleAttendance(id, status)}
