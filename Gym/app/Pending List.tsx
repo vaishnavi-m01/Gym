@@ -71,10 +71,10 @@ const datas = [
 ];
 type Member = {
     id: number;
-    image: string | number;
+    profile_picture: string | number;
     name: string;
     duration: string;
-    pendingAmount: number;
+    pending_amount: number;
 };
 
 const PendingList = () => {
@@ -87,7 +87,7 @@ const PendingList = () => {
 
     const fetchPlans = async () => {
         try {
-            const response = await axios.get(`${config.BASE_URL}/memberships/pending`);
+            const response = await axios.get(`${config.BASE_URL}/memberships/pending/`);
 
             const pending = response.data.data;
 

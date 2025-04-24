@@ -268,9 +268,6 @@ const NewMember = () => {
       console.error("Final error message:", errorMessage);
       Alert.alert("Error", errorMessage);
     }
-
-
-
   };
 
 

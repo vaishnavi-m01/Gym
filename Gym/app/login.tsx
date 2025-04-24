@@ -9,17 +9,16 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert
+  Alert,
 } from "react-native";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { TouchableWithoutFeedback, Keyboard } from "react-native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import axios from "axios";
 import config from "./config";
-
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -32,33 +31,29 @@ const LoginScreen = () => {
       ToastAndroid.show("Please enter email and password!", ToastAndroid.SHORT);
       return;
     }
-  
+
     try {
       const response = await axios.post(`${config.BASE_URL}/login/`, {
         email,
         password,
       });
-  
+
       const { access, refresh, message } = response.data;
-  
+
       console.log("Login Response:", response.data);
-  
-    
+
       await AsyncStorage.setItem("jwtToken", access);
       await AsyncStorage.setItem("refreshToken", refresh);
-  
+
       Alert.alert("Success", message || "Login successful!");
-  
-      // router.replace("/(tabs)");
+
+      router.replace("/(tabs)");
     } catch (error: any) {
       console.error("Login Error:", error.response?.data || error.message);
       Alert.alert("Error", "Login failed. Please check your credentials.");
     }
-    router.replace("/(tabs)");
-
+    // router.replace("/(tabs)");
   };
-  
-  
 
   return (
     <KeyboardAvoidingView
@@ -71,7 +66,6 @@ const LoginScreen = () => {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.container}>
-
             <ImageBackground
               source={require("@/assets/images/login.png")}
               style={styles.image}
@@ -85,7 +79,12 @@ const LoginScreen = () => {
             <View style={styles.loginContainer}>
               <Text style={styles.label}>Email</Text>
               <View style={styles.inputContainer}>
-                <MaterialIcons name="email" size={24} color="gray" style={styles.icon} />
+                <MaterialIcons
+                  name="email"
+                  size={24}
+                  color="gray"
+                  style={styles.icon}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="Your email"
@@ -111,7 +110,9 @@ const LoginScreen = () => {
                   value={password}
                   onChangeText={setPassword}
                 />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
                   <MaterialIcons
                     name={showPassword ? "visibility" : "visibility-off"}
                     size={24}
@@ -129,10 +130,8 @@ const LoginScreen = () => {
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
-
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {

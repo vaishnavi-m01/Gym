@@ -1,5 +1,6 @@
 import config from "@/app/config";
 import { AntDesign, Entypo } from "@expo/vector-icons";
+import { useNavigation } from "expo-router";
 import { useState } from "react";
 import {
     Image,
@@ -24,6 +25,12 @@ type members = {
 
 const ProfileMember = ({ profile_picture, name, phone_number, gender, status }: members) => {
 
+    const navigation = useNavigation();
+
+    const handleIconClick = () =>{
+        navigation.navigate("Member Details" as never)
+    }
+
     return (
         <View style={style.container}>
                 <View style={style.subcontainer}>
@@ -39,7 +46,10 @@ const ProfileMember = ({ profile_picture, name, phone_number, gender, status }: 
                         <View style={style.numberNameRow}>
                             <Text style={style.name}>{name}</Text>
                             <View style={style.iconContainer}>
+                                <TouchableOpacity onPress={handleIconClick}>
                                 <AntDesign name="arrowright" size={22} color="black" />
+
+                                </TouchableOpacity>
                             </View>
                         </View>
                         <Text style={style.phoneNumber}>{phone_number}</Text>

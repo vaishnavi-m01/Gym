@@ -23,16 +23,9 @@ import { Linking } from "react-native";
 import axios from "axios";
 import config from "./config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-const member = [
-  {
-    id: 1,
-    image: require("../assets/images/admin.png"),
-    name: "John Doe",
-    phoneNumber: "+1234567890",
-    plan: "Premium",
-    status: "Active",
-  },
-];
+
+
+
 
 const MemberDetails = () => {
   const { id } = useLocalSearchParams();
@@ -46,6 +39,8 @@ const MemberDetails = () => {
   const [settlemodel, setSettleModel] = useState(false);
   const [whatsAppModel, setWhatsAppModel] = useState(false);
   const [birthMessage, setBirthMessage] = useState(false);
+
+  
 
   const [message, setMessage] = useState(
     `Happy Birthday! 🎉. May your day be filled with laughter, joy, and cherished moments with loved ones.`
@@ -79,9 +74,22 @@ const MemberDetails = () => {
       minimumFractionDigits: 2,
     }).format(amount);
 
-  const handleClick = () => {
-    navigation.navigate("Add Membership" as never);
-  };
+   
+    // const handleClick = (id: number) => {
+    //   navigation.navigate("Add Membership", {member.id});
+    // };
+
+    const handleClick = () => {
+      if (id) {
+        (navigation.navigate as Function)("Add Membership", { id });
+      } else {
+        console.warn("Profile ID not found yet!");
+      }
+    };
+  
+    
+  
+
 
   const handleSendWhatsApp = () => {
     const phoneNumber = member?.phone_number;

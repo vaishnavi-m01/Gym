@@ -109,7 +109,7 @@ export default function Members() {
 
   useEffect(() => {
     if (isFocused) {
-      fetchMembers(); //  Fetch fresh data when screen is focused
+      fetchMembers(); 
     }
   }, [isFocused]);
 

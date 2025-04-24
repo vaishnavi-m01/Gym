@@ -27,22 +27,7 @@ import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import config from "./config";
 import { useIsFocused } from "@react-navigation/native";
-
-const member = [
-  {
-    id: 1,
-    image: require("../assets/images/admin.png"),
-    name: "John Doe",
-    phoneNumber: "+1234567890",
-    plan: "Premium",
-    status: "Active",
-  },
-];
-const plans = [
-  { name: "One Month", amount: 1000, duration: "30 days" },
-  { name: "3 Month", amount: 2300, duration: "90 days" },
-  { name: "6 Month", amount: 4300, duration: "180 days" },
-];
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type RootStackParamList = {
   "Member Details": { id: string };
@@ -85,6 +70,8 @@ const AddMembership = () => {
   const isFocused = useIsFocused();
 
   const [editableMessage, setEditableMessage] = useState("");
+  const [isInitialAmountDisabled, setIsInitialAmountDisabled] = useState(false);
+  const [initialAmountDisabled, setInitialAmountDisabled] = useState(false);
 
   console.log("memberIdddd", id);
   console.log("planId", selectedPlanId);
@@ -120,12 +107,12 @@ const AddMembership = () => {
       () => {
         if (modalVisible) {
           setModalVisible(false);
-          return true; // prevent default behavior
+          return true;
         }
         return false;
       }
     );
-    return () => backHandler.remove(); // cleanup
+    return () => backHandler.remove();
   }, [modalVisible]);
 
   const handleConfirmPress = () => {
@@ -208,7 +195,7 @@ const AddMembership = () => {
         amount_received: amountReceived,
         payment_method: paymentMethod,
         initial_amount: initialAmount,
-        blance:balanceAmount,
+        blance: balanceAmount,
         Start_date: date.toISOString().split("T")[0],
       };
 
@@ -223,6 +210,7 @@ const AddMembership = () => {
       if (response.status === 200 || response.status === 201) {
         console.log("Success:", response.data);
         Alert.alert("Success", "Membership added successfully!");
+        setIsInitialAmountDisabled(true);
       } else {
         Alert.alert("Error", "Unexpected server response.");
       }
@@ -241,7 +229,22 @@ const AddMembership = () => {
     const fetchMembership = async () => {
       try {
         const response = await axios.get(`${config.BASE_URL}/members/${id}/`);
-        setMembershipData(response.data);
+        const memberData = response.data;
+
+        setMembershipData(memberData);
+
+        if (memberData.initial_amount && memberData.initial_amount > 0) {
+          setInitialAmount(memberData.initial_amount.toString());
+          setInitialAmountDisabled(true);
+
+          // Store in AsyncStorage to persist this state
+          await AsyncStorage.setItem(`initialAmountPaid-${id}`, "true");
+        } else {
+          const paid = await AsyncStorage.getItem(`initialAmountPaid-${id}`);
+          if (paid === "true") {
+            setInitialAmountDisabled(true);
+          }
+        }
       } catch (error) {
         console.error("Error fetching membership:", error);
       }
@@ -249,7 +252,6 @@ const AddMembership = () => {
 
     fetchMembership();
   }, []);
-
   const getEndDate = () => {
     const selected = plans.find((p) => p.plan_name === plan);
     const days = parseInt(selected?.plan_duration_days || "0");
@@ -327,7 +329,38 @@ const AddMembership = () => {
       subscription.remove();
     };
   }, []);
+
+  useEffect(() => {
+    const fetchMembership = async () => {
+      try {
+        const response = await axios.get(`${config.BASE_URL}/membership/${id}/`);
+        const membershipData = response.data;
   
+        setMembershipData(membershipData);
+  
+        const storageKey = `initialAmountPaid-membership-${id}`;
+  
+        // Check if initial amount already paid (API or stored before)
+        if (membershipData.initial_amount && membershipData.initial_amount > 0) {
+          setInitialAmount(membershipData.initial_amount.toString());
+          setInitialAmountDisabled(true);
+          await AsyncStorage.setItem(storageKey, 'true'); // store permanently
+        } else {
+          const paidBefore = await AsyncStorage.getItem(storageKey);
+          if (paidBefore === 'true') {
+            setInitialAmountDisabled(true);
+          } else {
+            setInitialAmountDisabled(false);
+          }
+        }
+  
+      } catch (error) {
+        console.error("Error fetching membership:", error);
+      }
+    };
+  
+    fetchMembership();
+  }, []);
 
   return (
     <ScrollView>
@@ -371,7 +404,6 @@ const AddMembership = () => {
               ))}
             </RadioButton.Group>
           </View>
-
           <Text style={styles.InitialAmount}>Initial amount</Text>
           <View style={styles.inputContainer}>
             <TextInput
@@ -379,7 +411,11 @@ const AddMembership = () => {
               keyboardType="numeric"
               value={initialAmount}
               onChangeText={setInitialAmount}
-              // onChangeText={handleDiscountChange}
+              editable={!isInitialAmountDisabled}
+              style={[
+                styles.input,
+                isInitialAmountDisabled && styles.disabledInput,
+              ]}
             />
           </View>
 
@@ -483,7 +519,7 @@ const AddMembership = () => {
           isVisible={isPickerVisible}
           mode="date"
           date={date}
-          minimumDate={new Date()}
+          // minimumDate={new Date()}
           onConfirm={handleConfirm}
           onCancel={() => setPickerVisible(false)}
         />
@@ -803,5 +839,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignSelf: "flex-end",
     marginTop: 10,
+  },
+  disabledInput: {
+    backgroundColor: "#f0f0f0",
+    color: "#888",
   },
 });

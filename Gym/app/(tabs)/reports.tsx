@@ -1,40 +1,66 @@
-import React, { useState } from 'react';
-import { Button, View, StyleSheet, Alert, Image, Text, Platform, TouchableOpacity,ScrollView } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import axios from 'axios';
-import { Modal } from 'react-native';
-import { EvilIcons } from '@expo/vector-icons';
-import TotalTransactions from '../components/transcation.tsx/TotalTransactions';
-
+import React, { useState } from "react";
+import {
+  Button,
+  View,
+  StyleSheet,
+  Alert,
+  Image,
+  Text,
+  Platform,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import axios from "axios";
+import { Modal } from "react-native";
+import { EvilIcons } from "@expo/vector-icons";
+import TotalTransactions from "../components/transcation.tsx/TotalTransactions";
 
 const data = [
   {
-    id:1,
+    id: 1,
     plan: "6 months",
-    count:2,
-    amount: 5000
+    count: 2,
+    amount: 5000,
   },
   {
-    id:2,
+    id: 2,
     plan: "3 months",
-    count:1,
-    amount: 7000
+    count: 1,
+    amount: 7000,
   },
   {
-    id:3,
-    plan:"Settlement",
-    count:1,
-    amount: 7000
+    id: 3,
+    plan: "Settlement",
+    count: 1,
+    amount: 7000,
   },
   {
-    id:4,
-    plan:"Settlement",
-    count:1,
-    amount: 7000
-  }
-]
+    id: 4,
+    plan: "Settlement",
+    count: 1,
+    amount: 7000,
+  },
+  {
+    id: 5,
+    plan: "Settlement",
+    count: 1,
+    amount: 7000,
+  },
+  {
+    id: 6,
+    plan: "Settlement",
+    count: 1,
+    amount: 7000,
+  },
+  {
+    id: 7,
+    plan: "Settlement",
+    count: 1,
+    amount: 7000,
+  },
+];
 export default function App() {
-
   const [timeline, setTimeline] = useState("Today");
   const [paymentType, setPaymentType] = useState("All");
 
@@ -43,7 +69,6 @@ export default function App() {
 
   const timelineOptions = ["Today", "This Week", "This Month"];
   const paymentOptions = ["Cash", "UPI", "Card", "All"];
-
 
   const renderOption = (option: any, setter: any, closeModal: any) => (
     <TouchableOpacity
@@ -57,8 +82,6 @@ export default function App() {
     </TouchableOpacity>
   );
 
-
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Reports</Text>
@@ -69,15 +92,25 @@ export default function App() {
           style={styles.dropdown}
           onPress={() => setTimelineVisible(true)}
         >
-          <Text style={styles.dropdownText}>Timeline: {timeline} <EvilIcons name="chevron-down" size={20} color="#FFFFFF" style={{bottom:30}}/></Text>
+          <Text style={styles.dropdownText}>
+            Timeline: {timeline}{" "}
+            <EvilIcons
+              name="chevron-down"
+              size={20}
+              color="#FFFFFF"
+              style={{ bottom: 30 }}
+            />
+          </Text>
         </TouchableOpacity>
-
 
         <TouchableOpacity
           style={styles.dropdown}
           onPress={() => setPaymentVisible(true)}
         >
-          <Text style={styles.dropdownText}>Payment Type: {paymentType} <EvilIcons name="chevron-down" size={21} color="#FFFFFF" /></Text>
+          <Text style={styles.dropdownText}>
+            Payment Type: {paymentType}{" "}
+            <EvilIcons name="chevron-down" size={21} color="#FFFFFF" />
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -92,24 +125,20 @@ export default function App() {
           <Text style={styles.blance}>₹18,000</Text>
         </View>
       </View>
+
+      <ScrollView scrollEnabled={true} showsVerticalScrollIndicator={false} style={styles.scrollViewContainer}>
       <Text style={styles.header}>Memberships by plan</Text>
-    <ScrollView showsVerticalScrollIndicator={false}>
-       {data.map((item) =>(
-        <TotalTransactions 
-        key={item.id}
-        id={item.id}
-        plan={item.plan}
-        amount={item.amount}
-        count ={item.count}        
-        >
-
-        </TotalTransactions>
-       )
-
-       )}
-    </ScrollView>
-
-
+  
+        {data.map((item) => (
+          <TotalTransactions
+            key={item.id}
+            id={item.id}
+            plan={item.plan}
+            amount={item.amount}
+            count={item.count}
+          />
+        ))}
+      </ScrollView>
 
       <Modal transparent visible={timelineVisible} animationType="fade">
         <TouchableOpacity
@@ -124,7 +153,6 @@ export default function App() {
         </TouchableOpacity>
       </Modal>
 
-
       <Modal transparent visible={paymentVisible} animationType="fade">
         <TouchableOpacity
           style={styles.modalOverlay}
@@ -137,8 +165,6 @@ export default function App() {
           </View>
         </TouchableOpacity>
       </Modal>
-
-
     </View>
   );
 }
@@ -146,10 +172,10 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     // padding: 30,
-    paddingTop:50,
-    padding:10,
-    paddingLeft:12,
-    backgroundColor: "#ffffff"
+    paddingTop: 50,
+    padding: 10,
+    paddingLeft: 12,
+    backgroundColor: "#ffffff",
   },
   title: {
     fontFamily: "Jost",
@@ -157,7 +183,7 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     paddingTop: 30,
     paddingLeft: 12,
-    fontSize: 18
+    fontSize: 18,
   },
   text: {
     fontFamily: "Jost",
@@ -165,7 +191,7 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     top: 6,
     fontSize: 14,
-    paddingLeft:10
+    paddingLeft: 10,
   },
   totalAmountBox: {
     width: "45%",
@@ -174,14 +200,13 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 15,
     borderWidth: 1,
-
   },
   amountTitle: {
     color: "#FFFFFF",
     fontWeight: 700,
     fontFamily: "Jost",
     textAlign: "left",
-    paddingLeft: 10
+    paddingLeft: 10,
   },
   amount: {
     color: "#FFFFFF",
@@ -191,7 +216,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     paddingLeft: 19,
     top: 5,
-    paddingBottom: 10
+    paddingBottom: 10,
   },
   blanceAmountBox: {
     width: "45%",
@@ -201,14 +226,14 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 10,
   },
-  blanceTitle:{
+  blanceTitle: {
     color: "#1B1A18",
     fontWeight: 700,
     fontFamily: "Jost",
     textAlign: "left",
-    paddingLeft: 10
+    paddingLeft: 10,
   },
-  blance:{
+  blance: {
     color: "#1B1A18",
     fontWeight: 700,
     fontFamily: "Jost",
@@ -216,19 +241,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     paddingLeft: 19,
     top: 5,
-    paddingBottom: 10
+    paddingBottom: 10,
   },
   reportsContainer: {
     paddingTop: 20,
     flexDirection: "row",
     gap: 5,
-    justifyContent: "space-around"
+    justifyContent: "space-around",
   },
   subcontainer: {
     paddingTop: 40,
     flexDirection: "row",
     gap: 10,
-    justifyContent: "space-around"
+    justifyContent: "space-around",
   },
   dropdown: {
     backgroundColor: "#000",
@@ -240,7 +265,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 13,
-    paddingLeft: 8
+    paddingLeft: 8,
   },
   modalOverlay: {
     flex: 1,
@@ -255,15 +280,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 8,
     padding: 5,
-    marginTop:25
+    marginTop: 25,
   },
-  modalBoxPayment:{
+  modalBoxPayment: {
     width: "40%",
     marginHorizontal: 120,
     backgroundColor: "#fff",
     borderRadius: 8,
     padding: 10,
-    marginTop:25
+    marginTop: 25,
   },
   optionItem: {
     paddingVertical: 10,
@@ -275,12 +300,15 @@ const styles = StyleSheet.create({
   // icon:{
   //   bottom:19
   // }
-  header:{
+  header: {
     fontFamily: "Jost",
-    paddingTop:50,
+    paddingTop: 50,
     paddingLeft: 10,
     fontWeight: 800,
-    fontSize:16,
-    lineHeight:20
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  scrollViewContainer:{
+    marginTop:5
   }
-})
+});
