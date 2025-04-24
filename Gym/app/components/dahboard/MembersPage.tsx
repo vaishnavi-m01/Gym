@@ -98,10 +98,10 @@ const MembersPage = ({
 
       {/* Member Card */}
       <View style={style.subcontainer}>
-        <Image
-          source={typeof profile_picture === "string" ? { uri: profile_picture } : profile_picture}
-          style={style.image}
-        />
+      <Image
+        source={typeof profile_picture === "string" ? { uri: profile_picture } : profile_picture}
+        style={style.image}
+      />
         <View style={style.textContainer}>
           <View style={style.numberNameRow}>
             <Text style={style.name}>{name}</Text>

@@ -66,8 +66,8 @@ const Attendance = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const isFocused = useIsFocused();
 
-
   const currentDate = moment().format("dddd, D MMMM YYYY");
+  
   useEffect(() => {
     if (isFocused) {
       fetchMembers();

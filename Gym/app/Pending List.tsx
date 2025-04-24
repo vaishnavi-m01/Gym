@@ -76,6 +76,7 @@ type Member = {
     duration: string;
     pendingAmount: number;
 };
+
 const PendingList = () => {
     const [members, setMembers] = useState<Member[]>([]);
 

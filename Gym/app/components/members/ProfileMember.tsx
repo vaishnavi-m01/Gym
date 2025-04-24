@@ -60,8 +60,6 @@ const ProfileMember = ({ profile_picture, name, phone_number, gender, status }: 
                     )}
                     <Text style={style.plan}>{gender}</Text>
                 </View>
-
-            
         </View>
     );
 };

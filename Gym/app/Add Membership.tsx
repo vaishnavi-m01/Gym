@@ -202,12 +202,14 @@ const AddMembership = () => {
     try {
       setIsSubmitting(true);
       const payload = {
-        member_id: member.id,
-        plan_id: selectedPlanId,
+        member: member.id,
+        plan: selectedPlanId,
         discount: discount || 0,
         amount_received: amountReceived,
         payment_method: paymentMethod,
-        start_date: date.toISOString().split("T")[0],
+        initial_amount: initialAmount,
+        blance:balanceAmount,
+        Start_date: date.toISOString().split("T")[0],
       };
 
       console.log("payloadd", payload);
@@ -325,6 +327,7 @@ const AddMembership = () => {
       subscription.remove();
     };
   }, []);
+  
 
   return (
     <ScrollView>
@@ -375,6 +378,7 @@ const AddMembership = () => {
               placeholder="Enter Initial Amount"
               keyboardType="numeric"
               value={initialAmount}
+              onChangeText={setInitialAmount}
               // onChangeText={handleDiscountChange}
             />
           </View>

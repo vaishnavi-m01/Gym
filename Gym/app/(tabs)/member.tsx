@@ -21,36 +21,9 @@ import { RouteProp, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 
-// Dummy fallback data
-const datas = [
-  {
-    id: 1,
-    image: require("../../assets/images/member1.png"),
-    name: "Hari",
-    phoneNumber: "+929876543210",
-    plan: "No Plan",
-  },
-  {
-    id: 2,
-    image: require("../../assets/images/member2.png"),
-    name: "Surya",
-    phoneNumber: "+929876543210",
-    plan: "One month",
-    status: "Active",
-  },
-  {
-    id: 3,
-    image: require("../../assets/images/member3.png"),
-    name: "sanjay",
-    phoneNumber: "+929876543210",
-    plan: "One month",
-    status: "Inactive",
-  },
-];
-
 
 export type RootStackParamList = {
-  "Member Details": { id: string }; 
+  "Member Details": { id: string };
 };
 
 
@@ -69,26 +42,12 @@ export default function Members() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const { member, setMember, removeMember } = useMember();
-    const { id } = useLocalSearchParams();
-  
+  const { id } = useLocalSearchParams();
+
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-
-
-
-
-
   const isFocused = useIsFocused();
-  // const { updatedImage } = (route.params as { updatedImage?: string }) || {};
-
-  // useEffect(() => {
-  //   if (updatedImage && typeof updatedImage === "string") {
-  //     const newImage = { uri: updatedImage };
-  //     setProfileImage(newImage);
-  //     AsyncStorage.setItem("profileImage", updatedImage); // Save it locally
-  //   }
-  // }, [updatedImage]);
 
 
   useEffect(() => {
@@ -107,9 +66,8 @@ export default function Members() {
         const formattedMembers: Member[] = membersFromAPI.map((member: any) => ({
           id: member.id,
           name: member.name,
-          profile_picture: member.profile_picture
-            ? `${config.BASE_URL}${member.profile_picture}`
-            : require("../../assets/images/member2.png"),
+          profile_picture:`${config.BASE_URL}${member.profile_picture}`,
+
           phone_number: member.phone_number || "N/A",
           email: member.email || "",
           date_of_birth: member.date_of_birth || "",
@@ -122,6 +80,7 @@ export default function Members() {
         }));
 
         setMembers(formattedMembers);
+
       } else {
         console.warn("Unexpected data format:", response.data);
         setMembers([]);
@@ -132,6 +91,7 @@ export default function Members() {
       setLoading(false);
     }
   };
+
 
 
 
@@ -162,8 +122,7 @@ export default function Members() {
     navigation.navigate("Member Details", { id: Array.isArray(id) ? id[0] : id });
   };
 
-  
-  
+
 
   return (
     <View style={styles.container}>
