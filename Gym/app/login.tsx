@@ -48,6 +48,7 @@ const LoginScreen = () => {
       Alert.alert("Success", message || "Login successful!");
 
       // router.replace("/(tabs)");
+      
     } catch (error: any) {
       console.error("Login Error:", error.response?.data || error.message);
       Alert.alert("Error", "Login failed. Please check your credentials.");
