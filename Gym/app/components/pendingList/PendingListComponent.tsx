@@ -20,10 +20,10 @@ const PendingListComponent = ({ image, name, duration,pendingAmount }: members) 
   return (
     <View style={style.container}>
       <View style={style.subcontainer}>
-        <Image
-          source={typeof image === "string" ? { uri: image } : image}
-          style={style.image}
-        />
+      <Image
+        source={typeof image === "string" ? { uri: image } : image}
+        style={style.image}
+      />
 
         <View style={style.textContainer}>
           <View style={style.numberNameRow}>

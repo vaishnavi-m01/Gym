@@ -51,7 +51,7 @@ const NewMember = () => {
   const [phone_number, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [date_of_birth, setDOB] = useState("");
-  const [gender, setGender] = useState("Male");
+  const [gender, setGender] = useState("");
   const [blood_group, setBloodGroup] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");

@@ -15,7 +15,7 @@ import axios from "axios";
 import config from "../config";
 import { useIsFocused, useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AntDesign, Feather } from "@expo/vector-icons";
+import { AntDesign, Feather, Fontisto } from "@expo/vector-icons";
 
 export default function HomeScreen() {
   const route = useRoute();
@@ -25,6 +25,9 @@ export default function HomeScreen() {
   const [profile_picture, setProfileImage] = useState<{ uri: string } | null>(null);
   const [id, setId] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const birthdaymember = useNavigation();
+  const [birthdayCount, setBirthdayCount] = useState(0);
+
 
   const { updatedImage } = (route.params as { updatedImage?: string }) || {};
 
@@ -76,12 +79,45 @@ export default function HomeScreen() {
 
   const goToMessageTemplate = () => {
     setModalVisible(false);
-    (navigation.navigate as Function)("Message Templates"); 
+    (navigation.navigate as Function)("Message Templates");
   };
+
+  const handleClick = () => {
+    birthdaymember.navigate("Birthday Member" as never)
+  }
+
+  const fetchBirthdayCount = async () => {
+    try {
+      const response = await axios.get(`${config.BASE_URL}/birthdays/`);
+      if (response.data && response.data.count !== undefined) {
+        setBirthdayCount(response.data.count);
+      }
+    } catch (error) {
+      console.error("Failed to fetch birthday count", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isFocused) {
+      loadStoredImage();
+      fetchProfileData();
+      fetchBirthdayCount();
+    }
+  }, [isFocused]);
+
 
   return (
     <ScrollView>
       <View style={styles.container}>
+        <TouchableOpacity onPress={handleClick} style={{ alignSelf: "flex-end", marginRight: 12, paddingTop: 3 }}>
+          <Fontisto name="bell" size={25} color="black" />
+          {birthdayCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{birthdayCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
         <View style={styles.subContainer}>
 
           <Text style={styles.headerTitle}>Hi, Velladurai Pandian</Text>
@@ -106,7 +142,7 @@ export default function HomeScreen() {
         <Text style={styles.title}>Dashboard</Text>
         <Dashboard />
 
-        
+
         <Modal
           animationType="fade"
           transparent={true}
@@ -224,4 +260,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#DC2626",
   },
+  badge: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    backgroundColor: "red",
+    borderRadius: 10,
+    width: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1,
+  },
+  badgeText: {
+    color: "white",
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  
 });

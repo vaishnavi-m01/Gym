@@ -3,6 +3,8 @@ import { Text, View, StyleSheet, ScrollView } from "react-native"
 import PendingListComponent from "./components/pendingList/PendingListComponent";
 import axios from "axios";
 import config from "./config";
+import { format, parse } from "date-fns";
+
 
 const datas = [
     {
@@ -72,7 +74,7 @@ const datas = [
 type Member = {
     id: number;
     profile_picture: string | number;
-    name: string;
+    member_name: string;
     duration: string;
     pending_amount: number;
 };
@@ -87,32 +89,49 @@ const PendingList = () => {
 
     const fetchPlans = async () => {
         try {
-            const response = await axios.get(`${config.BASE_URL}/memberships/pending/`);
-
-            const pending = response.data.data;
-
-            if (Array.isArray(pending)) {
-                setMembers(pending);
-            } else {
-                console.warn("Unexpected data format:", response.data);
-                setMembers([]);
-            }
+          const response = await axios.get(`${config.BASE_URL}/memberships/pending/`);
+          const pending = response.data.data;
+      
+          if (Array.isArray(pending)) {
+            const updated = pending.map((item, index) => {
+              const [startStr, endStr] = item.duration.split(" - ");
+      
+              const start = parse(startStr, "dd/MM/yyyy", new Date());
+              const end = parse(endStr, "dd/MM/yyyy", new Date());
+      
+              const formattedDuration = `${format(start, "dd MMM yyyy")} - ${format(end, "dd MMM yyyy")}`;
+      
+              return {
+                ...item,
+                id: index + 1, // fallback if no ID in API
+                profile_picture: item.profile_picture.startsWith("http")
+                  ? item.profile_picture
+                  : `${config.BASE_URL}${item.profile_picture}`,
+                duration: formattedDuration
+              };
+            });
+      
+            setMembers(updated);
+          } else {
+            console.warn("Unexpected data format:", response.data);
+            setMembers([]);
+          }
         } catch (error) {
-            console.error("Failed to fetch plans:", error);
+          console.error("Failed to fetch plans:", error);
         }
-    };
-
+      };
+      
     return (
         <View style={styles.containers}>
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}
             >
-                {datas.map((item) => (
+                {members.map((item) => (
                     <PendingListComponent
                         key={item.id}
                         id={item.id}
-                        image={item.image}
-                        name={item.name}
-                        pendingAmount={item.pendingAmount}
+                        image={item.profile_picture}
+                        name={item.member_name}
+                        pendingAmount={item.pending_amount}
                         duration={item.duration}
                     />
                 ))}
