@@ -14,7 +14,7 @@ import {
 import MembersPage from "./components/dahboard/MembersPage";
 import ProfileMemberDetails from "./components/members/ProfileMemberDetails";
 import { AntDesign, Entypo } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { RadioButton } from "react-native-paper";
@@ -24,23 +24,20 @@ import axios from "axios";
 import config from "./config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-
-
-
 const MemberDetails = () => {
   const { id } = useLocalSearchParams();
   const [member, setMember] = useState<any>(null);
+  const [membership, setMembership] = useState<any[]>([]);
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [modalVisible, setModalVisible] = useState(false);
 
   const navigation = useNavigation();
+  const route = useRouter();
   const [modelVisible, setModelVisible] = useState(false);
   const [settlemodel, setSettleModel] = useState(false);
   const [whatsAppModel, setWhatsAppModel] = useState(false);
   const [birthMessage, setBirthMessage] = useState(false);
-
-  
 
   const [message, setMessage] = useState(
     `Happy Birthday! 🎉. May your day be filled with laughter, joy, and cherished moments with loved ones.`
@@ -74,22 +71,17 @@ const MemberDetails = () => {
       minimumFractionDigits: 2,
     }).format(amount);
 
-   
-    // const handleClick = (id: number) => {
-    //   navigation.navigate("Add Membership", {member.id});
-    // };
+  // const handleClick = (id: number) => {
+  //   navigation.navigate("Add Membership", {member.id});
+  // };
 
-    const handleClick = () => {
-      if (id) {
-        (navigation.navigate as Function)("Add Membership", { id });
-      } else {
-        console.warn("Profile ID not found yet!");
-      }
-    };
-  
-    
-  
-
+  const handleClick = () => {
+    if (id) {
+      (navigation.navigate as Function)("Add Membership", { id });
+    } else {
+      console.warn("Profile ID not found yet!");
+    }
+  };
 
   const handleSendWhatsApp = () => {
     const phoneNumber = member?.phone_number;
@@ -142,6 +134,23 @@ balance is now ₹0 \n\n Thank you.`;
     });
   };
 
+  useEffect(() => {
+    const fetchMemberShip = async () => {
+      try {
+        const response = await axios.get(
+          `${config.BASE_URL}/transactions/member/${id}`
+        );
+        console.log("Fetched Membership Data:", response.data.data); // Log the response
+        setMembership(response.data.data); // Set the membership data
+      } catch (error) {
+        console.error("Error fetching member:", error);
+      }
+    };
+
+    if (id) fetchMemberShip();
+  }, [id]);
+
+  console.log("MembersHIp", id);
   console.log("memberPhone", member?.joining_date);
 
   return (
@@ -259,8 +268,17 @@ balance is now ₹0 \n\n Thank you.`;
             <Text style={styles.modalText}>Balance</Text>
             <View style={styles.modelSubcontainer}>
               <Text style={styles.title}>Pending Amount</Text>
-              <Text>₹3,000</Text>
+              {/* {membership.length > 0 && membership[0]?.settle_balance ? (
+                <Text>{membership[0]?.settle_balance}</Text>
+              ) : (
+                <Text>No pending amount</Text>
+              )} */}
+              <Text>3000
+
+              </Text>
             </View>
+          
+
             <TouchableOpacity
               style={styles.submitButton}
               onPress={() => {

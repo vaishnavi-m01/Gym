@@ -8,7 +8,7 @@ type Transaction= {
 }
 const TotalTransactions = ({plan,count,amount}: Transaction) =>{
     return(
-        <ScrollView showsHorizontalScrollIndicator={false} >
+       
         <View style={styles.container}>
             <View style={styles.subcontainer}>
                <Text style={styles.plan}>{plan}</Text>
@@ -19,7 +19,6 @@ const TotalTransactions = ({plan,count,amount}: Transaction) =>{
             </View>
          
         </View>
-        </ScrollView>
     )
 
 }

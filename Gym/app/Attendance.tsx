@@ -35,33 +35,6 @@ type Member = {
 };
 
 
-// const initialMembers: Member[] = [
-//   {
-//     id: 1,
-//     image: "../assets/images/member2.png",
-//     name: "Hari",
-//   },
-//   {
-//     id: 2,
-//     image: "../assets/images/member2.png",
-//     name: "Surya",
-//   },
-//   {
-//     id: 3,
-//     image: "../assets/images/member2.png",
-//     name: "Sanjay",
-//   },
-//   {
-//     id: 4,
-//     image: "../assets/images/member2.png",
-//     name: "Sankari",
-//   },
-//   {
-//     id: 5,
-//     image: "../assets/images/member2.png",
-//     name: "Vaishu",
-//   },
-// ];
 
 const Attendance = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -116,7 +89,7 @@ const Attendance = () => {
 
   const fetchAttendance = async (date: string) => {
     try {
-      const response = await axios.get(`https://your-api.com/attendance?date=${date}`);
+      const response = await axios.get(`${config.BASE_URL}/attendance?date=${date}`);
       setAttendanceData(response.data);
     } catch (error) {
       console.error('Failed to fetch attendance:', error);

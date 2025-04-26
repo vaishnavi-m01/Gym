@@ -299,6 +299,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   scrollViewContainer:{
-    marginTop:5,
+    paddingBottom: 90,
   }
 });

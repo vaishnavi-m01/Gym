@@ -1,62 +1,12 @@
-import { StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { StyleSheet, View, ScrollView, Text, ActivityIndicator } from "react-native";
 import Transactions from "../components/transaction/Transactions";
-import { ScrollView } from "react-native";
-import { Text } from "react-native";
+import axios from "axios";
+import config from "../config";
 
-const datas = [
-  {
-    id: 1,
-    name: "hari",
-    image: require("../../assets/images/member1.png"),
-    plan: "3 months",
-    amount: 1000,
-    duration: "10 Nov 2025 - 07 Feb 2026 ",
-    paymentType: "Cash"
-  },
-  {
-    id: 2,
-    name: "priya",
-    image: require("../../assets/images/member1.png"),
-    plan: "5 months",
-    duration: "10 Nov 2025 - 07 Feb 2026",
-    amount: 2000,
-    paymentType: "Cash"
-
-  },
-  {
-    id: 3,
-    name: "vaishu",
-    image: require("../../assets/images/member1.png"),
-    plan: "6 months",
-    duration: "10 Nov 2025 - 07 Feb 2026",
-    amount: 2000,
-    paymentType: "Cash"
-
-  },
-  {
-    id: 4,
-    name: "pavi",
-    image: require("../../assets/images/member1.png"),
-    plan: "8 months",
-    duration: "10 Nov 2025 - 07 Feb 2026",
-    amount:8000,
-    paymentType: "UPI"
-
-  },
-  {
-    id: 5,
-    name: "rasiga",
-    image: require("../../assets/images/member1.png"),
-    plan: "One months",
-    duration: "10 Nov 2025 - 07 Feb 2026",
-    amount:9500,
-    paymentType: "UPI"
-
-  },
-];
 type Member = {
   id: number;
-  image: string;
+  image: string; 
   name: string;
   amount: number;
   duration: string;
@@ -65,43 +15,85 @@ type Member = {
 };
 
 export default function Transaction() {
-  return(
-    <ScrollView showsVerticalScrollIndicator={false}>
-    <View style={styles.container}>
-    <Text style={styles.title}>Transaction</Text>
+  const [datas, setDatas] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
 
-       {datas.map((item) => (
-                <Transactions
-                  key={item.id}
-                  id={item.id}
-                  name={item.name}
-                  image={item.image}
-                  amount={item.amount}
-                  plan={item.plan}
-                  duration={item.duration}
-                  paymentType={item.paymentType}
-                />
-              ))}
-    </View>
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const { data } = await axios.get(`${config.BASE_URL}/transactions/`);
+        setDatas(data.map((item: any) => {
+          // Format the date here
+          const [year, month, day] = item.payment_date.split("-");
+          const formattedDate = `${day}-${month}-${year}`;
+  
+          return {
+            id: item.id,
+            name: item.member_name,
+            image: item.profile_picture
+              ? { uri: `${config.BASE_URL}${item.profile_picture}` }
+              : require("../../assets/images/member1.png"),
+            plan: item.plan_name,
+            amount: parseFloat(item.amount_paid),
+            duration: formattedDate,
+            paymentType: item.payment_method,
+          };
+        }));
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchTransactions();
+  }, []);
+  
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView showsVerticalScrollIndicator={false}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Transaction</Text>
+
+        {datas.map((item) => (
+          <Transactions
+            key={item.id}
+            id={item.id}
+            name={item.name}
+            image={item.image}
+            amount={item.amount}
+            plan={item.plan}
+            duration={item.duration}
+            paymentType={item.paymentType}
+          />
+        ))}
+      </View>
     </ScrollView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
-  container:{
+  container: {
     backgroundColor: "#ffffff",
     flex: 1,
-    padding:10,
-    paddingTop:50,
-    marginBottom: 60
+    padding: 10,
+    paddingTop: 50,
+    marginBottom: 60,
   },
-  title:{
-    padding:10,
-    fontWeight:800,
-    lineHeight:50,
-    fontSize:20,
-    paddingTop:30,
-    paddingLeft:18
-  }
-  
+  title: {
+    padding: 10,
+    fontWeight: "800",
+    lineHeight: 50,
+    fontSize: 20,
+    paddingTop: 30,
+    paddingLeft: 18,
+  },
 });

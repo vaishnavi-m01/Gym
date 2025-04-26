@@ -6,36 +6,42 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import axios, { AxiosError } from "axios";
+import config from "@/app/config";
+import { useRoute } from "@react-navigation/native";
 
 export default function ChangePassword() {
   const [open, setOpen] = useState(false);
   const [old_password, setOldPassword] = useState("");
   const [new_password, setNewPassword] = useState("");
 
+  const route = useRoute();
+  const { id } = route.params as { id: string };
+
+  console.log("Profile", id);
+
   const handleChangePassword = async () => {
     if (!old_password || !new_password) {
-      Toast.show({
-        type: "error",
-        text1: "Validation Error",
-        text2: "Both fields are required",
-      });
+      Alert.alert("Validation Error", "Both fields are required");
       return;
     }
 
     try {
-      const response = await axios.post("https://your-api.com/change-password", {
-        old_password,
-        new_password,
-      });
+      const response = await axios.post(
+        `${config.BASE_URL}/profile/${id}/change-password/`,
+        {
+          old_password,
+          new_password,
+        }
+      );
 
-      Toast.show({
-        type: "success",
-        text1: "Password Updated",
-        text2: "Your password has been changed successfully",
-      });
+      Alert.alert(
+        "Password Updated",
+        "Your password has been changed successfully"
+      );
 
       // Close modal and reset fields
       setOpen(false);
@@ -44,11 +50,10 @@ export default function ChangePassword() {
     } catch (err) {
       const error = err as AxiosError<any>;
 
-      Toast.show({
-        type: "error",
-        text1: "Change Failed",
-        text2: error.response?.data?.message || "Something went wrong",
-      });
+      Alert.alert(
+        "Change Failed",
+        error.response?.data?.message || "Something went wrong"
+      );
     }
   };
 
@@ -59,8 +64,16 @@ export default function ChangePassword() {
       </TouchableOpacity>
 
       <Modal visible={open} animationType="slide" transparent>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
+        <TouchableOpacity
+          style={styles.modalContainer}
+          activeOpacity={1}
+          onPressOut={() => setOpen(false)} // CLOSE when pressing outside
+        >
+          <TouchableOpacity
+            style={styles.modalContent}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()} // PREVENT closing when pressing inside content
+          >
             <Text style={styles.loginText}>Old Password</Text>
             <TextInput
               style={styles.input}
@@ -79,14 +92,17 @@ export default function ChangePassword() {
               placeholder="Enter new password"
             />
 
-            <TouchableOpacity style={styles.saveButton} onPress={handleChangePassword}>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleChangePassword}
+            >
               <Text style={styles.buttonText}>Save changes</Text>
             </TouchableOpacity>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
-      <Toast />
+      {/* <Toast /> */}
     </>
   );
 }

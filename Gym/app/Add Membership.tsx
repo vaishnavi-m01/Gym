@@ -70,8 +70,8 @@ const AddMembership = () => {
   const isFocused = useIsFocused();
 
   const [editableMessage, setEditableMessage] = useState("");
-  const [isInitialAmountDisabled, setIsInitialAmountDisabled] = useState(false);
-  const [initialAmountDisabled, setInitialAmountDisabled] = useState(false);
+  const [isInitialAmountDisabled, setInitialAmountDisabled] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   console.log("memberIdddd", id);
   console.log("planId", selectedPlanId);
@@ -190,13 +190,12 @@ const AddMembership = () => {
       setIsSubmitting(true);
       const payload = {
         member: member.id,
-        plan: selectedPlanId,
+        plan_id: selectedPlanId,
         discount: discount || 0,
         amount_received: amountReceived,
         payment_method: paymentMethod,
         initial_amount: initialAmount,
-        blance: balanceAmount,
-        Start_date: date.toISOString().split("T")[0],
+        start_date: date.toISOString().split("T")[0],
       };
 
       console.log("payloadd", payload);
@@ -210,7 +209,7 @@ const AddMembership = () => {
       if (response.status === 200 || response.status === 201) {
         console.log("Success:", response.data);
         Alert.alert("Success", "Membership added successfully!");
-        setIsInitialAmountDisabled(true);
+        setInitialAmountDisabled(true);
       } else {
         Alert.alert("Error", "Unexpected server response.");
       }
@@ -252,6 +251,7 @@ const AddMembership = () => {
 
     fetchMembership();
   }, []);
+
   const getEndDate = () => {
     const selected = plans.find((p) => p.plan_name === plan);
     const days = parseInt(selected?.plan_duration_days || "0");
@@ -331,36 +331,54 @@ const AddMembership = () => {
   }, []);
 
   useEffect(() => {
+    console.log("membershipId:", id);
+    if (!id) return;
+
     const fetchMembership = async () => {
       try {
-        const response = await axios.get(`${config.BASE_URL}/membership/${id}/`);
-        const membershipData = response.data;
-  
-        setMembershipData(membershipData);
-  
+        setLoading(true);
         const storageKey = `initialAmountPaid-membership-${id}`;
-  
-        // Check if initial amount already paid (API or stored before)
-        if (membershipData.initial_amount && membershipData.initial_amount > 0) {
+
+        // Check if already stored as paid
+        const paidBefore = await AsyncStorage.getItem(storageKey);
+        console.log("Paid before:", paidBefore);
+
+        if (paidBefore === "true") {
+          setInitialAmountDisabled(true);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch membership from API
+        const response = await axios.get(`${config.BASE_URL}/members/${id}`);
+        const membershipData = response.data;
+
+        if (
+          membershipData.initial_amount &&
+          parseFloat(membershipData.initial_amount) > 0
+        ) {
           setInitialAmount(membershipData.initial_amount.toString());
           setInitialAmountDisabled(true);
-          await AsyncStorage.setItem(storageKey, 'true'); // store permanently
+          await AsyncStorage.setItem(storageKey, "true");
         } else {
-          const paidBefore = await AsyncStorage.getItem(storageKey);
-          if (paidBefore === 'true') {
-            setInitialAmountDisabled(true);
-          } else {
-            setInitialAmountDisabled(false);
-          }
+          setInitialAmountDisabled(false);
         }
-  
-      } catch (error) {
-        console.error("Error fetching membership:", error);
+
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching membership:", err);
+        setLoading(false);
       }
     };
-  
+
     fetchMembership();
-  }, []);
+  }, [id]);
+
+
+ 
+  
+
+  
 
   return (
     <ScrollView>
@@ -404,19 +422,28 @@ const AddMembership = () => {
               ))}
             </RadioButton.Group>
           </View>
-          <Text style={styles.InitialAmount}>Initial amount</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              placeholder="Enter Initial Amount"
-              keyboardType="numeric"
-              value={initialAmount}
-              onChangeText={setInitialAmount}
-              editable={!isInitialAmountDisabled}
-              style={[
-                styles.input,
-                isInitialAmountDisabled && styles.disabledInput,
-              ]}
-            />
+          <Text style={styles.text}>Initial Amount</Text>
+
+          <View style={styles.initialAmountContainer}>
+            <View style={styles.inputContainer}>
+              {!loading && (
+                <TextInput
+                  placeholder="Initial Amount"
+                  keyboardType="numeric"
+                  value={initialAmount}
+                  onChangeText={setInitialAmount}
+                  editable={!isInitialAmountDisabled}
+                  style={[
+                    styles.input,
+                    isInitialAmountDisabled && styles.disabledInput,
+                  ]}
+                />
+              )}
+            </View>
+
+            {isInitialAmountDisabled && (
+              <Text style={styles.paidText}>Paid</Text>
+            )}
           </View>
 
           <View style={styles.paymentContainer}>
@@ -721,7 +748,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   input: {
-    // flex: 1,
+    flex: 1,
     fontSize: 16,
   },
   icon: {
@@ -843,5 +870,18 @@ const styles = StyleSheet.create({
   disabledInput: {
     backgroundColor: "#f0f0f0",
     color: "#888",
+  },
+  paidText: {
+    color: "green",
+    fontWeight: "bold",
+    marginLeft: 8,
+    alignSelf: "center",
+  },
+  inputContainers: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  initialAmountContainer: {
+    flexDirection: "row",
   },
 });

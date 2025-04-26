@@ -53,7 +53,7 @@ const Transactions = ({
               <Text style={style.amount}>₹{amount.toLocaleString("en-IN")}</Text>
             </View>
           </View>
-          <Text style={style.duration}>duration: {duration}</Text>
+          <Text style={style.duration}>PaymentDate: {duration}</Text>
         </View>
       </View>
       <Text style={style.bottomLine}></Text>
