@@ -6,47 +6,50 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from "react-native";
-import Toast from "react-native-toast-message"; 
-
-// type ShopCreateIconsProps = {
-//   onChangePassword: (review: any) => void;
-// };
+import Toast from "react-native-toast-message";
+import axios, { AxiosError } from "axios";
 
 export default function ChangePassword() {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [reviewText, setReviewText] = useState("");
-  const [rating, setRating] = useState(0);
+  const [old_password, setOldPassword] = useState("");
+  const [new_password, setNewPassword] = useState("");
 
-  const handleSubmit = () => {
-    if (!name || !reviewText || rating === 0) {
-      Alert.alert("Error", "All fields are required!");
+  const handleChangePassword = async () => {
+    if (!old_password || !new_password) {
+      Toast.show({
+        type: "error",
+        text1: "Validation Error",
+        text2: "Both fields are required",
+      });
       return;
     }
 
-    const newReview = {
-      id: Math.random(),
-      name,
-      reviewText,
-      rating,
-      verified: false,
-      date: new Date().toLocaleDateString(),
-    };
+    try {
+      const response = await axios.post("https://your-api.com/change-password", {
+        old_password,
+        new_password,
+      });
 
-    fetch("https://your-api.com/reviews", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newReview),
-    })
-      .then(() => Toast.show({ type: "success", text1: "Review Submitted!" }))
-      .catch(() => Toast.show({ type: "error", text1: "Submission Failed!" }));
+      Toast.show({
+        type: "success",
+        text1: "Password Updated",
+        text2: "Your password has been changed successfully",
+      });
 
-    setOpen(false);
-    setName("");
-    setReviewText("");
-    setRating(0);
+      // Close modal and reset fields
+      setOpen(false);
+      setOldPassword("");
+      setNewPassword("");
+    } catch (err) {
+      const error = err as AxiosError<any>;
+
+      Toast.show({
+        type: "error",
+        text1: "Change Failed",
+        text2: error.response?.data?.message || "Something went wrong",
+      });
+    }
   };
 
   return (
@@ -59,28 +62,30 @@ export default function ChangePassword() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.loginText}>Old Password</Text>
-
             <TextInput
               style={styles.input}
-              value={name}
-              onChangeText={setName}
+              value={old_password}
+              onChangeText={setOldPassword}
+              secureTextEntry
+              placeholder="Enter old password"
             />
+
             <Text style={styles.loginText}>New Password</Text>
-
             <TextInput
               style={styles.input}
-              value={name}
-              onChangeText={setName}
+              value={new_password}
+              onChangeText={setNewPassword}
+              secureTextEntry
+              placeholder="Enter new password"
             />
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={() => setOpen(false)}
-              >
-                <Text style={styles.buttonText}>Save changes</Text>
-              </TouchableOpacity>
-            </View>
+
+            <TouchableOpacity style={styles.saveButton} onPress={handleChangePassword}>
+              <Text style={styles.buttonText}>Save changes</Text>
+            </TouchableOpacity>
           </View>
+        </View>
       </Modal>
+
       <Toast />
     </>
   );
@@ -95,16 +100,16 @@ const styles = StyleSheet.create({
   buttontext: {
     fontFamily: "Roboto",
     fontSize: 16,
-    fontWeight: 500,
+    fontWeight: "500",
     color: "#585858",
-    textAlign: "center"
+    textAlign: "center",
   },
   buttonText: {
     fontFamily: "Roboto",
     fontSize: 16,
-    fontWeight: 500,
+    fontWeight: "500",
     color: "#FFFFFF",
-    textAlign: "center"
+    textAlign: "center",
   },
   modalContainer: {
     flex: 1,
@@ -123,12 +128,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "center",
-  },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
@@ -137,22 +136,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginLeft: 10,
   },
- 
   loginText: {
     color: "black",
     paddingLeft: 10,
     marginBottom: 10,
     fontSize: 16,
-    fontWeight: 800,
+    fontWeight: "800",
   },
-  saveButton:{
+  saveButton: {
     marginTop: 10,
     backgroundColor: "#1b1a18",
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius: 10,
-    alignContent: "center",
     alignSelf: "center",
-    width: "80%"
-  }
+    width: "80%",
+  },
 });

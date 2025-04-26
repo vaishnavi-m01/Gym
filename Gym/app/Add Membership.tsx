@@ -721,7 +721,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   input: {
-    flex: 1,
+    // flex: 1,
     fontSize: 16,
   },
   icon: {

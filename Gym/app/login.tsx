@@ -16,7 +16,6 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { TouchableWithoutFeedback, Keyboard } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import axios from "axios";
 import config from "./config";
 
@@ -24,11 +23,36 @@ const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const router = useRouter();
 
+  const validateEmail = (email: string) => {
+    // Email regex pattern for validation
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(email);
+  };
+
   const handleLogin = async () => {
+    setEmailError("");
+    setPasswordError("");
+
     if (!email || !password) {
+      if (!email) setEmailError("Please fill in your email.");
+      if (!password) setPasswordError("Please fill in your password.");
       ToastAndroid.show("Please enter email and password!", ToastAndroid.SHORT);
+      return;
+    }
+
+    // Validate email format
+    if (!validateEmail(email)) {
+      setEmailError("Invalid email format.");
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters.");
       return;
     }
 
@@ -48,12 +72,12 @@ const LoginScreen = () => {
       Alert.alert("Success", message || "Login successful!");
 
       // router.replace("/(tabs)");
-      
     } catch (error: any) {
       console.error("Login Error:", error.response?.data || error.message);
       Alert.alert("Error", "Login failed. Please check your credentials.");
     }
     router.replace("/(tabs)");
+
   };
 
   return (
@@ -94,6 +118,7 @@ const LoginScreen = () => {
                   onChangeText={setEmail}
                 />
               </View>
+              {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
               <Text style={styles.label}>Password</Text>
               <View style={styles.inputContainer}>
@@ -122,6 +147,7 @@ const LoginScreen = () => {
                   />
                 </TouchableOpacity>
               </View>
+              {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
               <TouchableOpacity style={styles.button} onPress={handleLogin}>
                 <Text style={styles.buttonText}>Login</Text>
@@ -196,6 +222,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginBottom: 10,
   },
 });
 

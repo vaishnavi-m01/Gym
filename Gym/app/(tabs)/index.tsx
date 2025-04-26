@@ -109,23 +109,23 @@ export default function HomeScreen() {
   return (
     <ScrollView>
       <View style={styles.container}>
-        <TouchableOpacity onPress={handleClick} style={{ alignSelf: "flex-end", marginRight: 12, paddingTop: 3 }}>
-          <Fontisto name="bell" size={25} color="black" />
-          {birthdayCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{birthdayCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-
         <View style={styles.subContainer}>
-
           <Text style={styles.headerTitle}>Hi, Velladurai Pandian</Text>
-
-          <View style={styles.rightIcons}>
+          <View style={styles.rightContainer}>
             <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.iconButton}>
-              <AntDesign name="setting" size={22} color="black" style={styles.icon} />
+              <AntDesign name="setting" size={25} color="black" style={styles.icon} />
             </TouchableOpacity>
+            <TouchableOpacity onPress={handleClick} style={{ alignSelf: "flex-end", marginRight: 12, paddingTop: 3 }}>
+              <Fontisto name="bell" size={26} color="black" />
+              {birthdayCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{birthdayCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+
+
             <TouchableOpacity onPress={handleClicks}>
               <Image
                 source={
@@ -136,8 +136,10 @@ export default function HomeScreen() {
                 style={styles.adminImg}
               />
             </TouchableOpacity>
+
           </View>
         </View>
+
 
         <Text style={styles.title}>Dashboard</Text>
         <Dashboard />
@@ -180,11 +182,17 @@ const styles = StyleSheet.create({
     paddingTop: 30
   },
   subContainer: {
-    paddingTop: 30,
+    paddingTop: 10,
     paddingHorizontal: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  rightContainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    alignSelf: "flex-end",
+    paddingTop: 5
   },
   rightIcons: {
     flexDirection: "row",
@@ -192,28 +200,32 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 17,
     fontFamily: "Jost",
     fontWeight: "900",
     color: "#111827",
     letterSpacing: 0.43,
+    top: 6
   },
   adminImg: {
-    height: 50,
-    width: 50,
+    height: 35,
+    width: 35,
     borderRadius: 25,
+    top: 3
   },
   title: {
-    paddingLeft: 30,
+    paddingLeft: 20,
     fontFamily: "Jost",
     fontWeight: "700",
     color: "#111827",
-    fontSize: 20,
+    fontSize: 18,
     marginBottom: 30,
+    paddingTop:10
   },
   icon: {
     padding: 5,
-    marginLeft: 2
+    marginLeft: 2,
+    top: 5
   },
   modalIcon: {
     marginRight: 3,
@@ -277,5 +289,5 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "bold",
   },
-  
+
 });

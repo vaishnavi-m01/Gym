@@ -15,6 +15,10 @@ import Toast from "react-native-toast-message";
 import config from "./config";
 import { useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+
+
 
 // Map backend image strings to actual require() references
 const imageMap: Record<string, any> = {
@@ -27,7 +31,7 @@ type Member = {
   name: string;
   profile_picture: string | number;
   membership_status?: "Active" | "Inactive";
-  attendance_status?: "Present" | "Absent" | null; 
+  attendance_status?: "Present" | "Absent" | null;
 };
 
 
@@ -67,7 +71,11 @@ const Attendance = () => {
   const isFocused = useIsFocused();
 
   const currentDate = moment().format("dddd, D MMMM YYYY");
-  
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+
+
+
   useEffect(() => {
     if (isFocused) {
       fetchMembers();
@@ -79,39 +87,74 @@ const Attendance = () => {
       loadFromStorageOrFetch();
     }
   }, [isFocused]);
-  
+
+  useEffect(() => {
+    fetchAttendance(currentDate);
+  }, [currentDate]);
+
+  useEffect(() => {
+    const formatted = moment(selectedDate).format("YYYY-MM-DD");
+    fetchAttendance(formatted);
+  }, [selectedDate]);
+
+
   const loadFromStorageOrFetch = async () => {
     const today = moment().format("YYYY-MM-DD");
     const savedDate = await AsyncStorage.getItem("attendanceDate");
     const savedData = await AsyncStorage.getItem("attendanceData");
-  
+
     if (savedDate === today && savedData) {
-      setMembers(JSON.parse(savedData)); 
+      setMembers(JSON.parse(savedData));
     } else {
       await fetchMembers(); // make sure this also sets attendance_status to null
     }
   };
-  
-  
+
+  useEffect(() => {
+    fetchAttendance(currentDate);
+  }, [currentDate]);
+
+  const fetchAttendance = async (date: string) => {
+    try {
+      const response = await axios.get(`https://your-api.com/attendance?date=${date}`);
+      setAttendanceData(response.data);
+    } catch (error) {
+      console.error('Failed to fetch attendance:', error);
+    }
+  };
+
+  const handleConfirm = (date: Date) => {
+    setSelectedDate(date);
+    hideDatePicker();
+  };
+
+  const resetToToday = () => {
+    const today = new Date();
+    setSelectedDate(today);
+  };
+
+  const showDatePicker = () => setDatePickerVisibility(true);
+  const hideDatePicker = () => setDatePickerVisibility(false);
+
 
   const fetchMembers = async () => {
     try {
       const response = await axios.get(`${config.BASE_URL}/members/`);
       const membersFromAPI = response.data.data;
-  
+
       if (Array.isArray(membersFromAPI)) {
         const formattedMembers: Member[] = membersFromAPI.map((member: any) => ({
           id: member.id,
           name: member.name,
           profile_picture: member.profile_picture
-          ? `${config.BASE_URL}${member.profile_picture}`
-          : require("../assets/images/member2.png"),
-        
+            ? `${config.BASE_URL}${member.profile_picture}`
+            : require("../assets/images/member2.png"),
+
           membership_status: member.status === "active" ? "Active" : "Inactive",
           attendance_status: null,
 
         }));
-  
+
         setMembers(formattedMembers);
       } else {
         console.warn("Unexpected data format:", response.data);
@@ -121,7 +164,7 @@ const Attendance = () => {
       Alert.alert("Error", error.message || "Failed to fetch members.");
     }
   };
-  
+
 
 
 
@@ -132,20 +175,20 @@ const Attendance = () => {
     setMembers(updated);
     await AsyncStorage.setItem("attendanceData", JSON.stringify(updated));
     await AsyncStorage.setItem("attendanceDate", moment().format("YYYY-MM-DD"));
-  
+
     try {
       const response = await axios.post(`${config.BASE_URL}/attendance/`, {
         member,
         status: newStatus,
       });
-  
-  
+
+
       Alert.alert(
         "Success",
         `${response.data?.member_name || 'Member'} marked as ${newStatus}`,
         [{ text: "OK" }]
       );
-      
+
     } catch (error) {
       Alert.alert(
         "Error",
@@ -155,7 +198,7 @@ const Attendance = () => {
       console.error("API Error:", error);
     }
   };
-  
+
 
   const filteredData = members.filter((member) => {
     const matchesFilter =
@@ -165,9 +208,9 @@ const Attendance = () => {
       .includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
-  
-  
-  
+
+
+
 
 
   return (
@@ -200,25 +243,47 @@ const Attendance = () => {
           </TouchableOpacity>
         ))}
       </View>
+      <View style={styles.header}>
+        <Text style={styles.dateText}>
+          {moment(selectedDate).format("dddd, D MMMM YYYY")}
+        </Text>
+        <TouchableOpacity onPress={showDatePicker}>
+          <Icon name="calendar-today" size={25} color="#333" style={{ bottom: 3 }} />
+        </TouchableOpacity>
+      </View>
+      {/* <TouchableOpacity onPress={resetToToday} style={styles.resetButton}>
+        <Text style={styles.resetText}>Reset to Today</Text>
+      </TouchableOpacity> */}
 
-      <Text style={styles.dateText}>{currentDate}</Text>
+      {/* Date Picker */}
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleConfirm}
+        onCancel={() => {
+          resetToToday();
+          hideDatePicker();
+        }}
+        date={selectedDate}
+      />
+
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {filteredData.map((item) => (
-        <AttendancePage
-        key={item.id}
-        id={item.id}
-        image={
-          item.profile_picture
-            ? { uri: String(item.profile_picture) }
-            : require("../assets/images/member2.png")
-        }
+          <AttendancePage
+            key={item.id}
+            id={item.id}
+            image={
+              item.profile_picture
+                ? { uri: String(item.profile_picture) }
+                : require("../assets/images/member2.png")
+            }
 
-        name={item.name}
-        membership_status={item.membership_status}
-        onAttendanceChange={(id, status) => handleAttendance(id, status)}
-        />
-      
+            name={item.name}
+            membership_status={item.membership_status}
+            onAttendanceChange={(id, status) => handleAttendance(id, status)}
+          />
+
         ))}
       </ScrollView>
     </View>
@@ -276,6 +341,12 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     marginBottom: 10,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+
 });
 
 

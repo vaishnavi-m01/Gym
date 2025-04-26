@@ -1,7 +1,7 @@
 import { AntDesign, Entypo, Feather } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { Image, Linking, TouchableOpacity } from "react-native";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet,TextInput } from "react-native";
 import EditMembers from "./EditMembers";
 import { useState } from "react";
 import config from "@/app/config";
@@ -28,14 +28,36 @@ const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender,
     const [modelVisible, setModelVisible] = useState(false);
     const [model, setModel] = useState(false);
 
+    const [modalVisibleMember, setModalVisibleMember] = useState(false);
+    const [message, setMessage] = useState('');
+  
+    const handleMemberMessages = () => {
+        setModalVisibleMember(true);
+      };
+    
 
-     const handleMemberMessage = () =>{
-         const phoneNumber =  phone_number;
-                const url = `whatsapp://send?phone=${phoneNumber}`;
-                Linking.openURL(url).catch(() => {
-                  alert('Make sure WhatsApp is installed on your device');
-                });
-     }
+    //  const handleMemberMessage = () =>{
+    //      const phoneNumber =  phone_number;
+    //             const url = `whatsapp://send?phone=${phoneNumber}`;
+    //             Linking.openURL(url).catch(() => {
+    //               alert('Make sure WhatsApp is installed on your device');
+    //             });
+    //  }
+
+    const sendWhatsAppMessage = () => {
+        if (!message.trim()) {
+          alert('Please type a message');
+          return;
+        }
+    
+        const url = `whatsapp://send?phone=${phone_number}&text=${encodeURIComponent(message)}`;
+        Linking.openURL(url).catch(() => {
+          alert('Make sure WhatsApp is installed on your device');
+        });
+    
+        setModalVisibleMember(false);
+        setMessage('');
+      };
 
     return (
         <TouchableOpacity onPress={() => setModelVisible(true)}>
@@ -135,6 +157,30 @@ const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender,
             </Modal>
 
 
+            <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisibleMember}
+        onRequestClose={() => setModalVisibleMember(false)}
+      >
+        <View style={style.modalContainer}>
+          <View style={style.modalContents}>
+            <Text style={style.modalTitle}>Send WhatsApp Message</Text>
+            <TextInput
+              style={style.input}
+              multiline
+              placeholder="Type your message here..."
+              value={message}
+              onChangeText={setMessage}
+            />
+            <TouchableOpacity style={style.sendButton} onPress={sendWhatsAppMessage}>
+              <Text style={style.sendText}>Send</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+
 
             <Modal
                 animationType="slide"
@@ -146,7 +192,7 @@ const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender,
                     <View style={style.modalContent}>
                         <View style={style.modalRow}>
                             <Feather name="message-circle" size={22} color="black" style={style.modalIcon} />
-                            <TouchableOpacity onPress={handleMemberMessage}>
+                            <TouchableOpacity onPress={handleMemberMessages}>
                                 <Text style={style.modalItem}>Message Template</Text>
                             </TouchableOpacity>
                         </View>
@@ -154,10 +200,7 @@ const ProfileMemberDetails = ({ id, profile_picture, name, phone_number, gender,
                 </View>
             </Modal>
 
-
         </TouchableOpacity>
-
-
 
     );
 };
@@ -339,4 +382,46 @@ const style = StyleSheet.create({
         paddingVertical: 10,
         color: "#1E3A8A",
     },
+    // modalItem: {
+    //     color: '#007bff',
+    //     fontSize: 16,
+    //     padding: 10,
+    //   },
+      modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        padding: 20,
+      },
+      modalContents: {
+        backgroundColor: 'white',
+        padding: 26,
+        borderRadius: 10,
+      },
+      modalTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        marginBottom: 10,
+      },
+      input: {
+        height: 100,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 8,
+        padding: 10,
+        textAlignVertical: 'top',
+        marginBottom: 10,
+      },
+      sendButton: {
+        alignSelf: 'flex-end',
+        backgroundColor: '#1b1a18',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 8,
+        marginTop:5
+      },
+      sendText: {
+        color: 'white',
+        fontWeight: 'bold',
+      },
 });

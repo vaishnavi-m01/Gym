@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   View,
@@ -9,57 +9,14 @@ import {
   Platform,
   TouchableOpacity,
   ScrollView,
+  Modal,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
-import { Modal } from "react-native";
 import { EvilIcons } from "@expo/vector-icons";
 import TotalTransactions from "../components/transcation.tsx/TotalTransactions";
+import config from "../config";
 
-const data = [
-  {
-    id: 1,
-    plan: "6 months",
-    count: 2,
-    amount: 5000,
-  },
-  {
-    id: 2,
-    plan: "3 months",
-    count: 1,
-    amount: 7000,
-  },
-  {
-    id: 3,
-    plan: "Settlement",
-    count: 1,
-    amount: 7000,
-  },
-  {
-    id: 4,
-    plan: "Settlement",
-    count: 1,
-    amount: 7000,
-  },
-  {
-    id: 5,
-    plan: "Settlement",
-    count: 1,
-    amount: 7000,
-  },
-  {
-    id: 6,
-    plan: "Settlement",
-    count: 1,
-    amount: 7000,
-  },
-  {
-    id: 7,
-    plan: "Settlement",
-    count: 1,
-    amount: 7000,
-  },
-];
 export default function App() {
   const [timeline, setTimeline] = useState("Today");
   const [paymentType, setPaymentType] = useState("All");
@@ -67,9 +24,45 @@ export default function App() {
   const [timelineVisible, setTimelineVisible] = useState(false);
   const [paymentVisible, setPaymentVisible] = useState(false);
 
+  const [totalReceived, setTotalReceived] = useState(0);
+  const [allTimeBalance, setAllTimeBalance] = useState(0);
+  const [plansData, setPlansData] = useState([]);
+
   const timelineOptions = ["Today", "This Week", "This Month"];
   const paymentOptions = ["Cash", "UPI", "Card", "All"];
 
+  useEffect(() => {
+    fetchReportData();
+  }, [timeline, paymentType]);
+  
+
+  const fetchReportData = async () => {
+    try {
+      let queryParams: string[] = [];
+  
+      // Timeline
+      if (timeline === "Today") queryParams.push("today=true");
+      else if (timeline === "This Week") queryParams.push("weekly=true");
+      else if (timeline === "This Month") queryParams.push("monthly=true");
+  
+      // Payment Type
+      if (paymentType !== "All") {
+        queryParams.push(`payment_type=${paymentType.toLowerCase()}`);
+      }
+  
+      // Build final URL
+      const queryString = queryParams.length > 0 ? `?${queryParams.join("&")}` : "";
+      const response = await axios.get(`${config.BASE_URL}/report/${queryString}`);
+  
+      const data = response.data;
+      setTotalReceived(data.total_received);
+      setAllTimeBalance(data.all_time_balance);
+      setPlansData(data.plans_data);
+    } catch (error) {
+      console.error("Error fetching report data:", error);
+    }
+  };
+  
   const renderOption = (option: any, setter: any, closeModal: any) => (
     <TouchableOpacity
       style={styles.optionItem}
@@ -85,6 +78,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Reports</Text>
+
       <View style={styles.reportsContainer}>
         <Text style={styles.text}>Filter By</Text>
 
@@ -94,12 +88,7 @@ export default function App() {
         >
           <Text style={styles.dropdownText}>
             Timeline: {timeline}{" "}
-            <EvilIcons
-              name="chevron-down"
-              size={20}
-              color="#FFFFFF"
-              style={{ bottom: 30 }}
-            />
+            <EvilIcons name="chevron-down" size={20} color="#FFFFFF" />
           </Text>
         </TouchableOpacity>
 
@@ -117,25 +106,24 @@ export default function App() {
       <View style={styles.subcontainer}>
         <View style={styles.totalAmountBox}>
           <Text style={styles.amountTitle}>Total received</Text>
-          <Text style={styles.amount}>₹18,000</Text>
+          <Text style={styles.amount}>₹{totalReceived}</Text>
         </View>
 
         <View style={styles.blanceAmountBox}>
           <Text style={styles.blanceTitle}>All time balance</Text>
-          <Text style={styles.blance}>₹18,000</Text>
+          <Text style={styles.blance}>₹{allTimeBalance}</Text>
         </View>
       </View>
 
-      <ScrollView scrollEnabled={true} showsVerticalScrollIndicator={false} style={styles.scrollViewContainer}>
-      <Text style={styles.header}>Memberships by plan</Text>
-  
-        {data.map((item) => (
+      <ScrollView  showsVerticalScrollIndicator={false} style={styles.scrollViewContainer}>
+        <Text style={styles.header}>Memberships by plan</Text>
+        {plansData.map((item: any, index: number) => (
           <TotalTransactions
-            key={item.id}
-            id={item.id}
-            plan={item.plan}
-            amount={item.amount}
-            count={item.count}
+            key={index}
+            id={index}
+            plan={item.plan_name}
+            amount={item.total_received}
+            count={item.memberships}
           />
         ))}
       </ScrollView>
@@ -168,6 +156,8 @@ export default function App() {
     </View>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -275,7 +265,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.3)",
   },
   modalBox: {
-    width: "30%",
+    width: "50%",
     marginHorizontal: 30,
     backgroundColor: "#fff",
     borderRadius: 8,
@@ -309,6 +299,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   scrollViewContainer:{
-    marginTop:5
+    marginTop:5,
   }
 });
