@@ -1,11 +1,12 @@
 import config from "@/app/config";
 import { useMember } from "@/app/context/MemberContext";
-import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
+import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useRoute } from "@react-navigation/native";
 import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -20,9 +21,11 @@ import {
   BackHandler,
   ToastAndroid,
   Image,
+  Pressable,
 } from "react-native";
 import { RadioButton } from "react-native-paper";
 import Toast from "react-native-toast-message";
+import moment from "moment";
 
 // type EditMembersProps = {
 //   onChangePassword: (data: any) => void;
@@ -34,7 +37,11 @@ type EditMembersProps = {
   onClose: () => void;
 };
 
-export default function EditMembers({ id, visible, onClose }: EditMembersProps) {
+export default function EditMembers({
+  id,
+  visible,
+  onClose,
+}: EditMembersProps) {
   const [open, setOpen] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
 
@@ -42,23 +49,25 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
   const [phone_number, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [date_of_birth, setDOB] = useState("");
-  const [gender, setGender] = useState("Male");
+  const [gender, setGender] = useState("");
   const [blood_group, setBloodGroup] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
+  const [city, setCity] = useState("");
+  const [pincode, setPincode] = useState("");
 
   const [showOptions, setShowOptions] = useState(false);
   const [isImagePicked, setIsImagePicked] = useState(false);
+  const [isDOBPickerVisible, setDOBPickerVisible] = useState(false);
+  const [isPickerVisible, setPickerVisible] = useState(false);
+  const [date, setDate] = useState(new Date());
+  const [joining_date, setJoinedDate] = useState("");
 
-    const { setMember } = useMember();
-    const navigation = useNavigation();
-  
-
-
+  const { setMember } = useMember();
+  const navigation = useNavigation();
 
   const route = useRoute();
   // const { id } = route.params as { id: string };
-
 
   const [profile_picture, setProfileImage] = useState<any>(
     require("../../../assets/images/member2.png")
@@ -79,7 +88,7 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
     return () => backHandler.remove();
   }, [open]);
 
-  console.log("meberId", id)
+  console.log("meberId", id);
 
   useEffect(() => {
     if (id) {
@@ -87,14 +96,13 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
     }
   }, [visible]);
 
-
   const fetchMemberData = async () => {
     if (!id) return;
-  
+
     try {
       const res = await axios.get(`${config.BASE_URL}/members/${id}/`);
-      const data = res.data.data;  // <-- Corrected here
-  
+      const data = res.data.data; // <-- Corrected here
+
       setName(data.name || "");
       setEmail(data.email || "");
       setPhone(data.phone_number || "");
@@ -103,7 +111,7 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
       setBloodGroup(data.blood_group || "");
       setAddress(data.address || "");
       setNotes(data.notes || "");
-  
+
       if (data.profile_picture) {
         setProfileImage({ uri: `${config.BASE_URL}${data.profile_picture}` }); // include full URL
       }
@@ -112,8 +120,6 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
       ToastAndroid.show("Failed to load member data", ToastAndroid.SHORT);
     }
   };
-    
-
 
   const pickImageFromGallery = async () => {
     setShowOptions(false);
@@ -156,7 +162,6 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
     return `${yyyy}-${mm}-${dd}`;
   };
 
-
   const handleSubmit = async () => {
     const formData = new FormData();
     if (name) formData.append("name", name);
@@ -165,6 +170,9 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
     if (date_of_birth) {
       formData.append("date_of_birth", formatDOBForBackend(date_of_birth));
     }
+    if (city) formData.append("city", city);
+    if (pincode) formData.append("pincode", pincode);
+    if (joining_date) formData.append("joining_date", joining_date);
     if (blood_group) formData.append("blood_group", blood_group);
     if (gender) formData.append("gender", gender);
     if (address) formData.append("address", address);
@@ -185,24 +193,41 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
     }
 
     try {
-      const response = await axios.put(`${config.BASE_URL}/members/${id}/`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await axios.put(
+        `${config.BASE_URL}/members/${id}/`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       const updateData = response.data;
       setMember(updateData);
-      console.log("updatedData" ,updateData)
-      
+      console.log("updatedData", updateData);
+
       ToastAndroid.show("Profile successfully updated!", ToastAndroid.SHORT);
-      router.push('/(tabs)/member'); 
+      router.push("/(tabs)/member");
       // fetchMemberData();
       // fetchProfile(); // Fetch the updated profile data to reflect changes
     } catch (error: any) {
       console.error("Upload Error:", error.response?.data || error.message);
       ToastAndroid.show("Upload failed!", ToastAndroid.SHORT);
     }
+  };
+  const handleDOBConfirm = (date: any) => {
+    const formattedDate = moment(date).format("DD-MM-YYYY");
+    setDOB(formattedDate);
+    setDOBPickerVisible(false);
+  };
+
+  const handleConfirm = (selectedDate: Date) => {
+    setPickerVisible(false);
+    setDate(selectedDate);
+
+    const formatted = selectedDate.toISOString().split("T")[0]; // e.g., "2025-04-21"
+    setJoinedDate(formatted);
   };
 
   return (
@@ -216,7 +241,7 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
           style={styles.button}
           onPress={() => {
             setOpen(true);
-            fetchMemberData(); 
+            fetchMemberData();
           }}
         >
           <FontAwesome5 name="edit" size={20} color="#1230B4" />
@@ -245,7 +270,11 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
                     style={styles.cameraIcon}
                     onPress={() => setShowOptions(!showOptions)}
                   >
-                    <MaterialIcons name="photo-camera" size={24} color="white" />
+                    <MaterialIcons
+                      name="photo-camera"
+                      size={24}
+                      color="white"
+                    />
                   </TouchableOpacity>
 
                   {showOptions && (
@@ -254,14 +283,22 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
                         onPress={pickImageFromGallery}
                         style={styles.optionButton}
                       >
-                        <MaterialIcons name="photo-library" size={20} color="black" />
+                        <MaterialIcons
+                          name="photo-library"
+                          size={20}
+                          color="black"
+                        />
                         <Text style={styles.optionText}>Gallery</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={pickImageFromCamera}
                         style={styles.optionButton}
                       >
-                        <MaterialIcons name="camera-alt" size={20} color="black" />
+                        <MaterialIcons
+                          name="camera-alt"
+                          size={20}
+                          color="black"
+                        />
                         <Text style={styles.optionText}>Take Photo</Text>
                       </TouchableOpacity>
                     </View>
@@ -277,7 +314,7 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
                   onChangeText={setName}
                 />
                 <Text style={styles.label}>
-                  Phone <Text style={styles.required}>*</Text>
+                  Phone Number <Text style={styles.required}>*</Text>
                 </Text>
 
                 <TextInput
@@ -298,13 +335,29 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
                   keyboardType="email-address"
                 />
 
-                <Text style={styles.label}>Date of Birth</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="YYYY-MM-DD"
-                  value={date_of_birth}
-                  onChangeText={setDOB}
+                <Text style={styles.text}>Date of Birth</Text>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={[styles.inputbox, { flex: 1 }]}
+                    placeholder="DD-MM-YYYY"
+                    value={date_of_birth}
+                    editable={false}
+                  />
+                  <Ionicons
+                    name="calendar-outline"
+                    size={24}
+                    color="#888"
+                    style={{ marginLeft: 8, paddingTop: 10 }}
+                    onPress={() => setDOBPickerVisible(true)}
+                  />
+                </View>
+                <DateTimePickerModal
+                  isVisible={isDOBPickerVisible}
+                  mode="date"
+                  onConfirm={handleDOBConfirm}
+                  onCancel={() => setDOBPickerVisible(false)}
                 />
+
                 <Text style={styles.text}>Gender (Required)</Text>
                 <View style={styles.radioContainer}>
                   <RadioButton.Group onValueChange={setGender} value={gender}>
@@ -340,6 +393,54 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
                   </Picker>
                 </View>
 
+                <Text style={styles.text}>City</Text>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.inputbox}
+                    placeholder="Enter city"
+                    value={city}
+                    onChangeText={setCity}
+                  />
+                </View>
+
+                <Text style={styles.text}>Pincode</Text>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.inputbox}
+                    placeholder="Enter pincode"
+                    value={pincode}
+                    onChangeText={setPincode}
+                  />
+                </View>
+
+                <Text style={styles.text}> Joining date</Text>
+                <Pressable
+                  style={styles.inputWrapper}
+                  onPress={() => setPickerVisible(true)}
+                >
+                  <TextInput
+                    style={styles.dateinput}
+                    editable={false}
+                    value={date.toLocaleDateString()}
+                    pointerEvents="none"
+                  />
+
+                  <Ionicons
+                    name="calendar"
+                    size={24}
+                    color="#666"
+                    style={styles.icon}
+                  />
+                </Pressable>
+
+                <DateTimePickerModal
+                  isVisible={isPickerVisible}
+                  mode="date"
+                  date={date}
+                  // minimumDate={new Date()}
+                  onConfirm={handleConfirm}
+                  onCancel={() => setPickerVisible(false)}
+                />
                 <Text style={styles.label}>Address</Text>
                 <TextInput
                   style={styles.textArea}
@@ -366,7 +467,7 @@ export default function EditMembers({ id, visible, onClose }: EditMembersProps) 
 }
 
 const styles = StyleSheet.create({
-  button: { padding: 5,top: 5 },
+  button: { padding: 5, top: 5 },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -548,4 +649,39 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: "#FFFFFF", fontSize: 16 },
   errorText: { color: "red", fontSize: 14, marginBottom: 5 },
+  inputContainer: {
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: "#E0E5E9",
+    borderRadius: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    width: "100%",
+    marginBottom: 10,
+  },
+  memberStartDateText: {
+    marginTop: 30,
+    fontFamily: "Jost",
+    fontWeight: 800,
+    color: "#111827",
+    marginBottom: 20,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom:20
+  },
+  icon: {
+    marginLeft: 10,
+  },
+  dateinput:{
+    flex: 1,
+    fontSize: 16,
+
+  }
 });

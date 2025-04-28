@@ -21,13 +21,14 @@ export default function ChangePassword() {
   const route = useRoute();
   const { id } = route.params as { id: string };
 
-  console.log("Profile", id);
+  console.log("Profilesss", id);
 
   const handleChangePassword = async () => {
     if (!old_password || !new_password) {
       Alert.alert("Validation Error", "Both fields are required");
       return;
     }
+    console.log("profileIDDD",id)
 
     try {
       const response = await axios.post(

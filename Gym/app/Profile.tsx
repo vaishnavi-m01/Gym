@@ -23,14 +23,16 @@ import ChangePassword from "./components/dahboard/ChangePassword";
 
 type ImageFile = {
   uri: string;
-  // Add other properties like name, type if necessary
 };
 
 const Profile = () => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [phone_number, setPhone] = useState("");
-  const [profile_picture, setProfileImage] = useState<ImageFile | null>(null); 
+  const [profile_picture, setProfileImage] = useState<ImageFile | null>(null);
+
+  const [showFullImage, setShowFullImage] = useState(false);
+
 
   const [showOptions, setShowOptions] = useState(false);
 
@@ -45,20 +47,33 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     try {
+      const id = await AsyncStorage.getItem("userId");
+      if (!id) {
+        console.error("No user ID found!");
+        return;
+      }
+
       const response = await axios.get(`${config.BASE_URL}/profile/${id}`);
       const { name, email, phone_number, profile_picture } = response.data;
+
       setName(name);
       setEmail(email);
       setPhone(phone_number);
-      console.log("profile_impure",profile_picture)
+
       if (profile_picture) {
-        setProfileImage({ uri:`${config.BASE_URL}${profile_picture}` }); 
+        setProfileImage({ uri: `${config.BASE_URL}${profile_picture}` });
       }
-      console.log("setProfile",profile_picture)
+
+      console.log("Profile fetched successfully");
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
   };
+
+  // Example: useEffect to call fetchProfile when screen loads
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   console.log("statee", profile_picture);
 
@@ -76,7 +91,7 @@ const Profile = () => {
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
 
-      setProfileImage({ uri: asset.uri }); 
+      setProfileImage({ uri: asset.uri });
     }
     console.log("selectedImge", profile_picture);
   };
@@ -91,114 +106,71 @@ const Profile = () => {
     if (!result.canceled) {
       const asset = result.assets[0];
       const uri = asset.uri;
-      const name = uri.split("/").pop(); 
+      const name = uri.split("/").pop();
 
-      setProfileImage({ uri }); 
+      setProfileImage({ uri });
     }
   };
 
-  // const handleSubmit = async () => {
-  //   const formData = new FormData();
-
-  //   formData.append("name", name);
-  //   formData.append("email", email);
-  //   formData.append("phone_number", phone_number);
-
-  //   // Check if profile_picture is provided
-  //   if (profile_picture && profile_picture.uri) {
-  //     const uri = profile_picture.uri; // Extract uri if profile_picture is an object with uri
-  //     try {
-  //       const response = await fetch(uri);
-  //       const blob = await response.blob(); // Convert image to Blob
-  //       const fileName = `profile_${Date.now()}.jpg`; // Generate unique file name with timestamp
-  //       formData.append("profile_picture", blob, fileName); // Append the image as Blob to FormData
-  //     } catch (error: any) {
-  //       console.error("Error fetching image:", error.message);
-  //     }
-  //   }
-
-  //   // Log formData content
-  //   for (let pair of formData.entries()) {
-  //     console.log(pair[0] + ": " + pair[1]);
-  //   }
-
-  //   const url = `${config.BASE_URL}/profile/${id}/`; // Ensure URL has the trailing slash
-
-  //   try {
-  //     const response = await axios.put(url, formData); // Removed manually setting Content-Type
-  //     console.log("Success:", response.data); // Log the successful response
-  //   } catch (error: any) {
-  //     console.error("Error uploading:", error.response?.data || error.message);
-  //     // Log the response error for better debugging
-  //     if (error.response) {
-  //       console.log("Response error:", error.response);
-  //     }
-  //   }
-  // };
+ 
 
   const handleSubmit = async () => {
     try {
-      // If no token is needed, no need to fetch it from AsyncStorage
-      // const token = await AsyncStorage.getItem("jwtToken");  
-  
+     
       const formData = new FormData();
       formData.append("name", name);
       formData.append("email", email);
       formData.append("phone_number", phone_number);
-  
+
       if (profile_picture?.uri) {
         const uri = profile_picture.uri;
         const fileName = uri.split("/").pop() || `profile_${Date.now()}.jpg`;
         const fileType = fileName.endsWith(".png") ? "image/png" : "image/jpeg";
-  
+
         const imageFile = {
           uri,
           name: fileName,
           type: fileType,
         };
-  
+
         formData.append("profile_picture", imageFile as any);
       }
-  
+
       console.log("Submitting picture:", profile_picture);
-  
-    
+
       const response = await axios.put(
-        `${config.BASE_URL}/profile/${id}/`,  
+        `${config.BASE_URL}/profile/${id}/`,
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",  
+            "Content-Type": "multipart/form-data",
           },
         }
       );
-  
+
       console.log("Upload Success:", response.data);
       ToastAndroid.show("Profile successfully updated!", ToastAndroid.SHORT);
-  
+
       router.push({
         pathname: "/(tabs)",
         params: {
           updatedImage: profile_picture?.uri,
         },
       });
-  
+
       fetchProfile();
-  
     } catch (error: any) {
       console.error("Upload Error:", error.response?.data || error.message);
       ToastAndroid.show("Upload failed!", ToastAndroid.SHORT);
     }
   };
-  
-  
-  console.log("picture",profile_picture)
+
+  console.log("picture", profile_picture);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <View style={styles.containers}>
         <View style={styles.profileContainer}>
-    
           {profile_picture?.uri && (
             <Image
               source={{ uri: profile_picture.uri }}

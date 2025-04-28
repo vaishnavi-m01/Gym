@@ -152,7 +152,7 @@ const AddMembership = () => {
 
     const discountValue = parseFloat(discount || "0");
     const received = amount - discountValue;
-    setAmountReceived(received.toString());
+    // setAmountReceived(received.toString());
 
     const balance = amount - discountValue - received;
     setBalanceAmount(balance);
@@ -349,36 +349,31 @@ const AddMembership = () => {
           return;
         }
 
-        // Fetch membership from API
-        const response = await axios.get(`${config.BASE_URL}/members/${id}`);
-        const membershipData = response.data;
+       
+              const response = await axios.get(`${config.BASE_URL}/membership/${id}/`);
+              const membership = response.data.data;
+      
+              if (membership?.initial_amount && membership.initial_amount > 0) {
+                setInitialAmount(membership.initial_amount.toString());
+                setInitialAmountDisabled(true);
+      
+                // Store that it's paid
+                await AsyncStorage.setItem(storageKey, "true");
+              } else {
+                setInitialAmountDisabled(false);
+              }
+            } catch (error) {
+              console.error("Error fetching membership:", error);
+            } finally {
+              setLoading(false);
+            }
+          };
+      
+          fetchMembership();
+        }, [id]);
+      
 
-        if (
-          membershipData.initial_amount &&
-          parseFloat(membershipData.initial_amount) > 0
-        ) {
-          setInitialAmount(membershipData.initial_amount.toString());
-          setInitialAmountDisabled(true);
-          await AsyncStorage.setItem(storageKey, "true");
-        } else {
-          setInitialAmountDisabled(false);
-        }
 
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching membership:", err);
-        setLoading(false);
-      }
-    };
-
-    fetchMembership();
-  }, [id]);
-
-
- 
-  
-
-  
 
   return (
     <ScrollView>
@@ -422,7 +417,7 @@ const AddMembership = () => {
               ))}
             </RadioButton.Group>
           </View>
-          <Text style={styles.text}>Initial Amount</Text>
+          <Text style={styles.Initialtext}>Initial Amount</Text>
 
           <View style={styles.initialAmountContainer}>
             <View style={styles.inputContainer}>
@@ -701,6 +696,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 600,
   },
+  Initialtext:{
+    fontSize: 16,
+    fontWeight: 600,
+    paddingLeft:10,
+    marginBottom:2
+
+  },
   InitialAmount: {
     fontSize: 16,
     fontWeight: 600,
@@ -876,6 +878,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 8,
     alignSelf: "center",
+    textAlign: "center",   
   },
   inputContainers: {
     flexDirection: "row",

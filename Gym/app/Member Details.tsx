@@ -28,10 +28,9 @@ type RootStackParamList = {
   Home: { updatedImage?: string };
   Profile: { id: string };
   "Birthday Member": { decreaseBirthdayCount: () => void };
-  "Member Details": { id: number }; 
+  "Member Details": { id: number };
   "Message Templates": undefined;
 };
-
 
 const MemberDetails = () => {
   const { id } = useLocalSearchParams();
@@ -149,10 +148,11 @@ balance is now ₹0 \n\n Thank you.`;
         const response = await axios.get(
           `${config.BASE_URL}/transactions/member/${id}`
         );
-        console.log("Fetched Membership Data:", response.data.data); // Log the response
-        setMembership(response.data.data); // Set the membership data
+        console.log("Fetched Membership Data:", response.data.data);
+        setMembership(response.data.data || []); // <--- fallback to empty array
       } catch (error) {
-        console.error("Error fetching member:", error);
+        console.error("Error fetching membership:", error);
+        setMembership([]); // <--- if error, also set to empty array
       }
     };
 
@@ -161,6 +161,7 @@ balance is now ₹0 \n\n Thank you.`;
 
   console.log("MembersHIp", id);
   console.log("memberPhone", member?.joining_date);
+
 
   return (
     <ScrollView>
@@ -277,14 +278,15 @@ balance is now ₹0 \n\n Thank you.`;
             <Text style={styles.modalText}>Balance</Text>
             <View style={styles.modelSubcontainer}>
               <Text style={styles.title}>Pending Amount</Text>
-              {/* {membership.length > 0 && membership[0]?.settle_balance ? (
+              {Array.isArray(membership) &&
+              membership.length > 0 &&
+              membership[0]?.settle_balance ? (
                 <Text>{membership[0]?.settle_balance}</Text>
               ) : (
                 <Text>No pending amount</Text>
-              )} */}
-              <Text>3000
+              )}
+                console.log("settelBlance",{membership[0]?.settle_balance})
 
-              </Text>
             </View>
           
 
@@ -316,12 +318,12 @@ balance is now ₹0 \n\n Thank you.`;
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.inputbox}
-                placeholder="Enter email"
+                placeholder=""
                 value={amount}
                 onChangeText={(text) => {
                   setAmount(text);
                 }}
-                keyboardType="email-address"
+                keyboardType="numeric"
               />
             </View>
 

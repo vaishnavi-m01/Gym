@@ -36,49 +36,53 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     setEmailError("");
     setPasswordError("");
-
+  
     if (!email || !password) {
       if (!email) setEmailError("Please fill in your email.");
       if (!password) setPasswordError("Please fill in your password.");
       ToastAndroid.show("Please enter email and password!", ToastAndroid.SHORT);
       return;
     }
-
-    // Validate email format
+  
     if (!validateEmail(email)) {
       setEmailError("Invalid email format.");
       return;
     }
-
-    // Validate password length
+  
     if (password.length < 6) {
       setPasswordError("Password must be at least 6 characters.");
       return;
     }
-
+  
     try {
       const response = await axios.post(`${config.BASE_URL}/login/`, {
         email,
         password,
       });
-
-      const { access, refresh, message } = response.data;
-
+  
+      const { access, refresh, user, message } = response.data;
+  
       console.log("Login Response:", response.data);
-
+  
+      // Save tokens
       await AsyncStorage.setItem("jwtToken", access);
       await AsyncStorage.setItem("refreshToken", refresh);
-
+  
+      // ✅ Instead of router.replace just send user.id
+      router.replace({
+        pathname: "/(tabs)",
+        params: { userId: user.id }, // Pass id to index
+      });
+  
       Alert.alert("Success", message || "Login successful!");
-
-      // router.replace("/(tabs)");
+  
     } catch (error: any) {
       console.error("Login Error:", error.response?.data || error.message);
       Alert.alert("Error", "Login failed. Please check your credentials.");
     }
-    router.replace("/(tabs)");
-
   };
+  
+  
 
   return (
     <KeyboardAvoidingView

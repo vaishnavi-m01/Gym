@@ -55,18 +55,25 @@ export default function HomeScreen() {
 
   const fetchProfileData = async () => {
     try {
-      const response = await axios.get(`${config.BASE_URL}/profile/`);
-      const profile = response.data[0];
-      if (profile) {
-        setId(profile.id);
-        if (!profile_picture) {
-          setProfileImage({ uri: `${config.BASE_URL}${profile.profile_picture}` });
+      const storedId = await AsyncStorage.getItem("userId"); 
+      if (storedId) {
+        setId(storedId); // first store in state
+  
+        const response = await axios.get(`${config.BASE_URL}/profile/${storedId}`);
+        const profile = response.data[0];
+        if (profile) {
+          if (!profile_picture) {
+            setProfileImage({ uri: `${config.BASE_URL}${profile.profile_picture}` });
+          }
         }
+      } else {
+        console.warn("No stored userId found in AsyncStorage!");
       }
     } catch (error) {
       console.error("Error fetching profile data", error);
     }
   };
+  
 
   useEffect(() => {
     if (isFocused) {
@@ -83,6 +90,7 @@ export default function HomeScreen() {
       console.warn("Profile ID not found yet!");
     }
   };
+  
 
   const goToMessageTemplate = () => {
     setModalVisible(false);

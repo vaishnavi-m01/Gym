@@ -80,7 +80,7 @@ const MembersPage = ({
             </Text>
             <View style={style.modalButtons}>
               <Pressable
-                onPress={() => handleDelete(id)}
+                onPress={() => setShowDeleteModal(false)}
                 style={[style.button, style.cancelButton]}
               >
                 <Text style={style.buttonText}>Cancel</Text>
