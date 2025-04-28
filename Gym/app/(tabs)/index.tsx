@@ -9,27 +9,34 @@ import {
   View,
 } from "react-native";
 import Dashboard from "../components/dahboard/Dashboard";
-import { useNavigation } from "expo-router";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import config from "../config";
-import { useIsFocused, useRoute } from "@react-navigation/native";
+import { useIsFocused, useRoute, RouteProp } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AntDesign, Feather, Fontisto } from "@expo/vector-icons";
 
+// Define your stack param types
+type RootStackParamList = {
+  Home: { updatedImage?: string };
+  Profile: { id: string };
+  "Birthday Member": { decreaseBirthdayCount: () => void };
+  "Message Templates": undefined;
+};
+
 export default function HomeScreen() {
-  const route = useRoute();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const birthdayMemberNavigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, "Home">>();
   const isFocused = useIsFocused();
 
   const [profile_picture, setProfileImage] = useState<{ uri: string } | null>(null);
   const [id, setId] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const birthdaymember = useNavigation();
   const [birthdayCount, setBirthdayCount] = useState(0);
 
-
-  const { updatedImage } = (route.params as { updatedImage?: string }) || {};
+  const { updatedImage } = route.params || {};
 
   useEffect(() => {
     if (updatedImage && typeof updatedImage === "string") {
@@ -52,7 +59,6 @@ export default function HomeScreen() {
       const profile = response.data[0];
       if (profile) {
         setId(profile.id);
-
         if (!profile_picture) {
           setProfileImage({ uri: `${config.BASE_URL}${profile.profile_picture}` });
         }
@@ -66,12 +72,13 @@ export default function HomeScreen() {
     if (isFocused) {
       loadStoredImage();
       fetchProfileData();
+      fetchBirthdayCount();
     }
   }, [isFocused]);
 
   const handleClicks = () => {
     if (id) {
-      (navigation.navigate as Function)("Profile", { id });
+      navigation.navigate("Profile", { id });
     } else {
       console.warn("Profile ID not found yet!");
     }
@@ -79,12 +86,17 @@ export default function HomeScreen() {
 
   const goToMessageTemplate = () => {
     setModalVisible(false);
-    (navigation.navigate as Function)("Message Templates");
+    navigation.navigate("Message Templates");
   };
 
   const handleClick = () => {
-    birthdaymember.navigate("Birthday Member" as never)
-  }
+    birthdayMemberNavigation.navigate("Birthday Member", {
+      decreaseBirthdayCount: () => {
+        setBirthdayCount((prevCount) => (prevCount > 0 ? prevCount - 1 : 0));
+      },
+    });
+  };
+  
 
   const fetchBirthdayCount = async () => {
     try {
@@ -96,15 +108,6 @@ export default function HomeScreen() {
       console.error("Failed to fetch birthday count", error);
     }
   };
-
-  useEffect(() => {
-    if (isFocused) {
-      loadStoredImage();
-      fetchProfileData();
-      fetchBirthdayCount();
-    }
-  }, [isFocused]);
-
 
   return (
     <ScrollView>
@@ -124,8 +127,6 @@ export default function HomeScreen() {
               )}
             </TouchableOpacity>
 
-
-
             <TouchableOpacity onPress={handleClicks}>
               <Image
                 source={
@@ -136,14 +137,11 @@ export default function HomeScreen() {
                 style={styles.adminImg}
               />
             </TouchableOpacity>
-
           </View>
         </View>
 
-
         <Text style={styles.title}>Dashboard</Text>
         <Dashboard />
-
 
         <Modal
           animationType="fade"
@@ -160,9 +158,7 @@ export default function HomeScreen() {
                     <Text style={styles.modalItem}>Message Template</Text>
                   </View>
                 </Pressable>
-
               </View>
-
               <Pressable onPress={() => setModalVisible(false)}>
                 <Text style={styles.modalClose}>Close</Text>
               </Pressable>
@@ -179,7 +175,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 400,
     backgroundColor: "#ffffff",
-    paddingTop: 30
+    paddingTop: 30,
   },
   subContainer: {
     paddingTop: 10,
@@ -192,7 +188,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     alignSelf: "flex-end",
-    paddingTop: 5
+    paddingTop: 5,
   },
   rightIcons: {
     flexDirection: "row",
@@ -205,13 +201,13 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: "#111827",
     letterSpacing: 0.43,
-    top: 6
+    top: 6,
   },
   adminImg: {
     height: 35,
     width: 35,
     borderRadius: 25,
-    top: 3
+    top: 3,
   },
   title: {
     paddingLeft: 20,
@@ -220,12 +216,12 @@ const styles = StyleSheet.create({
     color: "#111827",
     fontSize: 18,
     marginBottom: 30,
-    paddingTop:10
+    paddingTop: 10,
   },
   icon: {
     padding: 5,
     marginLeft: 2,
-    top: 5
+    top: 5,
   },
   modalIcon: {
     marginRight: 3,
@@ -237,10 +233,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "transparent",
   },
-
   templaterow: {
     display: "flex",
-    flexDirection: "row"
+    flexDirection: "row",
   },
   modalRow: {
     flexDirection: "row",
@@ -289,5 +284,4 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "bold",
   },
-
 });

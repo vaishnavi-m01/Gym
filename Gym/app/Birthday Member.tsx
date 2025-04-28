@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import axios from "axios";
 import config from "./config";
+import { useNavigation } from "@react-navigation/native";
 import BirthdayMembers from "./components/birthdayMember/BirthDayMembers";
-import { useLocalSearchParams, useNavigation } from "expo-router";
 
 type Member = {
   id: number;
@@ -21,8 +21,9 @@ type Member = {
 
 const BirthdayMemberList = () => {
   const [birthdayMembers, setBirthdayMembers] = useState<Member[]>([]);
-  const navigation = useNavigation();
-  const { id } = useLocalSearchParams();
+  
+  // Directly using useNavigation with casting
+  const navigation = useNavigation<any>(); // Cast to `any` type
 
   const handleFetchMembers = async () => {
     try {
@@ -39,7 +40,11 @@ const BirthdayMemberList = () => {
   }, []);
 
   const handleClick = (id: number) => {
-    (navigation.navigate as Function)("Member Details", { id });
+    // Decrease count when a member is clicked (call this function when needed)
+    // decreaseBirthdayCount();
+
+    // Navigate with id
+    navigation.navigate("Member Details", { id }); // No type error now
   };
 
   if (birthdayMembers.length === 0) {
@@ -55,16 +60,14 @@ const BirthdayMemberList = () => {
       <FlatList
         data={birthdayMembers}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => {
-          return (
-            <TouchableOpacity onPress={() => handleClick(item.id)}>
-              <BirthdayMembers
-                name={item.name}
-                profile_picture={`${config.BASE_URL}${item.profile_picture}`}
-              />
-            </TouchableOpacity>
-          );
-        }}
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => handleClick(item.id)}>
+            <BirthdayMembers
+              name={item.name}
+              profile_picture={`${config.BASE_URL}${item.profile_picture}`}
+            />
+          </TouchableOpacity>
+        )}
       />
     </View>
   );

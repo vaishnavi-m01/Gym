@@ -24,6 +24,15 @@ import axios from "axios";
 import config from "./config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+type RootStackParamList = {
+  Home: { updatedImage?: string };
+  Profile: { id: string };
+  "Birthday Member": { decreaseBirthdayCount: () => void };
+  "Member Details": { id: number }; 
+  "Message Templates": undefined;
+};
+
+
 const MemberDetails = () => {
   const { id } = useLocalSearchParams();
   const [member, setMember] = useState<any>(null);
