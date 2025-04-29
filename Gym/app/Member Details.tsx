@@ -23,6 +23,7 @@ import { Linking } from "react-native";
 import axios from "axios";
 import config from "./config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import RecentTransaction from "./components/transaction/RecentTransaction";
 
 type RootStackParamList = {
   Home: { updatedImage?: string };
@@ -32,11 +33,26 @@ type RootStackParamList = {
   "Message Templates": undefined;
 };
 
+type Transaction = {
+  id: number;
+  payment_date: string;
+  amount_paid: string;
+  settle_balance: string;
+  payment_method: string;
+  balance_status: string;
+  membership: number;
+  member_name: string;
+  profile_picture: string;
+  plan_name: string;
+};
+
 const MemberDetails = () => {
   const { id } = useLocalSearchParams();
   const [member, setMember] = useState<any>(null);
   const [membership, setMembership] = useState<any[]>([]);
+  const [memberDetails,setMemberDetails] = useState<any>(null);
   const [amount, setAmount] = useState("");
+  
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -46,6 +62,13 @@ const MemberDetails = () => {
   const [settlemodel, setSettleModel] = useState(false);
   const [whatsAppModel, setWhatsAppModel] = useState(false);
   const [birthMessage, setBirthMessage] = useState(false);
+
+  const [transactions, setransactions] = useState([]);
+  const [membershipDetails, setMembershipDetails] = useState<Transaction[]>([]);
+
+
+
+
 
   const [message, setMessage] = useState(
     `Happy Birthday! 🎉. May your day be filled with laughter, joy, and cherished moments with loved ones.`
@@ -125,10 +148,10 @@ balance is now ₹0 \n\n Thank you.`;
 
   const formattedDate = member?.joining_date
     ? new Date(member.joining_date).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      })
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })
     : "";
 
   const handleSendBirthDayMessageWhatsApp = () => {
@@ -142,26 +165,74 @@ balance is now ₹0 \n\n Thank you.`;
     });
   };
 
+  
+  
   useEffect(() => {
     const fetchMemberShip = async () => {
       try {
-        const response = await axios.get(
-          `${config.BASE_URL}/transactions/member/${id}`
-        );
-        console.log("Fetched Membership Data:", response.data.data);
-        setMembership(response.data.data || []); // <--- fallback to empty array
+        const response = await axios.get(`${config.BASE_URL}/transactions/member/${id}`);
+        console.log('Fetched Membership Data:', response.data);
+        
+        const membershipData = response.data || [];
+  
+        setMembership(membershipData);
+  
+        // **Find first Partially Paid record**
+        const partiallyPaidRecord = membershipData.find((item: any) => item.balance_status === "Partially Paid");
+  
+        if (partiallyPaidRecord) {
+          // Set settle_balance into amount input
+          setAmount(partiallyPaidRecord.settle_balance?.toString() || "0");
+        } else {
+          // If no partially paid, set amount empty or default
+          setAmount("");
+        }
+  
       } catch (error) {
-        console.error("Error fetching membership:", error);
-        setMembership([]); // <--- if error, also set to empty array
+        console.error('Error fetching membership:', error);
+        setMembership([]);
+        setAmount(""); // Reset amount if error
       }
     };
-
+  
     if (id) fetchMemberShip();
   }, [id]);
+  
 
   console.log("MembersHIp", id);
   console.log("memberPhone", member?.joining_date);
+  useEffect(() => {
+    const fetchMembership = async () => {
+      try {
+        const response = await axios.get(`${config.BASE_URL}/membership/${id}`);
+        setMemberDetails(response.data.data);
+      } catch (error) {
+        console.error("Error fetching member:", error);
+      }
+    };
 
+    if (id) fetchMembership();
+  }, [id]);
+
+  console.log("MEMBER DETAILS" ,id)
+
+
+  useEffect(() => {
+    const fetchMembershipDetails = async () => {
+      try {
+        const response = await axios.get(`${config.BASE_URL}/membership/${id}`);
+        setMembershipDetails(response.data);
+      } catch (error) {
+        console.error("Error fetching membership details:", error);
+      }
+    };
+  
+    if (id) fetchMembershipDetails();
+    
+  }, [id]);
+
+  console.log("memememe",id)
+  
 
   return (
     <ScrollView>
@@ -205,16 +276,23 @@ balance is now ₹0 \n\n Thank you.`;
         <View style={styles.paymentContainer}>
           <TouchableOpacity
             style={styles.subContainers}
-            onPress={() => setModelVisible(true)}
+            onPress={() => {
+              if (membership[0]?.balance_status !== 'Fully Paid') {
+                setModelVisible(true); // Only open if NOT Fully Paid
+              }
+            }}
           >
             <View>
               <View style={styles.memberContents}>
                 <AntDesign name="pay-circle1" size={30} color="#F58E48" />
                 <Text style={styles.blanceText}>Balance</Text>
               </View>
-              <Text style={styles.paymentStatus}>Fully Paid</Text>
+              <Text style={styles.paymentStatus}>
+                {membership[0]?.balance_status || 'Loading...'}
+              </Text>
             </View>
           </TouchableOpacity>
+
 
           <View style={styles.subContainers}>
             <View style={styles.memberContents}>
@@ -247,7 +325,7 @@ balance is now ₹0 \n\n Thank you.`;
           </TouchableOpacity>
         </View>
         <Text style={styles.transactionText}>Recent transaction</Text>
-        <View style={styles.transactionContainer}>
+        {/* <View style={styles.transactionContainer}>
           <View style={styles.transactionSubContainer}>
             <Text style={styles.title}>3month</Text>
 
@@ -262,7 +340,20 @@ balance is now ₹0 \n\n Thank you.`;
             </Text>
             <AntDesign name="arrowright" size={25} color="black" />
           </View>
-        </View>
+        </View> */}
+
+<ScrollView contentContainerStyle={{ alignItems: "center", paddingVertical: 10 }}>
+      {membershipDetails.map((txn) => (
+        <RecentTransaction
+          key={txn.id}
+          planName={txn.plan_name}
+          paymentType={txn.payment_method}
+          amount={`₹${txn.amount_paid}`}
+          paymentDate={txn.payment_date}
+        />
+      ))}
+    </ScrollView>
+
       </View>
 
       <Modal
@@ -279,16 +370,16 @@ balance is now ₹0 \n\n Thank you.`;
             <View style={styles.modelSubcontainer}>
               <Text style={styles.title}>Pending Amount</Text>
               {Array.isArray(membership) &&
-              membership.length > 0 &&
-              membership[0]?.settle_balance ? (
+                membership.length > 0 &&
+                membership[0]?.settle_balance ? (
                 <Text>{membership[0]?.settle_balance}</Text>
               ) : (
                 <Text>No pending amount</Text>
               )}
-                console.log("settelBlance",{membership[0]?.settle_balance})
+              console.log("settelBlance",{membership[0]?.settle_balance})
 
             </View>
-          
+
 
             <TouchableOpacity
               style={styles.submitButton}
@@ -320,9 +411,7 @@ balance is now ₹0 \n\n Thank you.`;
                 style={styles.inputbox}
                 placeholder=""
                 value={amount}
-                onChangeText={(text) => {
-                  setAmount(text);
-                }}
+                onChangeText={setAmount}
                 keyboardType="numeric"
               />
             </View>
@@ -438,10 +527,10 @@ balance is now ₹0 \n\n Thank you.`;
       >
         <TouchableWithoutFeedback onPress={() => setBirthMessage(false)}>
           <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback onPress={() => {}}>
+            <TouchableWithoutFeedback onPress={() => { }}>
               <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-                // style={styles.keyboardAvoidingView}
+              // style={styles.keyboardAvoidingView}
               >
                 <ScrollView
                   // contentContainerStyle={styles.scrollViewContent}

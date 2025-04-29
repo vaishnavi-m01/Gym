@@ -36,7 +36,7 @@ type Member = {
   status?: "Active" | "Inactive";
 };
 
-export default function Members() {
+export default function MemberDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"All" | "Active" | "Inactive">("All");
   const [members, setMembers] = useState<Member[]>([]);

@@ -69,10 +69,10 @@ const LoginScreen = () => {
       await AsyncStorage.setItem("refreshToken", refresh);
   
       // ✅ Instead of router.replace just send user.id
-      router.replace({
-        pathname: "/(tabs)",
-        params: { userId: user.id }, // Pass id to index
-      });
+      // router.replace({
+      //   pathname: "/(tabs)",
+      //   params: { userId: user.id }, 
+      // });
   
       Alert.alert("Success", message || "Login successful!");
   
@@ -80,10 +80,15 @@ const LoginScreen = () => {
       console.error("Login Error:", error.response?.data || error.message);
       Alert.alert("Error", "Login failed. Please check your credentials.");
     }
+
+    router.replace({
+      pathname: "/(tabs)",
+    });
+
+        
   };
   
   
-
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}

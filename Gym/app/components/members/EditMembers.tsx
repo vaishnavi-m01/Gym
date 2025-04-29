@@ -111,6 +111,9 @@ export default function EditMembers({
       setBloodGroup(data.blood_group || "");
       setAddress(data.address || "");
       setNotes(data.notes || "");
+      setCity(data.city || "");
+      setPincode(data.pincode || "");
+      
 
       if (data.profile_picture) {
         setProfileImage({ uri: `${config.BASE_URL}${data.profile_picture}` }); // include full URL
@@ -202,20 +205,22 @@ export default function EditMembers({
           },
         }
       );
-
+  
       const updateData = response.data;
-      setMember(updateData);
+      setMember(updateData); 
       console.log("updatedData", updateData);
-
+  
       ToastAndroid.show("Profile successfully updated!", ToastAndroid.SHORT);
-      router.push("/(tabs)/member");
-      // fetchMemberData();
-      // fetchProfile(); // Fetch the updated profile data to reflect changes
+  
+      navigation.navigate("memberdashboard" as never);
+
     } catch (error: any) {
       console.error("Upload Error:", error.response?.data || error.message);
       ToastAndroid.show("Upload failed!", ToastAndroid.SHORT);
     }
   };
+
+
   const handleDOBConfirm = (date: any) => {
     const formattedDate = moment(date).format("DD-MM-YYYY");
     setDOB(formattedDate);

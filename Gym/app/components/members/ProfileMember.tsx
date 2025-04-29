@@ -1,5 +1,6 @@
 import config from "@/app/config";
 import { AntDesign, Entypo } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
 import { useNavigation } from "expo-router";
 import { useState } from "react";
 import {
@@ -14,6 +15,7 @@ import {
     Platform
 } from "react-native";
 
+
 type members = {
     id?: number;
     profile_picture: string | number;
@@ -26,11 +28,27 @@ type members = {
 const ProfileMember = ({ profile_picture, name, phone_number, gender, status }: members) => {
 
     const navigation = useNavigation();
+    const { id } = useLocalSearchParams();
+    
 
-    const handleIconClick = () =>{
-        navigation.navigate("Member Details" as never)
-    }
+    const handleIconClick = () => {
+        if (id) {
+          (navigation.navigate as Function)("Member Details", { id });
+        } else {
+          console.warn("Profile ID not found yet!");
+        }
+      };
 
+    //   const handleIconClick = () => {
+      
+    //     if (id) {
+    //       // Navigate to 'Member Details' page using router.push
+    //       router.push(`/Member Details`, { id } as never);
+    //     } else {
+    //       console.warn("Profile ID not found yet!");
+    //     }
+    //   };
+    
     return (
         <View style={style.container}>
                 <View style={style.subcontainer}>
@@ -96,7 +114,7 @@ const style = StyleSheet.create({
     image: {
         width: 60,
         height: 60,
-        borderRadius: 25,
+        borderRadius: 50,
     },
     textContainer: {
         flex: 1,

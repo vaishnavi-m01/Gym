@@ -56,7 +56,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="member"
+        name="memberdashboard"
         options={{
           title: "Members",
           tabBarIcon: ({ focused }) => (

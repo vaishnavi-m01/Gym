@@ -483,6 +483,8 @@ const NewMember = () => {
               placeholder="Enter pincode"
               value={pincode}
               onChangeText={setPincode}
+              keyboardType="numeric"
+
             />
           </View>
 

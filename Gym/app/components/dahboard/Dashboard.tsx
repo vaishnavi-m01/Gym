@@ -36,7 +36,7 @@ const Dashboard = () => {
     const handleImgClick = (key: string) => {
         switch (key) {
             case "total_members":
-                navigation.navigate("member" as never);
+                navigation.navigate("memberdashboard" as never);
                 break;
             case "attendance_today":
                 navigation.navigate("Attendance" as never);

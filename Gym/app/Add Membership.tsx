@@ -73,6 +73,10 @@ const AddMembership = () => {
   const [isInitialAmountDisabled, setInitialAmountDisabled] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const STORAGE_KEY = `initialAmountPaid-membership-${id}`;
+
+ 
+
   console.log("memberIdddd", id);
   console.log("planId", selectedPlanId);
 
@@ -119,6 +123,42 @@ const AddMembership = () => {
     setApiCalled(false);
     setModalVisible(true);
   };
+
+  
+
+  useEffect(() => {
+    const fetchMembership = async () => {
+      try {
+        setLoading(true);
+        const paidBefore = await AsyncStorage.getItem(STORAGE_KEY);
+
+        if (paidBefore === "true") {
+          setInitialAmountDisabled(true);
+          setLoading(false);
+          return;
+        }
+
+        const response = await axios.get(`${config.BASE_URL}/membership/${id}/`);
+        const membership = response.data.data;
+
+        if (membership?.initial_amount && membership.initial_amount > 0) {
+          setInitialAmount(membership.initial_amount.toString());
+          setInitialAmountDisabled(true);
+          try {
+            await AsyncStorage.setItem(STORAGE_KEY, "true");
+          } catch (error) {
+            console.error("Error saving initial amount state to AsyncStorage:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching membership:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchMembership();
+  }, [id]);
 
   const fetchPlans = async () => {
     try {
@@ -181,44 +221,40 @@ const AddMembership = () => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedPlanId || !paymentMethod || !amountReceived) {
-      Alert.alert("Error", "Please fill all required fields.");
-      return;
-    }
-
     try {
       setIsSubmitting(true);
+
       const payload = {
         member: member.id,
         plan_id: selectedPlanId,
         discount: discount || 0,
-        amount_received: amountReceived,
+        amount_received: amountReceived || 0,
         payment_method: paymentMethod,
-        initial_amount: initialAmount,
+        initial_amount: initialAmount || 0,
         start_date: date.toISOString().split("T")[0],
       };
 
-      console.log("payloadd", payload);
+      const response = await axios.post(`${config.BASE_URL}/membership/create/`, payload);
 
-      const response = await axios.post(
-        `${config.BASE_URL}/membership/create/`,
-        payload
-      );
-
-      console.log("responseee", payload);
       if (response.status === 200 || response.status === 201) {
-        console.log("Success:", response.data);
         Alert.alert("Success", "Membership added successfully!");
+        const createdMembershipId = response.data.id;
+        console.log("createdMembershipId",createdMembershipId)
         setInitialAmountDisabled(true);
+      
+
+
+        try {
+          await AsyncStorage.setItem(STORAGE_KEY, "true");
+        } catch (error) {
+          console.error("Error saving initial amount disabled flag:", error);
+        }
       } else {
         Alert.alert("Error", "Unexpected server response.");
       }
     } catch (error: any) {
       console.error(error);
-      Alert.alert(
-        "Error",
-        error.response?.data?.message || "Submission failed!"
-      );
+      Alert.alert("Error", error.response?.data?.message || "Submission failed!");
     } finally {
       setIsSubmitting(false);
     }
@@ -226,6 +262,9 @@ const AddMembership = () => {
 
   useEffect(() => {
     const fetchMembership = async () => {
+      if(!paymentMethod){
+        Alert.alert("Please fill the Plan and Payment Method")
+      }
       try {
         const response = await axios.get(`${config.BASE_URL}/members/${id}/`);
         const memberData = response.data;
@@ -272,27 +311,45 @@ const AddMembership = () => {
       minimumFractionDigits: 2,
     }).format(amount);
 
-  useEffect(() => {
-    if (member && plan && planAmount) {
-      const paid = parseFloat(amountReceived || "0");
-      const discountValue = parseFloat(discount || "0");
-      const balance = planAmount - discountValue - paid;
-
-      const newMessage = `Hello ${member.name || "Member"},
-        
+    useEffect(() => {
+      if (member && plan) {
+        const paid = parseFloat(amountReceived || "0");
+        const discountValue = parseFloat(discount || "0");
+        const initialPaid = parseFloat(initialAmount || "0");
+    
+        let newMessage = "";
+    
+        // Case 1: Only Initial Amount is paid
+        if (initialPaid > 0 && paid === 0 && discountValue === 0) {
+          newMessage = `Hello ${member.name || "Member"},
+            
+    You have successfully paid the Initial Amount for the ${plan} plan.
+    
+    Initial Amount Paid: ${formatCurrency(initialPaid)}
+    
+    Thank you.`;
+        } 
+        // Case 2: Full Membership (Initial Amount + Other Payments)
+        else if (planAmount) {
+          const balance = planAmount - discountValue - paid;
+    
+          newMessage = `Hello ${member.name || "Member"},
+            
     Your membership to ${plan} was successfully added and will expire on ${getEndDate()}.
     
     Amount: ${formatCurrency(planAmount)}
+    Initial Amount Paid: ${formatCurrency(initialPaid)}
     Discount: ${formatCurrency(discountValue)}
     Paid: ${formatCurrency(paid)}
     Balance: ${formatCurrency(balance)}
     
     Thank you.`;
-
-      setEditableMessage(newMessage);
-    }
-  }, [member, plan, discount, amountReceived, planAmount]);
-
+        }
+    
+        setEditableMessage(newMessage);
+      }
+    }, [member, plan, discount, amountReceived, initialAmount, planAmount]);
+    
   const handleSendWhatsApp = () => {
     const phoneNumber = member?.phone_number;
     const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
@@ -325,54 +382,14 @@ const AddMembership = () => {
       appState.current = nextAppState;
     });
 
+
     return () => {
       subscription.remove();
     };
   }, []);
 
-  useEffect(() => {
-    console.log("membershipId:", id);
-    if (!id) return;
-
-    const fetchMembership = async () => {
-      try {
-        setLoading(true);
-        const storageKey = `initialAmountPaid-membership-${id}`;
-
-        // Check if already stored as paid
-        const paidBefore = await AsyncStorage.getItem(storageKey);
-        console.log("Paid before:", paidBefore);
-
-        if (paidBefore === "true") {
-          setInitialAmountDisabled(true);
-          setLoading(false);
-          return;
-        }
-
-       
-              const response = await axios.get(`${config.BASE_URL}/membership/${id}/`);
-              const membership = response.data.data;
+  
       
-              if (membership?.initial_amount && membership.initial_amount > 0) {
-                setInitialAmount(membership.initial_amount.toString());
-                setInitialAmountDisabled(true);
-      
-                // Store that it's paid
-                await AsyncStorage.setItem(storageKey, "true");
-              } else {
-                setInitialAmountDisabled(false);
-              }
-            } catch (error) {
-              console.error("Error fetching membership:", error);
-            } finally {
-              setLoading(false);
-            }
-          };
-      
-          fetchMembership();
-        }, [id]);
-      
-
 
 
   return (
@@ -427,7 +444,7 @@ const AddMembership = () => {
                   keyboardType="numeric"
                   value={initialAmount}
                   onChangeText={setInitialAmount}
-                  editable={!isInitialAmountDisabled}
+                  editable={!isInitialAmountDisabled}  
                   style={[
                     styles.input,
                     isInitialAmountDisabled && styles.disabledInput,
