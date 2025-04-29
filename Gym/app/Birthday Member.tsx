@@ -21,7 +21,7 @@ type Member = {
 
 const BirthdayMemberList = () => {
   const [birthdayMembers, setBirthdayMembers] = useState<Member[]>([]);
-  
+
   // Directly using useNavigation with casting
   const navigation = useNavigation<any>(); // Cast to `any` type
 
@@ -45,6 +45,8 @@ const BirthdayMemberList = () => {
 
     // Navigate with id
     navigation.navigate("Member Details", { id }); // No type error now
+    console.log("birthdayyyymemberid",id)
+
   };
 
   if (birthdayMembers.length === 0) {

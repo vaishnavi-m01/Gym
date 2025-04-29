@@ -50,9 +50,9 @@ const MemberDetails = () => {
   const { id } = useLocalSearchParams();
   const [member, setMember] = useState<any>(null);
   const [membership, setMembership] = useState<any[]>([]);
-  const [memberDetails,setMemberDetails] = useState<any>(null);
+  const [memberDetails, setMemberDetails] = useState<any>(null);
   const [amount, setAmount] = useState("");
-  
+
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -65,10 +65,6 @@ const MemberDetails = () => {
 
   const [transactions, setransactions] = useState([]);
   const [membershipDetails, setMembershipDetails] = useState<Transaction[]>([]);
-
-
-
-
 
   const [message, setMessage] = useState(
     `Happy Birthday! 🎉. May your day be filled with laughter, joy, and cherished moments with loved ones.`
@@ -148,10 +144,10 @@ balance is now ₹0 \n\n Thank you.`;
 
   const formattedDate = member?.joining_date
     ? new Date(member.joining_date).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    })
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
     : "";
 
   const handleSendBirthDayMessageWhatsApp = () => {
@@ -165,21 +161,23 @@ balance is now ₹0 \n\n Thank you.`;
     });
   };
 
-  
-  
   useEffect(() => {
     const fetchMemberShip = async () => {
       try {
-        const response = await axios.get(`${config.BASE_URL}/transactions/member/${id}`);
-        console.log('Fetched Membership Data:', response.data);
-        
+        const response = await axios.get(
+          `${config.BASE_URL}/transactions/member/${id}`
+        );
+        console.log("Fetched Membership Data:", response.data);
+
         const membershipData = response.data || [];
-  
+
         setMembership(membershipData);
-  
+
         // **Find first Partially Paid record**
-        const partiallyPaidRecord = membershipData.find((item: any) => item.balance_status === "Partially Paid");
-  
+        const partiallyPaidRecord = membershipData.find(
+          (item: any) => item.balance_status === "Partially Paid"
+        );
+
         if (partiallyPaidRecord) {
           // Set settle_balance into amount input
           setAmount(partiallyPaidRecord.settle_balance?.toString() || "0");
@@ -187,17 +185,15 @@ balance is now ₹0 \n\n Thank you.`;
           // If no partially paid, set amount empty or default
           setAmount("");
         }
-  
       } catch (error) {
-        console.error('Error fetching membership:', error);
+        console.error("Error fetching membership:", error);
         setMembership([]);
         setAmount(""); // Reset amount if error
       }
     };
-  
+
     if (id) fetchMemberShip();
   }, [id]);
-  
 
   console.log("MembersHIp", id);
   console.log("memberPhone", member?.joining_date);
@@ -214,8 +210,7 @@ balance is now ₹0 \n\n Thank you.`;
     if (id) fetchMembership();
   }, [id]);
 
-  console.log("MEMBER DETAILS" ,id)
-
+  console.log("MEMBER DETAILS", id);
 
   useEffect(() => {
     const fetchMembershipDetails = async () => {
@@ -226,13 +221,11 @@ balance is now ₹0 \n\n Thank you.`;
         console.error("Error fetching membership details:", error);
       }
     };
-  
+
     if (id) fetchMembershipDetails();
-    
   }, [id]);
 
-  console.log("memememe",id)
-  
+  console.log("memememe", id);
 
   return (
     <ScrollView>
@@ -277,7 +270,7 @@ balance is now ₹0 \n\n Thank you.`;
           <TouchableOpacity
             style={styles.subContainers}
             onPress={() => {
-              if (membership[0]?.balance_status !== 'Fully Paid') {
+              if (membership[0]?.balance_status !== "Fully Paid") {
                 setModelVisible(true); // Only open if NOT Fully Paid
               }
             }}
@@ -288,11 +281,10 @@ balance is now ₹0 \n\n Thank you.`;
                 <Text style={styles.blanceText}>Balance</Text>
               </View>
               <Text style={styles.paymentStatus}>
-                {membership[0]?.balance_status || 'Loading...'}
+                {membership[0]?.balance_status || "Loading..."}
               </Text>
             </View>
           </TouchableOpacity>
-
 
           <View style={styles.subContainers}>
             <View style={styles.memberContents}>
@@ -342,18 +334,19 @@ balance is now ₹0 \n\n Thank you.`;
           </View>
         </View> */}
 
-<ScrollView contentContainerStyle={{ alignItems: "center", paddingVertical: 10 }}>
-      {membershipDetails.map((txn) => (
-        <RecentTransaction
-          key={txn.id}
-          planName={txn.plan_name}
-          paymentType={txn.payment_method}
-          amount={`₹${txn.amount_paid}`}
-          paymentDate={txn.payment_date}
-        />
-      ))}
-    </ScrollView>
-
+        <ScrollView
+          contentContainerStyle={{ alignItems: "center", paddingVertical: 10 }}
+        >
+          {membershipDetails.map((txn) => (
+            <RecentTransaction
+              key={txn.id}
+              planName={txn.plan_name}
+              paymentType={txn.payment_method}
+              amount={`₹${txn.amount_paid}`}
+              paymentDate={txn.payment_date}
+            />
+          ))}
+        </ScrollView>
       </View>
 
       <Modal
@@ -362,36 +355,36 @@ balance is now ₹0 \n\n Thank you.`;
         visible={modelVisible}
         onRequestClose={() => setModelVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.bottomLine}></View>
+        <TouchableWithoutFeedback onPress={() => setModelVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.bottomLine}></View>
 
-            <Text style={styles.modalText}>Balance</Text>
-            <View style={styles.modelSubcontainer}>
-              <Text style={styles.title}>Pending Amount</Text>
-              {Array.isArray(membership) &&
+              <Text style={styles.modalText}>Balance</Text>
+              <View style={styles.modelSubcontainer}>
+                <Text style={styles.title}>Pending Amount</Text>
+                {Array.isArray(membership) &&
                 membership.length > 0 &&
                 membership[0]?.settle_balance ? (
-                <Text>{membership[0]?.settle_balance}</Text>
-              ) : (
-                <Text>No pending amount</Text>
-              )}
-              console.log("settelBlance",{membership[0]?.settle_balance})
+                  <Text>{membership[0]?.settle_balance}</Text>
+                ) : (
+                  <Text>No pending amount</Text>
+                )}
+                console.log("settelBlance",{membership[0]?.settle_balance})
+              </View>
 
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={() => {
+                  setModelVisible(false);
+                  setSettleModel(true);
+                }}
+              >
+                <Text style={styles.buttonText}>Settle Balance</Text>
+              </TouchableOpacity>
             </View>
-
-
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={() => {
-                setModelVisible(false);
-                setSettleModel(true);
-              }}
-            >
-              <Text style={styles.buttonText}>Settle Balance</Text>
-            </TouchableOpacity>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
 
       <Modal
@@ -400,75 +393,77 @@ balance is now ₹0 \n\n Thank you.`;
         visible={settlemodel}
         onRequestClose={() => setSettleModel(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.bottomLine}></View>
-            <Text style={styles.modalText}>Settle Balance</Text>
+        <TouchableWithoutFeedback onPress={() => setSettleModel(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.bottomLine}></View>
+              <Text style={styles.modalText}>Settle Balance</Text>
 
-            <Text style={styles.label}>Amount</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.inputbox}
-                placeholder=""
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="numeric"
-              />
-            </View>
+              <Text style={styles.label}>Amount</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.inputbox}
+                  placeholder=""
+                  value={amount}
+                  onChangeText={setAmount}
+                  keyboardType="numeric"
+                />
+              </View>
 
-            <Text style={styles.paymentTitle}>Payment Method</Text>
-            <View>
-              <RadioButton.Group
-                onValueChange={(value) => setPaymentMethod(value)}
-                value={paymentMethod}
-              >
-                <View style={styles.radioOptions}>
-                  <RadioButton value="cash" />
-                  <Text style={styles.radioText}>Cash</Text>
-                </View>
-
-                <View style={styles.radioOptions}>
-                  <RadioButton value="upi" />
-                  <Text style={styles.radioText}>UPI</Text>
-                </View>
-
-                <View style={styles.radioOptions}>
-                  <RadioButton value="credit card" />
-                  <Text style={styles.radioText}>Credit card</Text>
-                </View>
-
-                <View style={styles.radioOptions}>
-                  <RadioButton value="Debit card" />
-                  <Text style={styles.radioText}>Debit card</Text>
-                </View>
-
-                <View style={styles.radioOptions}>
-                  <RadioButton value="Net Banking" />
-                  <Text style={styles.radioText}>Net Banking</Text>
-                </View>
-              </RadioButton.Group>
-
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={styles.cancelbutton}
-                  onPress={() => setSettleModel(false)}
+              <Text style={styles.paymentTitle}>Payment Method</Text>
+              <View>
+                <RadioButton.Group
+                  onValueChange={(value) => setPaymentMethod(value)}
+                  value={paymentMethod}
                 >
-                  <Text style={styles.cancelbuttonText}>Cancel</Text>
-                </TouchableOpacity>
+                  <View style={styles.radioOptions}>
+                    <RadioButton value="cash" />
+                    <Text style={styles.radioText}>Cash</Text>
+                  </View>
 
-                <TouchableOpacity
-                  style={styles.submitBtn}
-                  onPress={() => {
-                    setSettleModel(false);
-                    setWhatsAppModel(true);
-                  }}
-                >
-                  <Text style={styles.buttonText}>Save</Text>
-                </TouchableOpacity>
+                  <View style={styles.radioOptions}>
+                    <RadioButton value="upi" />
+                    <Text style={styles.radioText}>UPI</Text>
+                  </View>
+
+                  <View style={styles.radioOptions}>
+                    <RadioButton value="credit card" />
+                    <Text style={styles.radioText}>Credit card</Text>
+                  </View>
+
+                  <View style={styles.radioOptions}>
+                    <RadioButton value="Debit card" />
+                    <Text style={styles.radioText}>Debit card</Text>
+                  </View>
+
+                  <View style={styles.radioOptions}>
+                    <RadioButton value="Net Banking" />
+                    <Text style={styles.radioText}>Net Banking</Text>
+                  </View>
+                </RadioButton.Group>
+
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.cancelbutton}
+                    onPress={() => setSettleModel(false)}
+                  >
+                    <Text style={styles.cancelbuttonText}>Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.submitBtn}
+                    onPress={() => {
+                      setSettleModel(false);
+                      setWhatsAppModel(true);
+                    }}
+                  >
+                    <Text style={styles.buttonText}>Save</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
 
       {/* whatsapp message container */}
@@ -479,42 +474,44 @@ balance is now ₹0 \n\n Thank you.`;
         visible={whatsAppModel}
         onRequestClose={() => setWhatsAppModel(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Send Message?</Text>
-            <Text style={styles.messageTitle}>
-              Your message would look like this
-            </Text>
+        <TouchableWithoutFeedback onPress={() => setWhatsAppModel(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>Send Message?</Text>
+              <Text style={styles.messageTitle}>
+                Your message would look like this
+              </Text>
 
-            <View style={styles.messageContainer}>
-              <Text style={styles.messageText}>To:</Text>
-              <Text style={styles.phoneNumber}>
-                +{member?.phone_number || "N/A"}
-              </Text>
-            </View>
-            <Text style={styles.title}>Message</Text>
-            <View style={styles.messageSubContainer}>
-              <Text style={styles.memberName}> Hello vaishu,</Text>
-              <Text style={styles.message}>
-                Your membership to was successfully added and will expire .
-              </Text>
-              <View style={styles.AmmountContainer}>
-                {" "}
-                {/* <Text style={styles.message}>Amount: {formatCurrency(planAmount)}</Text>
+              <View style={styles.messageContainer}>
+                <Text style={styles.messageText}>To:</Text>
+                <Text style={styles.phoneNumber}>
+                  +{member?.phone_number || "N/A"}
+                </Text>
+              </View>
+              <Text style={styles.title}>Message</Text>
+              <View style={styles.messageSubContainer}>
+                <Text style={styles.memberName}> Hello vaishu,</Text>
+                <Text style={styles.message}>
+                  Your membership to was successfully added and will expire .
+                </Text>
+                <View style={styles.AmmountContainer}>
+                  {" "}
+                  {/* <Text style={styles.message}>Amount: {formatCurrency(planAmount)}</Text>
                           <Text style={styles.message}>Paid: {formatCurrency(parseFloat(amountReceived || "0"))}</Text>
                           <Text style={styles.message}>Balance: {formatCurrency(balanceAmount)}</Text> */}
-                <Text style={styles.thankYouText}>Thank you </Text>
+                  <Text style={styles.thankYouText}>Thank you </Text>
+                </View>
               </View>
-            </View>
 
-            <TouchableOpacity
-              style={styles.sendMessageButton}
-              onPress={handleSendWhatsApp}
-            >
-              <Text style={styles.buttontext}>Send message</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.sendMessageButton}
+                onPress={handleSendWhatsApp}
+              >
+                <Text style={styles.buttontext}>Send message</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
 
       {/* Birthday Message */}
@@ -527,10 +524,10 @@ balance is now ₹0 \n\n Thank you.`;
       >
         <TouchableWithoutFeedback onPress={() => setBirthMessage(false)}>
           <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback onPress={() => { }}>
+            <TouchableWithoutFeedback onPress={() => {}}>
               <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-              // style={styles.keyboardAvoidingView}
+                // style={styles.keyboardAvoidingView}
               >
                 <ScrollView
                   // contentContainerStyle={styles.scrollViewContent}

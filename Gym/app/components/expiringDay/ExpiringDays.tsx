@@ -10,6 +10,7 @@ import {
   Linking,
   Alert,
   TextInput,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { useEffect, useState } from "react";
 import EditMembers from "../members/EditMembers";
@@ -18,14 +19,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type members = {
   id: number;
-  image: string | number;
+  image: string;
   name: string;
   duration: string;
 };
 const ExpiringDays = ({ image, name, duration }: members) => {
   const [_changePassword, setChangePassword] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [message, setMessage] = useState("Hello Vaishu,\n\n We regret to inform you that your membership to {planName} has expired on {endDate} and the due date has passed.\n\n Please renew your membership as soon as possible\n\n\n Thank you \n{gymName}");
+  const [message, setMessage] = useState(
+    "Hello Vaishu,\n\n We regret to inform you that your membership to {planName} has expired on {endDate} and the due date has passed.\n\n Please renew your membership as soon as possible\n\n\n Thank you \n{gymName}"
+  );
 
   // const handleChangePassword = (changePassword: any) => {
   //   setChangePassword((prevPasswor) => [changePassword, ...prevPasswor]);
@@ -33,7 +36,7 @@ const ExpiringDays = ({ image, name, duration }: members) => {
 
   useEffect(() => {
     const loadTemplate = async () => {
-      const saved = await AsyncStorage.getItem('@Membership_expired');
+      const saved = await AsyncStorage.getItem("@Membership_expired");
       if (saved) setMessage(saved);
     };
     loadTemplate();
@@ -41,7 +44,9 @@ const ExpiringDays = ({ image, name, duration }: members) => {
 
   const handleSendWhatsApp = () => {
     const phoneNumber = "6385542771";
-    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
+      message
+    )}`;
 
     Linking.canOpenURL(url)
       .then((supported) => {
@@ -58,6 +63,11 @@ const ExpiringDays = ({ image, name, duration }: members) => {
     <ScrollView>
       <View style={style.container}>
         <View style={style.subcontainer}>
+          {/* <Image
+            source={typeof image === "string" ? { uri: image } : image}
+            style={style.image}
+          /> */}
+
           <Image
             source={typeof image === "string" ? { uri: image } : image}
             style={style.image}
@@ -137,32 +147,38 @@ const ExpiringDays = ({ image, name, duration }: members) => {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        
-        <View style={style.modalOverlay}>
-          <View style={style.modalContent}>
-            <Text style={style.modalText}>Send Message?</Text>
-            <Text style={style.messageTitle}>Your message would look like this</Text>
+        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+          <View style={style.modalOverlay}>
+            <View style={style.modalContent}>
+              <Text style={style.modalText}>Send Message?</Text>
+              <Text style={style.messageTitle}>
+                Your message would look like this
+              </Text>
 
-            <View style={style.messageContainer}>
-              <Text style={style.messageText}>To:</Text>
-              <Text style={style.phoneNumber}>+91 6385542771</Text>
+              <View style={style.messageContainer}>
+                <Text style={style.messageText}>To:</Text>
+                <Text style={style.phoneNumber}>+91 6385542771</Text>
+              </View>
+
+              <Text style={style.title}>Message</Text>
+
+              <TextInput
+                style={style.messageInput}
+                value={message}
+                onChangeText={setMessage}
+                editable={false}
+                multiline
+              />
+
+              <TouchableOpacity
+                style={style.sendMessageButton}
+                onPress={handleSendWhatsApp}
+              >
+                <Text style={style.buttontext}>Send message</Text>
+              </TouchableOpacity>
             </View>
-
-            <Text style={style.title}>Message</Text>
-
-            <TextInput
-              style={style.messageInput}
-              value={message}
-              onChangeText={setMessage}
-              editable={false}
-              multiline
-            />
-
-            <TouchableOpacity style={style.sendMessageButton} onPress={handleSendWhatsApp}>
-              <Text style={style.buttontext}>Send message</Text>
-            </TouchableOpacity>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </ScrollView>
   );
@@ -172,7 +188,7 @@ export default ExpiringDays;
 
 const style = StyleSheet.create({
   container: {
-    width: "95%",
+    width: "98%",
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#E5E6EA",
@@ -187,9 +203,9 @@ const style = StyleSheet.create({
     justifyContent: "space-between",
   },
   image: {
-    width: 40,
-    height: 40,
-    borderRadius: 25,
+    width: 50,
+    height: 50,
+    borderRadius: 50,
   },
   textContainer: {
     flex: 1,
@@ -206,6 +222,7 @@ const style = StyleSheet.create({
     fontFamily: "Jost",
     fontSize: 16,
     fontWeight: "bold",
+    top:8
   },
 
   dot: {
@@ -248,7 +265,7 @@ const style = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.1)",
   },
   modalContent: {
     backgroundColor: "white",
@@ -353,6 +370,6 @@ const style = StyleSheet.create({
     marginVertical: 20,
     minHeight: 100,
     fontFamily: "Jost",
-    fontWeight: 600
+    fontWeight: 600,
   },
 });

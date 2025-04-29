@@ -94,20 +94,30 @@ const PendingList = () => {
       
           if (Array.isArray(pending)) {
             const updated = pending.map((item, index) => {
+              let formattedDuration = item.duration;
+      
               const [startStr, endStr] = item.duration.split(" - ");
       
               const start = parse(startStr, "dd/MM/yyyy", new Date());
-              const end = parse(endStr, "dd/MM/yyyy", new Date());
+              const end =
+                endStr && endStr !== "None"
+                  ? parse(endStr, "dd/MM/yyyy", new Date())
+                  : null;
       
-              const formattedDuration = `${format(start, "dd MMM yyyy")} - ${format(end, "dd MMM yyyy")}`;
+              // Format only if start is valid
+              if (!isNaN(start.getTime())) {
+                formattedDuration = `${format(start, "dd MMM yyyy")} - ${
+                  end && !isNaN(end.getTime()) ? format(end, "dd MMM yyyy") : "Ongoing"
+                }`;
+              }
       
               return {
                 ...item,
-                id: index + 1, // fallback if no ID in API
+                id: index + 1,
                 profile_picture: item.profile_picture.startsWith("http")
                   ? item.profile_picture
                   : `${config.BASE_URL}${item.profile_picture}`,
-                duration: formattedDuration
+                duration: formattedDuration,
               };
             });
       
@@ -120,6 +130,7 @@ const PendingList = () => {
           console.error("Failed to fetch plans:", error);
         }
       };
+      
       
     return (
         <View style={styles.containers}>

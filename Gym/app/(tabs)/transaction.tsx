@@ -3,6 +3,7 @@ import { StyleSheet, View, ScrollView, Text, ActivityIndicator } from "react-nat
 import Transactions from "../components/transaction/Transactions";
 import axios from "axios";
 import config from "../config";
+import { useLocalSearchParams } from "expo-router";
 
 type Member = {
   id: number;
@@ -17,7 +18,9 @@ type Member = {
 export default function Transaction() {
   const [datas, setDatas] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
-
+    const { id } = useLocalSearchParams();
+  
+ console.log("transaction",id)
   useEffect(() => {
     const fetchTransactions = async () => {
       try {

@@ -20,7 +20,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 
 
-// Map backend image strings to actual require() references
+
 const imageMap: Record<string, any> = {
   "../assets/images/member2.png": require("../assets/images/member2.png"),
   "../assets/images/member3.png": require("../assets/images/member3.png"),
@@ -79,7 +79,7 @@ const Attendance = () => {
     if (savedDate === today && savedData) {
       setMembers(JSON.parse(savedData));
     } else {
-      await fetchMembers(); // make sure this also sets attendance_status to null
+      await fetchMembers(); 
     }
   };
 
