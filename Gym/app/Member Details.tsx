@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from "react-native";
 import MembersPage from "./components/dahboard/MembersPage";
 import ProfileMemberDetails from "./components/members/ProfileMemberDetails";
@@ -177,7 +178,7 @@ balance is now ₹0 \n\n Thank you.`;
 
         setMembership(membershipData);
 
-        // **Find first Partially Paid record**
+    
         const partiallyPaidRecord = membershipData.find(
           (item: any) => item.balance_status === "Partially Paid"
         );
@@ -186,13 +187,13 @@ balance is now ₹0 \n\n Thank you.`;
           // Set settle_balance into amount input
           setAmount(partiallyPaidRecord.settle_balance?.toString() || "0");
         } else {
-          // If no partially paid, set amount empty or default
+        
           setAmount("");
         }
       } catch (error) {
         console.error("Error fetching membership:", error);
         setMembership([]);
-        setAmount(""); // Reset amount if error
+        setAmount(""); 
       }
     };
 
@@ -201,20 +202,21 @@ balance is now ₹0 \n\n Thank you.`;
 
   console.log("MembersHIp", id);
   console.log("memberPhone", member?.joining_date);
-  useEffect(() => {
-    const fetchMembership = async () => {
-      try {
-        const response = await axios.get(`${config.BASE_URL}/membership/${id}`);
-        setMemberDetails(response.data.data);
-      } catch (error) {
-        console.error("Error fetching member:", error);
-      }
-    };
 
-    if (id) fetchMembership();
-  }, [id]);
+  // useEffect(() => {
+  //   const fetchMembership = async () => {
+  //     try {
+  //       const response = await axios.get(`${config.BASE_URL}/membership/${id}`);
+  //       setMemberDetails(response.data.data);
+  //     } catch (error) {
+  //       console.error("Error fetching member:", error);
+  //     }
+  //   };
 
-  console.log("MEMBER DETAILS", id);
+  //   if (id) fetchMembership();
+  // }, [id]);
+
+  // console.log("MEMBER DETAILS", id);
 
   useEffect(() => {
     const fetchMembershipDetails = async () => {
@@ -231,6 +233,34 @@ balance is now ₹0 \n\n Thank you.`;
 
   console.log("memememe", id);
 
+
+  const handleSave = async () => {
+    try {
+      const payload = {
+        settle_balance: amount,
+        payment_method: paymentMethod,
+        membership: membership[0].membership, 
+      };
+  
+      const response = await axios.post(`${config.BASE_URL}/transactions/create/`, payload);
+  
+      if (response.status >= 200 && response.status < 300) {
+      
+        setSettleModel(false); 
+        setWhatsAppModel(true);
+  
+        Alert.alert("Payment Successful!", "Your payment has been processed successfully.");
+      } else {
+        console.log("Error:", response.data);
+      }
+    } catch (error) {
+      console.log("Error while saving:", error);
+      Alert.alert("Payment Failed!", "Something went wrong. Please try again.");
+    }
+  };
+  
+  
+  
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -374,7 +404,6 @@ balance is now ₹0 \n\n Thank you.`;
                 ) : (
                   <Text>No pending amount</Text>
                 )}
-                console.log("settelBlance",{membership[0]?.settle_balance})
               </View>
 
               <TouchableOpacity
@@ -392,14 +421,18 @@ balance is now ₹0 \n\n Thank you.`;
       </Modal>
 
       <Modal
-        animationType="slide"
-        transparent={true}
-        visible={settlemodel}
-        onRequestClose={() => setSettleModel(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setSettleModel(false)}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
+      animationType="slide"
+      transparent={true}
+      visible={settlemodel}
+      onRequestClose={() => setSettleModel(false)}
+    >
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView
+            style={styles.modalContent}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            <ScrollView contentContainerStyle={styles.modalScrollContent}>
               <View style={styles.bottomLine}></View>
               <Text style={styles.modalText}>Settle Balance</Text>
 
@@ -407,7 +440,7 @@ balance is now ₹0 \n\n Thank you.`;
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.inputbox}
-                  placeholder=""
+                  placeholder="Enter amount"
                   value={amount}
                   onChangeText={setAmount}
                   keyboardType="numeric"
@@ -455,20 +488,18 @@ balance is now ₹0 \n\n Thank you.`;
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={styles.submitBtn}
-                    onPress={() => {
-                      setSettleModel(false);
-                      setWhatsAppModel(true);
-                    }}
-                  >
-                    <Text style={styles.buttonText}>Save</Text>
-                  </TouchableOpacity>
+                      style={styles.submitBtn}
+                      onPress={handleSave}  
+                    >
+                      <Text style={styles.buttonText}>Save</Text>
+                    </TouchableOpacity>
                 </View>
               </View>
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
 
       {/* whatsapp message container */}
 
@@ -586,6 +617,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
     paddingBottom: 60,
+  },
+  modalScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'space-between',
   },
   subContainers: {
     borderWidth: 1,

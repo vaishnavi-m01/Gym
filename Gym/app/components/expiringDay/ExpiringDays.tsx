@@ -30,9 +30,6 @@ const ExpiringDays = ({ image, name, duration }: members) => {
     "Hello Vaishu,\n\n We regret to inform you that your membership to {planName} has expired on {endDate} and the due date has passed.\n\n Please renew your membership as soon as possible\n\n\n Thank you \n{gymName}"
   );
 
-  // const handleChangePassword = (changePassword: any) => {
-  //   setChangePassword((prevPasswor) => [changePassword, ...prevPasswor]);
-  // };
 
   useEffect(() => {
     const loadTemplate = async () => {
