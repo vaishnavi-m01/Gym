@@ -1,76 +1,12 @@
 import { useEffect, useState } from "react";
-import { Text, View, StyleSheet, ScrollView } from "react-native"
+import { Text, View, StyleSheet, ScrollView, TouchableOpacity, FlatList } from "react-native"
 import PendingListComponent from "./components/pendingList/PendingListComponent";
 import axios from "axios";
 import config from "./config";
 import { format, parse } from "date-fns";
+import { useNavigation } from "expo-router";
 
 
-const datas = [
-    {
-        id: 1,
-        image: require("../assets/images/member2.png"),
-        name: "Hari",
-        duration: "10 Nov 2025 - 07 Feb 2026",
-        pendingAmount: 2700
-    },
-    {
-        id: 2,
-        image: require("../assets/images/member2.png"),
-        name: "Surya",
-        duration: "10 Nov 2025 - 07 Feb 2026",
-        pendingAmount: 2700
-
-    },
-    {
-        id: 3,
-        image: require("../assets/images/member2.png"),
-        name: "sanjay",
-        duration: "10 Nov 2025 - 07 Feb 2026",
-        pendingAmount: 2700
-
-
-    },
-    {
-        id: 4,
-        image: require("../assets/images/member2.png"),
-        name: "Sankari",
-        duration: "10 Nov 2025 - 07 Feb 2026",
-        pendingAmount: 2700
-
-    },
-    {
-        id: 5,
-        image: require("../assets/images/member2.png"),
-        name: "Vaishu",
-        duration: "10 Nov 2025 - 07 Feb 2026",
-        pendingAmount: 2700
-
-    },
-    {
-        id: 6,
-        image: require("../assets/images/member2.png"),
-        name: "Rasiga",
-        duration: "10 Nov 2025 - 07 Feb 2026",
-        pendingAmount: 2700
-    },
-    {
-        id: 7,
-        image: require("../assets/images/member2.png"),
-        name: "Pavi",
-        duration: "10 Nov 2025 - 07 Feb 2026",
-        pendingAmount: 2700
-
-    },
-    {
-        id: 8,
-        image: require("../assets/images/member2.png"),
-        name: "Madhavi",
-        duration: "10 Nov 2025 - 07 Feb 2026",
-        pendingAmount: 2700
-
-    }
-];
 type Member = {
     id: number;
     profile_picture: string | number;
@@ -81,6 +17,8 @@ type Member = {
 
 const PendingList = () => {
     const [members, setMembers] = useState<Member[]>([]);
+      const navigation = useNavigation<any>(); // Cast to `any` type
+    
 
 
     useEffect(() => {
@@ -130,11 +68,17 @@ const PendingList = () => {
           console.error("Failed to fetch plans:", error);
         }
       };
+
+      const handleClick = (id: number) => {
+        console.log("pendingMember",id)
+
+        navigation.navigate("Member Details", { id }); // No type error now
+        console.log("pendingMember",id)
       
-      
+      }
     return (
         <View style={styles.containers}>
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}
+            {/* <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}
             >
                 {members.map((item) => (
                     <PendingListComponent
@@ -146,10 +90,28 @@ const PendingList = () => {
                         duration={item.duration}
                     />
                 ))}
-            </ScrollView>
+            </ScrollView> */}
+
+            <FlatList
+                    data={members}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity onPress={() => handleClick(item.id)}>
+                        <PendingListComponent
+                        key={item.id}
+                        id={item.id}
+                        image={item.profile_picture}
+                        name={item.member_name}
+                        pendingAmount={item.pending_amount}
+                        duration={item.duration}
+                    />
+                      </TouchableOpacity>
+                    )}
+                  />
         </View>
     )
 }
+
 
 export default PendingList
 

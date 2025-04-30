@@ -225,12 +225,13 @@ const AddMembership = () => {
       setIsSubmitting(true);
 
       const payload = {
-        member: member.id,
+        member_id: member.id,
         plan_id: selectedPlanId,
         discount: discount || 0,
         amount_received: amountReceived || 0,
         payment_method: paymentMethod,
         initial_amount: initialAmount || 0,
+        balance:balanceAmount || 0,
         start_date: date.toISOString().split("T")[0],
       };
 
@@ -389,9 +390,7 @@ const AddMembership = () => {
   }, []);
 
   
-      
-
-
+    
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -401,6 +400,7 @@ const AddMembership = () => {
             id={member.id}
             profile_picture={member.profile_picture}
             name={member.name}
+            
             phone_number={member.phone_number}
             gender={member.gender}
             status={member.status}

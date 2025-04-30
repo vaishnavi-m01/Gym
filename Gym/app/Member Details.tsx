@@ -24,6 +24,8 @@ import axios from "axios";
 import config from "./config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import RecentTransaction from "./components/transaction/RecentTransaction";
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
 
 type RootStackParamList = {
   Home: { updatedImage?: string };
@@ -32,6 +34,7 @@ type RootStackParamList = {
   "Member Details": { id: number };
   "Message Templates": undefined;
 };
+
 
 type Transaction = {
   id: number;
@@ -56,7 +59,7 @@ const MemberDetails = () => {
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [modalVisible, setModalVisible] = useState(false);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRouter();
   const [modelVisible, setModelVisible] = useState(false);
   const [settlemodel, setSettleModel] = useState(false);
@@ -104,11 +107,12 @@ const MemberDetails = () => {
 
   const handleClick = () => {
     if (id) {
-      (navigation.navigate as Function)("Add Membership", { id });
+      (navigation.replace as Function)("Add Membership", { id });
     } else {
       console.warn("Profile ID not found yet!");
     }
   };
+  
 
   const handleSendWhatsApp = () => {
     const phoneNumber = member?.phone_number;

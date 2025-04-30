@@ -12,6 +12,12 @@ const MessageTemplates = () => {
     const handleBirthDay = ()=>{
         birthdayNavigation.navigate("Birthday Template" as never)
     }
+
+    const memberOnboarding = useNavigation();
+    const handleOnboarding = () =>{
+        memberOnboarding.navigate("Member onboarding" as never)
+
+    }
     return (
         <ScrollView>
         <View style={styles.container}>
@@ -24,7 +30,7 @@ const MessageTemplates = () => {
                 </View>
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleOnboarding}>
                 <View style={styles.subContainer}>
                     <Text style={styles.title}>Member onboarding</Text>
                     <Text style={styles.messageTitle}> message for Member onboarding</Text>

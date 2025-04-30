@@ -69,10 +69,10 @@ const LoginScreen = () => {
       await AsyncStorage.setItem("refreshToken", refresh);
   
       // ✅ Instead of router.replace just send user.id
-      router.replace({
-        pathname: "/(tabs)",
-        params: { userId: user.id }, 
-      });
+      // router.replace({
+      //   pathname: "/(tabs)",
+      //   params: { userId: user.id }, 
+      // });
   
       Alert.alert("Success", message || "Login successful!");
   
@@ -81,12 +81,13 @@ const LoginScreen = () => {
       Alert.alert("Error", "Login failed. Please check your credentials.");
     }
 
-    // router.replace({
-    //   pathname: "/(tabs)",
-    // });
+    router.replace({
+      pathname: "/(tabs)",
+    });
 
         
   };
+  
   
   
   return (

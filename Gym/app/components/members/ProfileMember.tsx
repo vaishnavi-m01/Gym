@@ -33,7 +33,7 @@ const ProfileMember = ({ profile_picture, name, phone_number, gender, status }: 
 
     const handleIconClick = () => {
         if (id) {
-          (navigation.navigate as Function)("Member Details", { id });
+            (navigation.navigate as Function)("Member Details", { id });
         } else {
           console.warn("Profile ID not found yet!");
         }

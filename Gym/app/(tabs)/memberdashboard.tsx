@@ -32,7 +32,7 @@ type Member = {
   name: string;
   profile_picture: string | number;
   phone_number: string;
-  plan: string;
+  plan_name: string;
   status?: "Active" | "Inactive";
 };
 
@@ -75,7 +75,7 @@ export default function MemberDashboard() {
           blood_group: member.blood_group || "",
           address: member.address || "",
           notes: member.notes || "",
-          plan: member.plan || "No Plan",
+          plan_name: member.plan || "No Plan",
           status: member.status === "active" ? "Active" : "Inactive",
         }));
 
@@ -103,7 +103,7 @@ export default function MemberDashboard() {
       .filter((member) =>
         member.name.toLowerCase().includes(query) ||
         member.phone_number.toLowerCase().includes(query) ||
-        member.plan.toLowerCase().includes(query)
+        member.plan_name.toLowerCase().includes(query)
       );
   };
 
@@ -182,7 +182,7 @@ export default function MemberDashboard() {
                   profile_picture={item.profile_picture}
                   name={item.name}
                   phone_number={item.phone_number}
-                  plan={item.plan}
+                  plan={item.plan_name}
                   status={item.status}
                   onDelete={handleDeleteMember}
                 />
