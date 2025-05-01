@@ -1,4 +1,4 @@
-import { AntDesign, Entypo, FontAwesome5 } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import { View, StyleSheet, Text } from "react-native";
 
 import EditPlan from "./EditPlan";
@@ -21,7 +21,6 @@ type members = {
 };
 const Plan = ({ id, plan_name, plan_amount, plan_duration, onDelete,onEdit  }: members) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
 
   const handleDelete = async (id: number) => {
     try {

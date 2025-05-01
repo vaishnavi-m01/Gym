@@ -12,10 +12,9 @@ import {
   Platform,
   Keyboard,
 } from "react-native";
-import MembersPage from "./components/dahboard/MembersPage";
 import ProfileMemberDetails from "./components/members/ProfileMemberDetails";
 import { AntDesign, Entypo } from "@expo/vector-icons";
-import { useNavigation, useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { RadioButton } from "react-native-paper";
@@ -54,20 +53,16 @@ const MemberDetails = () => {
   const { id } = useLocalSearchParams();
   const [member, setMember] = useState<any>(null);
   const [membership, setMembership] = useState<any[]>([]);
-  const [memberDetails, setMemberDetails] = useState<any>(null);
   const [amount, setAmount] = useState("");
 
   const [paymentMethod, setPaymentMethod] = useState("Cash");
-  const [modalVisible, setModalVisible] = useState(false);
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRouter();
   const [modelVisible, setModelVisible] = useState(false);
   const [settlemodel, setSettleModel] = useState(false);
   const [whatsAppModel, setWhatsAppModel] = useState(false);
   const [birthMessage, setBirthMessage] = useState(false);
 
-  const [transactions, setransactions] = useState([]);
   const [membershipDetails, setMembershipDetails] = useState<Transaction[]>([]);
 
   const [message, setMessage] = useState(
@@ -95,12 +90,7 @@ const MemberDetails = () => {
     loadTemplate();
   }, []);
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 2,
-    }).format(amount);
+  
 
   // const handleClick = (id: number) => {
   //   navigation.navigate("Add Membership", {member.id});

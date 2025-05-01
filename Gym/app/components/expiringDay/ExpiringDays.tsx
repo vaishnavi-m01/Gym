@@ -13,9 +13,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { useEffect, useState } from "react";
-import EditMembers from "../members/EditMembers";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { TextInput } from "react-native-paper";
 
 type members = {
   id: number;

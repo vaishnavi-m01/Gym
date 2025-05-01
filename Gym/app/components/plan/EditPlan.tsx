@@ -32,9 +32,7 @@ const EditPlan = ({ id, amount, duration,onPlanUpdate }: EditPlanProps) =>{
   const [planName, setPlanName] = useState("");
   const [planAmount, setPlanAmount] = useState("");
   const [planDuration, setPlanDuration] = useState("");
-  const { setMember } = useMember();
   
-  const navigation = useNavigation();
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -72,10 +70,7 @@ const EditPlan = ({ id, amount, duration,onPlanUpdate }: EditPlanProps) =>{
     }
   };
   
-  const handleOpen = async () => {
-    await fetchProfile();
-    setOpen(true);
-  };
+ 
   
 
   const handleSubmit = async () => {

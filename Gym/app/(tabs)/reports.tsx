@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from "react";
 import {
-  Button,
+  
   View,
   StyleSheet,
-  Alert,
-  Image,
   Text,
-  Platform,
   TouchableOpacity,
   ScrollView,
   Modal,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import { EvilIcons } from "@expo/vector-icons";
 import TotalTransactions from "../components/transcation.tsx/TotalTransactions";

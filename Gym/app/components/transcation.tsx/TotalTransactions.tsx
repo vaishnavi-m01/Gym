@@ -1,4 +1,4 @@
-import { View,StyleSheet,Text, ScrollView } from "react-native"
+import { View,StyleSheet,Text } from "react-native"
 
 type Transaction= {
    id:number;

@@ -1,18 +1,13 @@
 import config from "@/app/config";
 import { AntDesign, Entypo } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useNavigation } from "expo-router";
-import { useState } from "react";
 import {
     Image,
-    Modal,
     TouchableOpacity,
-    TouchableWithoutFeedback,
     View,
     Text,
     StyleSheet,
-    KeyboardAvoidingView,
-    Platform
 } from "react-native";
 
 

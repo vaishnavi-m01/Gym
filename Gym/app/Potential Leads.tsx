@@ -1,5 +1,4 @@
 import { useNavigation } from "expo-router";
-import { navigate } from "expo-router/build/global-state/routing";
 import { useEffect, useState } from "react";
 import { Text, View, StyleSheet, TouchableOpacity, ScrollView } from "react-native"
 import { Searchbar } from "react-native-paper"

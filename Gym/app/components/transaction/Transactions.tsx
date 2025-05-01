@@ -1,6 +1,5 @@
-import { AntDesign, Entypo, FontAwesome5 } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import { View, StyleSheet, Text, Image } from "react-native";
-import Plan from "../plan/Plan";
 
 type members = {
   id: number;

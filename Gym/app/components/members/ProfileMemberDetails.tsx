@@ -1,5 +1,4 @@
-import { AntDesign, Entypo, Feather } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { Entypo, Feather } from "@expo/vector-icons";
 import {
   Image,
   Linking,

@@ -31,7 +31,6 @@ const Profile = () => {
   const [phone_number, setPhone] = useState("");
   const [profile_picture, setProfileImage] = useState<ImageFile | null>(null);
 
-  const [showFullImage, setShowFullImage] = useState(false);
 
 
   const [showOptions, setShowOptions] = useState(false);

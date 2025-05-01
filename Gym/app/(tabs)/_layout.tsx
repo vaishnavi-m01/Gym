@@ -2,7 +2,6 @@ import { Tabs } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Keyboard } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/constants/Colors';
 import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Octicons, MaterialIcons, Foundation, EvilIcons, Feather } from '@expo/vector-icons';

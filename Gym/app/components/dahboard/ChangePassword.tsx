@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  View,
   Text,
   Modal,
   TextInput,
@@ -8,7 +7,6 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import Toast from "react-native-toast-message";
 import axios, { AxiosError } from "axios";
 import config from "@/app/config";
 import { useRoute } from "@react-navigation/native";

@@ -32,7 +32,6 @@ const CreateLead = () => {
     const [chance_of_joining, setChanceOfJoining] = useState("");
     const [referral, setRefferal] = useState();
     const [notes, setNotes] = useState("");
-    const [followup_date, setFollowupDate] = useState();
 
     const [date, setDate] = useState(new Date());
     const [isPickerVisible, setPickerVisible] = useState(false);

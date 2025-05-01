@@ -40,10 +40,8 @@ type EditMembersProps = {
 export default function EditMembers({
   id,
   visible,
-  onClose,
 }: EditMembersProps) {
   const [open, setOpen] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
 
   const [name, setName] = useState("");
   const [phone_number, setPhone] = useState("");

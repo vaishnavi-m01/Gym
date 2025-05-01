@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Text,
   View,
@@ -25,12 +25,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from "moment";
 
-type AddMembershipParams = {
-  profile_picture: string;
-  phone_number: string;
-  status: string;
-  gender: string;
-};
+
 
 type AddMembershipNav = NativeStackNavigationProp<
   RootStackParamList,
@@ -62,7 +57,6 @@ const NewMember = () => {
   const [date, setDate] = useState(new Date());
 
   const { setMember } = useMember();
-  const navigation = useNavigation();
   const navigationById = useNavigation<AddMembershipNav>();
   const [isPickerVisible, setPickerVisible] = useState(false);
 

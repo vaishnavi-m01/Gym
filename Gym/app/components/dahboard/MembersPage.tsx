@@ -9,7 +9,6 @@ import {
   Pressable,
   Alert,
 } from "react-native";
-import { useRouter } from "expo-router";
 import { useState } from "react";
 import axios from "axios";
 import config from "../../config";

@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
-  Platform,
   Pressable,
   Alert,
   Modal,
@@ -16,7 +15,7 @@ import {
 import ProfileMember from "./components/members/ProfileMember";
 import { useEffect, useState } from "react";
 import { useNavigation } from "expo-router";
-import { ActivityIndicator, RadioButton } from "react-native-paper";
+import {  RadioButton } from "react-native-paper";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Linking } from "react-native";
@@ -44,7 +43,6 @@ const AddMembership = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [plan, setPlan] = useState("One Month");
-  const [planName, setPlanName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [discount, setDiscount] = useState("");
   const [amountReceived, setAmountReceived] = useState("");
@@ -56,11 +54,11 @@ const AddMembership = () => {
   const [date, setDate] = useState(new Date());
   const [isPickerVisible, setPickerVisible] = useState(false);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [_isSubmitting, setIsSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [apiCalled, setApiCalled] = useState(false);
+  const [_apiCalled, setApiCalled] = useState(false);
 
-  const [membershipData, setMembershipData] = useState<any>(null);
+  const [_membershipData, setMembershipData] = useState<any>(null);
   const { id } = useLocalSearchParams();
   const [member, setMember] = useState<any>(null);
   const appState = useRef(AppState.currentState);

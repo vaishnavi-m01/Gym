@@ -1,7 +1,6 @@
-import { AntDesign, Entypo, FontAwesome5 } from "@expo/vector-icons";
-import { View, StyleSheet, Image, Text, ScrollView, TouchableOpacity } from "react-native";
+import { AntDesign } from "@expo/vector-icons";
+import { View, StyleSheet, Image, Text } from "react-native";
 import { useState } from "react";
-import EditMembers from "../members/EditMembers";
 
 type members = {
   id: number;
@@ -13,9 +12,7 @@ type members = {
 const PendingListComponent = ({ image, name, duration,pendingAmount }: members) => {
   const [_changePassword, setChangePassword] = useState<any[]>([]);
 
-  const handleChangePassword = (changePassword: any) => {
-    setChangePassword((prevPasswor) => [changePassword, ...prevPasswor]);
-  };
+ 
 
   return (
     <View style={style.container}>

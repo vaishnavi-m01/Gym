@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Text, View, StyleSheet, ScrollView, TouchableOpacity, FlatList } from "react-native"
+import {  View, StyleSheet, TouchableOpacity, FlatList } from "react-native"
 import PendingListComponent from "./components/pendingList/PendingListComponent";
 import axios from "axios";
 import config from "./config";
